@@ -1,0 +1,95 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use App\Models\Coach;
+use App\Models\Investisseur;
+use App\Models\Startup;
+use App\Models\User;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class RegisteredUserController extends Controller
+{
+    /**
+     * Display the registration view.
+     */
+    public function create(): Response
+    {
+        return Inertia::render('Auth/Register');
+    }
+
+    /**
+     * Handle an incoming registration request.
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => 'required|in:startup,coach,investisseur',
+
+        ]);
+        if ($request->role === 'investisseur') {
+            $data['visibility'] = $request->visibility;
+            $data['image'] = $request->file('image') ? $request->file('image')->store('investor_images') : null;
+        }
+        if ($request->role === 'startup') {
+            $data['domain_name'] = $request->domain_name;
+            $data['image'] = $request->file('image') ? $request->file('image')->store('startup_images') : null;
+
+        }
+
+        if ($request->role === 'coach') {
+            $data['specialty'] = $request->specialty;
+            $data['image'] = $request->file('image') ? $request->file('image')->store('coach_images') : null;
+
+        }
+        $user = User::create([
+            'name' => $request->input('name'),  // Utiliser $request->input() pour obtenir le champ 'name'
+            'email' => $request->input('email'),
+            'password' => Hash::make($request->input('password')),  // Utiliser $request->input() pour le mot de passe
+            'role' => $request->input('role'),  // Utiliser $request->input() pour le rôle
+            'visibility' => $request->input('visibility') ?? null,  // Assurez-vous que 'visibility' est bien dans la requête
+            'image' => $request->input('image') ?? null,  // Image, ou null si elle n'est pas présente
+            'domain_name' => $request->input('domain_name') ?? null,  // Domain Name pour le startup
+            'specialty' => $request->input('specialty') ?? null,  // Specialty pour le coach
+        ]);
+        if ($request->role === 'investisseur') {
+            $investisseur = new Investisseur([
+                'user_id' => $user->id,
+               
+            ]);
+            $investisseur->save();
+        }
+        if ($request->role === 'startup') {
+            $startup = new Startup([
+                'user_id' => $user->id,
+                
+            ]);
+            $startup->save();
+        }
+        if ($request->role === 'coach') {
+            $coach = new Coach([
+                'user_id' => $user->id,
+               
+            ]);
+            $coach->save();
+        }
+        event(new Registered($user));
+
+        Auth::login($user);
+
+        return redirect(route('profile.edit', absolute: false));
+    }
+}
