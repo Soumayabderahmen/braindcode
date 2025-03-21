@@ -99,8 +99,9 @@ class RegisteredUserController extends Controller
         }
         event(new Registered($user));
 
-        Auth::login($user);
+        //Auth::login($user);
 
-        return redirect(route('profile.edit', absolute: false));
+        //return redirect(route('profile.edit', absolute: false));
+        return redirect()->route('login')->with('status', 'Compte créé avec succès. Veuillez vous connecter.');
     }
 }

@@ -31,10 +31,20 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
-        $request->session()->regenerate();
+       
+    $request->session()->regenerate();
+    $user = Auth::user(); // Retrieve the authenticated user
 
-        return redirect()->intended(route('dashboard', absolute: false));
-    }
+    $redirectUrl = match ($user->role) {
+        'admin' => route('admin.dashboard'),
+        'investisseur' => route('dashboard.investisseur'),
+        'coach' => route('dashboard.coach'),
+        'startup' => route('dashboard.startup'),
+        default => abort(404, 'Page not found'),
+    };
+
+    return redirect()->to($redirectUrl);
+}
 
     /**
      * Destroy an authenticated session.
