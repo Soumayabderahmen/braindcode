@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, nextTick } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import axios from "axios";
 import ChatBubble from "./ChatBubble.vue";
@@ -8,29 +8,64 @@ import ChatbotIcon from "./ChatbotIcon.vue";
 
 const messages = ref([]);
 const isOpen = ref(false);
-const page = usePage();
-const user = computed(() => page.props.auth.user);
+const messageContainer = ref(null);
+
+const user = computed(() => usePage().props.auth.user);
 const isAuthenticated = computed(() => !!user.value);
 
-// ✅ Envoi du message au backend Laravel
+// Scroll toujours en bas après chaque nouveau message
+const scrollToBottom = async () => {
+    await nextTick();
+    const el = messageContainer.value;
+    if (el) el.scrollTop = el.scrollHeight;
+};
+
+// Envoi de message
 const sendMessage = async (message) => {
     if (!message.trim()) return;
 
     messages.value.push({ text: message, sender: "user" });
+    scrollToBottom();
 
     try {
         const response = await axios.post("/api/chatbot", { message });
-
         messages.value.push({ text: response.data.reply, sender: "bot" });
     } catch (error) {
         messages.value.push({ text: "Erreur de connexion avec le chatbot.", sender: "bot" });
     }
+
+    scrollToBottom();
 };
 
-// ✅ Toggle d'affichage du chatbot
-const toggleChatbot = () => {
-    isOpen.value = !isOpen.value;
+// Chargement de l'historique
+const loadHistory = async () => {
+    try {
+        const response = await axios.get("/api/chatbot/history");
+        messages.value = response.data.history.map(m => ({
+            text: m.message,
+            sender: m.sender,
+            date: m.created_at,
+        }));
+        scrollToBottom();
+    } catch (error) {
+        console.error("Erreur chargement historique", error);
+    }
 };
+
+// Toggle chatbot
+const toggleChatbot = async () => {
+    isOpen.value = !isOpen.value;
+    if (isOpen.value && isAuthenticated.value) {
+        await loadHistory();
+    }
+};
+
+// Chargement à l'arrivée
+onMounted(async () => {
+    if (isAuthenticated.value) {
+        await loadHistory();
+    }
+});
 </script>
 
 <template>
@@ -41,9 +76,11 @@ const toggleChatbot = () => {
                 <span>🤖 Chatbot</span>
                 <button @click="toggleChatbot">✖</button>
             </div>
-            <div class="chatbot-messages">
+
+            <div class="chatbot-messages" ref="messageContainer">
                 <ChatBubble v-for="(msg, index) in messages" :key="index" :message="msg" />
             </div>
+
             <ChatInput @send-message="sendMessage" />
         </div>
     </div>
@@ -59,6 +96,7 @@ const toggleChatbot = () => {
     border-radius: 10px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    z-index: 999;
 }
 .chatbot-header {
     background: #007bff;

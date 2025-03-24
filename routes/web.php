@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
 
 // Route API pour envoyer un message au chatbot
 Route::post('/api/chatbot', [ChatbotController::class, 'sendMessage'])->name('chatbot.send');
+Route::middleware('auth')->get('/api/chatbot/history', [ChatbotController::class, 'getHistory']);
 
 
 // Routes Admin (Support Messages)
