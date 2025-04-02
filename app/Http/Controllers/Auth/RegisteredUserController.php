@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\CoachRegistered;
+use App\Mail\InvestisseurRegistered;
+use App\Mail\StartupRegistered;
 
 class RegisteredUserController extends Controller
 {
@@ -38,8 +42,15 @@ class RegisteredUserController extends Controller
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => 'required|in:startup,coach,investisseur',
+            'document' => $request->role === 'coach' ? 'required|file|mimes:pdf|max:10240' : 'nullable',
+            'statut' => 'required|in:active,inactive', 
+            'phone_number' => 'required|string|max:20', 
 
         ]);
+        $statut = 'inactive';
+       
+
+
         if ($request->role === 'investisseur') {
             $data['visibility'] = $request->visibility;
             $data['image'] = $request->file('image') ? $request->file('image')->store('investor_images') : null;
@@ -53,8 +64,9 @@ class RegisteredUserController extends Controller
         if ($request->role === 'coach') {
             $data['specialty'] = $request->specialty;
             $data['image'] = $request->file('image') ? $request->file('image')->store('coach_images') : null;
-
+            $data['document'] = $request->hasFile('document') ? $request->file('document')->store('coach_documents', 'public') : null; // ✅ Correction ici
         }
+       
         $user = User::create([
             'name' => $request->input('name'),  // Utiliser $request->input() pour obtenir le champ 'name'
             'email' => $request->input('email'),
@@ -63,7 +75,11 @@ class RegisteredUserController extends Controller
             'visibility' => $request->input('visibility') ?? null,  // Assurez-vous que 'visibility' est bien dans la requête
             'image' => $request->input('image') ?? null,  // Image, ou null si elle n'est pas présente
             'domain_name' => $request->input('domain_name') ?? null,  // Domain Name pour le startup
-            'specialty' => $request->input('specialty') ?? null,  // Specialty pour le coach
+            'specialty' => $request->input('specialty') ?? null, 
+            'statut' => $statut,
+            'document' => $request->hasFile('document') ? $request->file('document')->store('coach_documents', 'public') : null, // Ajout du document dans la table User
+            'phone_number' => $request->input('phone_number'),
+
         ]);
         if ($request->role === 'investisseur') {
             $investisseur = new Investisseur([
@@ -71,6 +87,14 @@ class RegisteredUserController extends Controller
                
             ]);
             $investisseur->save();
+            $admin = User::where('role', 'admin')->first();
+
+            if ($admin) {
+                // ✅ Envoyer l'email à l'admin
+                Mail::to($admin->email)->send(new InvestisseurRegistered($user));
+            }
+    
+            return redirect()->route('activation.message');
         }
         if ($request->role === 'startup') {
             $startup = new Startup([
@@ -78,13 +102,30 @@ class RegisteredUserController extends Controller
                 
             ]);
             $startup->save();
+            $admin = User::where('role', 'admin')->first();
+
+            if ($admin) {
+                // ✅ Envoyer l'email à l'admin
+                Mail::to($admin->email)->send(new StartupRegistered($user));
+            }
+    
+            return redirect()->route('activation.message');
         }
         if ($request->role === 'coach') {
             $coach = new Coach([
                 'user_id' => $user->id,
-               
+               'pdf_document'=>$data['document'],
             ]);
             $coach->save();
+
+            $admin = User::where('role', 'admin')->first();
+
+            if ($admin) {
+                // ✅ Envoyer l'email à l'admin
+                Mail::to($admin->email)->send(new CoachRegistered($user));
+            }
+    
+            return redirect()->route('activation.message');
         }
         event(new Registered($user));
 

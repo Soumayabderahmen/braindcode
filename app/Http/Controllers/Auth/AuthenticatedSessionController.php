@@ -32,10 +32,46 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+        $user = Auth::user();
 
-        return redirect()->intended(route('profile.edit', absolute: false));
+    if ($user->role === 'admin') {
+    return redirect()->route('admin.dashboard');//redirection vers dashboard admin
+        }
+
+        if ($this->isProfileComplete($user)) {
+            return redirect()->route('dashboard'); // Rediriger vers le dashboard si les infos sont complètes
+        }
+    
+        return redirect()->route('profile.edit');
+    }
+public function isProfileComplete($user):bool{
+    if ($user->role === 'coach') {
+        return $user->coach && 
+               $user->coach->diploma &&
+               $user->coach->competence &&
+               $user->coach->description &&
+               $user->coach->profile_image &&
+               $user->coach->cover_image;
     }
 
+    if ($user->role === 'investisseur') {
+        return $user->investisseur &&
+               $user->investisseur->video_presentation &&
+               $user->investisseur->description &&
+               $user->investisseur->website_link &&
+               $user->investisseur->social_links &&
+               $user->investisseur->profile_image &&
+               $user->investisseur->cover_image;
+    }
+    if ($user->role === 'startup') {
+        return $user->startup &&
+               $user->startup->logo_startup &&
+               $user->startup->adresse &&
+               $user->startup->NameCo_fondateur ;
+              
+    }
+    return false; 
+}
     /**
      * Destroy an authenticated session.
      */

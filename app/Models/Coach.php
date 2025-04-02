@@ -10,9 +10,14 @@ class Coach extends Model
     use HasFactory;
     protected $table = 'coach';
 
-    protected $fillable = ['user_id', 'phone_number', 'diploma', 'competence', 'description', 'profile_image', 'cover_image', 'pdf_document'];
+    protected $fillable = ['user_id',  'diploma', 'competence', 'description', 'profile_image', 'cover_image', 'pdf_document'];
 
     public function user()
     {
         return $this->belongsTo(User::class);
-    }}
+    }
+    public function availabilities()
+    {
+        return $this->hasMany(Disponibilite::class);
+    }
+}

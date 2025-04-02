@@ -9,7 +9,7 @@ class Startup extends Model
 {
     use HasFactory;
     protected $table = 'startup';
-    protected $fillable = ['user_id', 'logo_startup','phone_number'];
+    protected $fillable = ['user_id', 'logo_startup','NameCo_fondateur','adresse'];
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -214,4 +214,10 @@ return [
 
     'partitioned' => env('SESSION_PARTITIONED_COOKIE', false),
 
+    'driver' => env('SESSION_DRIVER', 'file'),
+    'connection' => env('SESSION_CONNECTION', null),
+    'secure' => env('SESSION_SECURE_COOKIE', false),  // À true si tu utilises HTTPS
+    'same_site' => 'lax', // ou 'strict' en fonction de ton besoin
+
+
 ];

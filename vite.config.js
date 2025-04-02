@@ -13,8 +13,16 @@ export default defineConfig({
                 transformAssetUrls: {
                     base: null,
                     includeAbsolute: false,
+                    additionalData: `@import "bootstrap/dist/css/bootstrap.min.css";`
+         
                 },
             },
         }),
+        
     ],
+    resolve: {
+        alias: {
+          
+            '@fullcalendar/vue3': '@fullcalendar/vue3',       }
+      }
 });

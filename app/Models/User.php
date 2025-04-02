@@ -21,7 +21,8 @@ class User extends Authenticatable
     protected $fillable = [
        
             'name', 'email', 'password', 'role', 
-             'visibility', 'image', 'domain_name', 'specialty'
+             'visibility', 'image', 'domain_name', 'specialty','document',
+        'statut','phone_number','google_id'
        
     
     ];
@@ -48,9 +49,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function startup(): HasOne
+    public function startup()
     {
-        return $this->hasOne(Startup::class);
+        return $this->hasOne(Startup::class, 'user_id');
     }
 
     public function coach(): HasOne

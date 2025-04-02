@@ -6,6 +6,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { watch } from 'vue';
 
 const form = useForm({
     name: '',  // Nom de Startup ou d'Investisseur
@@ -16,19 +17,34 @@ const form = useForm({
     visibility: '',
     image: null,
     domain_name: '',  // Domaine de la Startup
-    specialty: ''  // Spécialité du Coach
+    specialty: '' ,
+    document: null,
+    statut: 'active', 
+    phone_number:'',
 });
 
 const onRoleChange = (role) => {
     console.log("Rôle sélectionné :", role);
-    form.role = role; // Mettez à jour `form.role` explicitement si nécessaire
+    form.role = role; 
+    form.statut = (role === 'coach') ? 'inactive' : 'active';
+
+    // Mettez à jour `form.role` explicitement si nécessaire
     // Si le rôle est "investisseur", effacer le champ `name` et définir `investor_name`
     if (role === 'investisseur') {
         form.name = '';  // On vide le champ `name` pour les investisseurs
-    }
-};
+    } 
 
+
+};
+watch(() => form.role, (newRole) => {
+    form.statut = (newRole === 'coach') ? 'inactive' : 'active';
+});
 const submit = () => {
+    if (form.role !== 'coach') {
+        form.document = null; // Supprimer 'document' si ce n'est pas un coach
+    }
+    console.log('Envoi du statut:', form.statut);
+
     form.post(route('register'), {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
@@ -73,6 +89,7 @@ const submit = () => {
                 </div>
                 <InputError class="mt-2" :message="form.errors.role" />
             </div>
+
             <div class="mt-4">
 
             <!-- Champ pour le nom ou le nom de startup -->
@@ -129,6 +146,7 @@ const submit = () => {
                 <InputError class="mt-2" :message="form.errors.email" />
             </div>
 
+
             <!-- Champ pour le mot de passe -->
             <div class="mt-4">
                 <InputLabel for="password" value="Password" />
@@ -156,7 +174,16 @@ const submit = () => {
                 />
                 <InputError class="mt-2" :message="form.errors.password_confirmation" />
             </div>
-
+            <InputLabel for="phone_number" value="Numéro de téléphone" />
+                <TextInput
+                    id="phone_number"
+                    type="tel"
+                    class="mt-1 block w-full"
+                    v-model="form.phone_number"
+                    required
+                    autocomplete="tel"
+                />
+                <InputError class="mt-2" :message="form.errors.phone_number" />
             <!-- Champs spécifiques selon le rôle -->
             <div v-if="form.role === 'investisseur'" class="mt-4">
                 <InputLabel for="visibility" value="Visibilité" />
@@ -191,6 +218,15 @@ const submit = () => {
                     v-model="form.specialty"
                 />
                 <InputError class="mt-2" :message="form.errors.specialty" />
+                <InputLabel for="document" value="Document justificatif (PDF)" />
+    <input 
+        type="file" 
+        id="document" 
+        accept="application/pdf" 
+       @change="e => form.document = e.target.files[0]"
+        class="mt-1 block w-full" 
+    />
+    <InputError class="mt-2" :message="form.errors.document" />
             </div>
 
             <!-- Bouton de soumission -->

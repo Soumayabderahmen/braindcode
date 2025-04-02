@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::rename('coachs', 'coach');
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('statut')->nullable();         });
     }
 
     /**
@@ -19,6 +20,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('statut');   
+               });
     }
 };
