@@ -9,7 +9,7 @@ import ChatbotIcon from "./ChatbotIcon.vue";
 const messages = ref([]);
 const isOpen = ref(false);
 const messageContainer = ref(null);
-
+const botStatus = ref("unknown"); // "online", "offline"
 const user = computed(() => usePage().props.auth.user);
 const isAuthenticated = computed(() => !!user.value);
 
@@ -29,14 +29,29 @@ const sendMessage = async (message) => {
 
     try {
         const response = await axios.post("/api/chatbot", { message });
+        console.log("Réponse du bot (source):", response.data.source);
         messages.value.push({ text: response.data.reply, sender: "bot" });
     } catch (error) {
-        messages.value.push({ text: "Erreur de connexion avec le chatbot.", sender: "bot" });
-    }
+    messages.value.push({
+        text: "Le chatbot est temporairement indisponible. Je te répondrai bientôt 🤖.",
+        sender: "bot"
+    });
+}
 
     scrollToBottom();
 };
-
+const checkBotStatus = async () => {
+    try {
+        const response = await axios.get("http://127.0.0.1:5005/ping"); // Ou ton endpoint FastAPI
+        if (response.status === 200) {
+            botStatus.value = "online";
+        } else {
+            botStatus.value = "offline";
+        }
+    } catch (error) {
+        botStatus.value = "offline";
+    }
+};
 // Chargement de l'historique
 const loadHistory = async () => {
     try {
@@ -65,26 +80,37 @@ onMounted(async () => {
     if (isAuthenticated.value) {
         await loadHistory();
     }
+    await checkBotStatus();
 });
+
 </script>
 
 <template>
     <div>
-        <ChatbotIcon @click="toggleChatbot" v-if="!isOpen" />
-        <div v-if="isOpen" class="chatbot-container">
-            <div class="chatbot-header">
-                <span>🤖 Chatbot</span>
-                <button @click="toggleChatbot">✖</button>
-            </div>
-
-            <div class="chatbot-messages" ref="messageContainer">
-                <ChatBubble v-for="(msg, index) in messages" :key="index" :message="msg" />
-            </div>
-
-            <ChatInput @send-message="sendMessage" />
+      <ChatbotIcon @click="toggleChatbot" v-if="!isOpen" />
+      <div v-if="isOpen" class="chatbot-container">
+        <div class="chatbot-header ,bot-status">
+          <span>🤖 Chatbot
+            <span :class="{ online: botStatus === 'online', offline: botStatus === 'offline' }">
+           {{ botStatus === 'online' ? '🟢' : '🔴' }}
+         </span>
+          </span>
+         
+          <button @click="toggleChatbot">✖</button>
         </div>
+  
+        <!-- 👇 Ajoute ce bloc ici -->
+       
+  
+        <div class="chatbot-messages" ref="messageContainer">
+          <ChatBubble v-for="(msg, index) in messages" :key="index" :message="msg" />
+        </div>
+  
+        <ChatInput @send-message="sendMessage" />
+      </div>
     </div>
-</template>
+  </template>
+  
 
 <style scoped>
 .chatbot-container {
@@ -111,4 +137,15 @@ onMounted(async () => {
     overflow-y: auto;
     padding: 10px;
 }
+.bot-status {
+  font-size: 14px;
+  margin: 5px 10px;
+}
+.online {
+  color: green;
+}
+.offline {
+  color: red;
+}
+
 </style>

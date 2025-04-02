@@ -3,7 +3,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "start:all": "start_all.bat"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^2.0.5",

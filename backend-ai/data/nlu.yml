@@ -1,0 +1,106 @@
+version: "3.1"
+
+nlu:
+- intent: greet
+  examples: |
+    - hey
+    - hello
+    - hi
+    - bonjour
+    - salut
+    - coucou
+    - bonsoir
+    - hello there
+    - good morning
+    - good evening
+    - hey dude
+    - bon matin
+    - bon après-midi
+
+- intent: goodbye
+  examples: |
+    - bye
+    - goodbye
+    - see you later
+    - see you
+    - à bientôt
+    - au revoir
+    - à plus
+    - à la prochaine
+    - bye bye
+    - bonne journée
+    - bonne nuit
+
+- intent: affirm
+  examples: |
+    - yes
+    - yeah
+    - of course
+    - bien sûr
+    - absolument
+    - évidemment
+    - oui
+    - c'est vrai
+    - d'accord
+- intent: ask_general_info
+  examples: |
+    - c'est quoi l'étape 3 ?
+    - quelles sont les étapes ?
+    - comment fonctionne votre programme ?
+    - pouvez-vous me parler des étapes ?
+    - how does your program work?
+    - can you explain the stages?
+
+- intent: deny
+  examples: |
+    - no
+    - nope
+    - non
+    - pas du tout
+    - jamais
+    - je ne pense pas
+    - je ne suis pas d'accord
+    - pas vraiment
+
+- intent: mood_great
+  examples: |
+    -  
+    - je vais très bien
+    - super
+    - génial
+    - au top
+    - je suis en forme
+    - je suis content
+    - je suis heureux
+    - ça va nickel
+    - trop bien
+    - je me sens super bien
+
+- intent: mood_unhappy
+  examples: |
+    - I feel bad
+    - ça ne va pas
+    - je suis triste
+    - je ne me sens pas bien
+    - je vais mal
+    - je suis déçu
+    - journée pourrie
+    - trop nul
+    - ça ne va vraiment pas
+    - je suis énervé
+    - c’est une mauvaise journée
+
+- intent: bot_challenge
+  examples: |
+    - are you a bot?
+    - es-tu un robot ?
+    - es-tu humain ?
+    - suis-je en train de parler à une IA ?
+    - suis-je en train de parler à un humain ?
+    - parles-tu comme un humain ?
+- intent: ask_help
+  examples: |
+    - i want some help
+    - j'ai besoin d'aide
+    - help me please
+    - aide moi

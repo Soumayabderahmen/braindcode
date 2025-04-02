@@ -21,8 +21,8 @@ class ChatbotController extends Controller
     
         $userMessage = $request->input('message');
         $user = Auth::user();
+        $source = 'unknown'; // ✅ Initialisation ici
     
-        // Si l'utilisateur est connecté, on sauvegarde son message
         if ($user) {
             ChatMessage::create([
                 'user_id' => $user->id,
@@ -32,36 +32,39 @@ class ChatbotController extends Controller
         }
     
         try {
-            // Appel au backend Python (FastAPI)
-            $response = Http::timeout(3)->post(env('CHATBOT_API_URL'), [
+            $response = Http::withHeaders([
+                'Connection' => 'keep-alive'
+            ])->timeout(5)->post(env('CHATBOT_API_URL'), [
                 'sender' => $user ? "user_{$user->id}" : "guest",
                 'message' => $userMessage,
             ]);
-    
+        
+            logger('🧪 Réponse brute du chatbot : ' . $response->body());
+        
             if ($response->successful()) {
                 $botReply = $response->json();
-                $botMessage = $botReply['reply'] ?? "Je n'ai pas compris, peux-tu reformuler ?";
-    
+                $botMessage = $botReply['reply'] ?? "Je n'ai pas compris.";
+                $source = $botReply['source'] ?? 'inconnu';
             } else {
-                $botMessage = "Je rencontre un souci technique, peux-tu réessayer plus tard ?";
+                logger('⚠️ Réponse NON successful : ' . $response->status());
+                $botMessage = "Je rencontre un souci technique.";
+                $source = "unknown";
             }
-    
+        
         } catch (\Exception $e) {
-            // 🚨 Erreur de communication = on envoie un fallback
-            $botMessage = "Le chatbot est temporairement indisponible. Je te répondrai bientôt 🤖.";
+            logger('❌ Erreur appel chatbot: ' . $e->getMessage());
+            $botMessage = "Le chatbot est temporairement indisponible.";
+            $source = "unknown";
         }
-    
-        // On enregistre la réponse du bot si user connecté
-        if ($user) {
-            ChatMessage::create([
-                'user_id' => $user->id,
-                'message' => $botMessage,
-                'sender' => 'bot',
-            ]);
-        }
-    
-        return response()->json(['reply' => $botMessage]);
+        
+        return response()->json([
+            'reply' => $botMessage,
+            'source' => $source,
+        ]);
+        
+        
     }
+    
     public function getHistory()
     {
         $user = Auth::user();
