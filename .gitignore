@@ -22,4 +22,20 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed*
+# Dossiers Rasa à ignorer
+/backend-ai/.rasa/
+/backend-ai/__pycache__/
+/backend-ai/venv/
+/backend-ai/venv/Lib/
+/backend-ai/venv/Include/
+/backend-ai/venv/Scripts/
+# Fichiers Python compilés
+*.pyc
+*.pyo
+*.pyd
 
+# Modèles Rasa entraînés
+*.tar.gz
+
+# Logs
+*.log
