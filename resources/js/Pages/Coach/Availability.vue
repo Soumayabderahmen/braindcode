@@ -22,6 +22,7 @@ const form = useForm({
   end_time: "",
   statut: "available",
   day_of_week: "",
+  honoraire: "",
 });
 
 // Formulaire de modification
@@ -31,6 +32,7 @@ const editForm = useForm({
   start_time: "",
   end_time: "",
   day_of_week: "",
+  honoraire: "",
 });
 
 // Indicateur d'édition
@@ -87,6 +89,8 @@ const editAvailability = (availability) => {
   editForm.start_time = availability.start_time;
   editForm.end_time = availability.end_time;
   editForm.day_of_week = getDayOfWeek(availability.date);
+  editForm.honoraire = availability.honoraire;
+
 };
 
 // Mettre à jour la disponibilité (uniquement date et heures)
@@ -105,8 +109,9 @@ const updateTimes = () => {
     date: editForm.date || null,
     start_time: formatTimeForBackend(editForm.start_time),
     end_time: formatTimeForBackend(editForm.end_time),
-    day_of_week: editForm.day_of_week
-      };
+    day_of_week: editForm.day_of_week,
+    honoraire: editForm.honoraire,
+  };
 
   editForm.put(route("coach.availability.updateTimes", editForm.id), {
     data: payload,
@@ -149,6 +154,11 @@ const updateTimes = () => {
                 <option value="unavailable">Indisponible</option>
               </select>
             </div>
+            <div class="mb-3">
+              <label class="form-label">Honoraire (€)</label>
+              <input type="number" step="0.01" v-model="form.honoraire" class="form-control" placeholder="Ex: 50.00" />
+            </div>
+
           </div>
           <div class="text-center">
             <button type="submit" class="btn btn-primary">Ajouter</button>
@@ -173,7 +183,14 @@ const updateTimes = () => {
               <input type="time" v-model="editForm.end_time" class="form-control"
                 @input="editForm.end_time = $event.target.value">
             </div>
+            <div class="col-md-12 mb-3">
+              <label class="form-label">Honoraire (€)</label>
+              <input type="number" step="0.01" v-model="editForm.honoraire" class="form-control"
+                placeholder="Ex: 60.00" />
+            </div>
+
           </div>
+
           <div class="text-center">
             <button type="submit" class="btn btn-warning">Modifier</button>
             <button type="button" class="btn btn-secondary ms-2" @click="isEditing = false">Annuler</button>
@@ -195,6 +212,7 @@ const updateTimes = () => {
               <th class="border p-2">Début</th>
               <th class="border p-2">Fin</th>
               <th class="border p-2">Jour de la semaine</th>
+              <th class="border p-2">Honoraire (€)</th>
 
               <th class="border p-2">Statut</th>
               <th class="border p-2">Actions</th>
@@ -205,16 +223,23 @@ const updateTimes = () => {
               <td class="border border-gray-300 px-4 py-2">{{ availability.date }}</td>
               <td class="border border-gray-300 px-4 py-2">{{ availability.start_time }}</td>
               <td class="border border-gray-300 px-4 py-2">{{ availability.end_time }}</td>
-              <td class="border border-gray-300 px-4 py-2">{{ availability.day_of_week }}</td> <!-- Affichage du jour -->
+              <td class="border border-gray-300 px-4 py-2">{{ availability.day_of_week }}</td>
+              <td class="border border-gray-300 px-4 py-2">{{ availability.honoraire ?? '—' }}</td>
+
+              <!-- Affichage du jour -->
 
               <td class="border border-gray-300 px-6 py-4">
-  <!-- Menu déroulant pour changer le statut -->
-  <select v-model="availability.statut" @change="updateStatus(availability.id, availability.statut)" class="form-select" required :class="availability.statut === 'available' ? 'badge bg-success' : 'badge bg-danger'">
-    <option  :class="availability.statut === 'available' ? 'badge bg-success' : 'badge bg-danger'" value="available">Disponible</option>
-    <option  :class="availability.statut === 'unavailable' ? 'badge bg-success' : 'badge bg-danger'"value="unavailable">Indisponible</option>
-  </select>
- 
-</td>
+                <!-- Menu déroulant pour changer le statut -->
+                <select v-model="availability.statut" @change="updateStatus(availability.id, availability.statut)"
+                  class="form-select" required
+                  :class="availability.statut === 'available' ? 'badge bg-success' : 'badge bg-danger'">
+                  <option :class="availability.statut === 'available' ? 'badge bg-success' : 'badge bg-danger'"
+                    value="available">Disponible</option>
+                  <option :class="availability.statut === 'unavailable' ? 'badge bg-success' : 'badge bg-danger'"
+                    value="unavailable">Indisponible</option>
+                </select>
+
+              </td>
 
 
               <td>

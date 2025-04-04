@@ -112,42 +112,42 @@ function handleEventResize(resizeInfo) {
                             </div>
                         </div>
                     </div>
-                    </div>
-                    </div>
-                    </div>
+                </div>
+            </div>
+        </div>
 
     </Main>
 </template>
 
 <style scoped>
 .calendar-container {
-  max-width: 900px;
-  margin: auto;
-  padding: 20px;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 :deep(.fc-toolbar) {
-  background: #34495F;
-  color: white;
-  border-radius: 8px;
-  padding: 10px;
+    background: #34495F;
+    color: white;
+    border-radius: 8px;
+    padding: 10px;
 }
 
 :deep(.fc-button) {
-  background: #2980b9 !important;
-  border: none !important;
-  color: white !important;
+    background: #2980b9 !important;
+    border: none !important;
+    color: white !important;
 }
 
 :deep(.fc-daygrid-day) {
-  border: 1px solid #ddd;
+    border: 1px solid #ddd;
 }
 
 :deep(.fc-daygrid-day-number) {
-  color: #2c3e50;
-  font-weight: bold;
+    color: #2c3e50;
+    font-weight: bold;
 }
 </style>

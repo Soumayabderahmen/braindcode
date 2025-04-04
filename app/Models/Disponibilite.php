@@ -17,6 +17,7 @@ class Disponibilite extends Model
         'start_time',
         'end_time',
         'statut',
+        'honoraire',
     ];
 
     /**
