@@ -9,7 +9,7 @@
   <script setup>
   import Navbar from "../Components/navbar.vue";
   import Sidebar from "../Components/sidebar.vue";
-  
+
   // Définir les propriétés pour contrôler l'affichage
   const props = defineProps({
     showSidebar: {

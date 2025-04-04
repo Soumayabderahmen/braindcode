@@ -26,52 +26,55 @@ class AvailabilityController extends Controller
     
         return Inertia::render('Coach/Availability', [
             'availabilities' => $availabilities,
-            'coachId' => $coach->id, // Passe coach_id comme prop
+            'coachId' => $coach->id, 
         ]);
     }
     
 
     
     public function store(Request $request)
-{
-    // Validation des données d'entrée
-    $request->validate([
-        'coach_id' => 'required|exists:coach,id',
-        'day_of_week' => 'nullable|string',
-        'date' => 'nullable|date',
-        'start_time' => 'required|date_format:H:i',
-        'end_time' => 'required|date_format:H:i|after:start_time',
-        'statut' => 'required|in:available,unavailable',
-    ]);
-
-    $coach = Coach::findOrFail($request->coach_id); // Récupère le coach basé sur l'id
-    if (Auth::user()->id !== $coach->user_id) {
-        return back()->withErrors(['error' => 'Accès non autorisé.']);
+    {
+        // Validation des données d'entrée
+        $request->validate([
+            'coach_id' => 'required|exists:coach,id',
+            'day_of_week' => 'nullable|string',
+            'date' => 'nullable|date',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+            'statut' => 'required|in:available,unavailable',
+            'honoraire' => 'nullable|numeric', // Validation du champ honoraire
+        ]);
+    
+        $coach = Coach::findOrFail($request->coach_id); // Récupère le coach basé sur l'id
+        if (Auth::user()->id !== $coach->user_id) {
+            return back()->withErrors(['error' => 'Accès non autorisé.']);
+        }
+    
+        // Vérifier si le créneau existe déjà pour ce coach
+        $existingAvailability = Disponibilite::where('coach_id', $coach->id)
+            ->where('date', $request->date)
+            ->where('start_time', $request->start_time)
+            ->where('end_time', $request->end_time)
+            ->exists();
+    
+        if ($existingAvailability) {
+            return back()->withErrors(['error' => 'Ce créneau est déjà enregistré.']);
+        }
+    
+        // Créer la disponibilité
+        Disponibilite::create([
+            'coach_id' => $coach->id,
+            'day_of_week' => $request->day_of_week,
+            'date' => $request->date,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+            'statut' => $request->statut,
+            'honoraire' => $request->honoraire, // Ajouter le champ honoraire
+        ]);
+    
+        return back()->with('success', 'Disponibilité est ajoutée avec succès.');
     }
-
-    // Vérifier si le créneau existe déjà pour ce coach
-    $existingAvailability = Disponibilite::where('coach_id', $coach->id)
-        ->where('date', $request->date)
-        ->where('start_time', $request->start_time)
-        ->where('end_time', $request->end_time)
-        ->exists();
-
-    if ($existingAvailability) {
-        return back()->withErrors(['error' => 'Ce créneau est déjà enregistré.']);
-    }
-
-    // Créer la disponibilité
-    Disponibilite::create([
-        'coach_id' => $coach->id,
-        'day_of_week' => $request->day_of_week,
-        'date' => $request->date,
-        'start_time' => $request->start_time,
-        'end_time' => $request->end_time,
-        'statut' => $request->statut,
-    ]);
-
-    return back()->with('success', 'Disponibilité est ajoutée  avec succès.');
-}
+    
 
 public function updateTimes(Request $request, $id)
 {
@@ -87,7 +90,8 @@ public function updateTimes(Request $request, $id)
         'date' => $request->date,
         'start_time' => $request->start_time ? $this->formatTime($request->start_time) : null,
         'end_time' => $request->end_time ? $this->formatTime($request->end_time) : null,
-        'day_of_week' => $request->date ? $this->getDayOfWeek($request->date) : null
+        'day_of_week' => $request->date ? $this->getDayOfWeek($request->date) : null,
+        'honoraire' => $request->honoraire ,
     ];
 
     // Validation
@@ -95,14 +99,17 @@ public function updateTimes(Request $request, $id)
         'date' => 'required|date',
         'day_of_week' => 'required|string|max:20',
         'start_time' => 'required|date_format:H:i:s',
-        'end_time' => 'required|date_format:H:i:s|after:start_time'
+        'end_time' => 'required|date_format:H:i:s|after:start_time',
+         'honoraire' => 'nullable|numeric|min:0'
     ], [
         'date.required' => 'La date est obligatoire',
         'start_time.required' => 'L\'heure de début est obligatoire',
         'start_time.date_format' => 'Le format de l\'heure doit être HH:MM',
         'end_time.required' => 'L\'heure de fin est obligatoire',
         'end_time.date_format' => 'Le format de l\'heure doit être HH:MM',
-        'end_time.after' => 'L\'heure de fin doit être après l\'heure de début'
+        'end_time.after' => 'L\'heure de fin doit être après l\'heure de début',
+        'honoraire.numeric' => 'L\'honoraire doit être un nombre',
+        'honoraire.min' => 'L\'honoraire doit être supérieur ou égal à 0'
     ]);
 
     if ($validator->fails()) {
@@ -176,6 +183,7 @@ public function updateStatus(Request $request, $id)
 
     public function FullCalandry()
 {
+    
     $availabilities = Auth::user()->coach->availabilities()
         ->select('id', 'date', 'start_time', 'end_time', 'statut')
         ->get()

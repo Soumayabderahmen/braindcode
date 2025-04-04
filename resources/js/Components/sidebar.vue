@@ -43,7 +43,7 @@ const toggleSidebar = () => {
         </template>
         <template v-if="isStartup">
           <li>
-            <a href="/dashboard" class="menu-item">🏠 Dashboard</a>
+            <a href="/startup/dashboard" class="menu-item">🏠 Dashboard</a>
           </li>
           <li>
             <a href="/profile" class="menu-item">👤 Profil</a>
@@ -58,7 +58,10 @@ const toggleSidebar = () => {
             <a href="/ListStartups" class="menu-item">🚀 Startups</a>
           </li>
           <li>
-            <a href="/calendar" class="menu-item">🗓️ Calandrier</a>
+            <a href="/startup/calendar" class="menu-item">🗓️ Calandrier</a>
+          </li>
+          <li>
+            <a href="/startup/res/create" class="menu-item">🗓️ teste</a>
           </li>
         </template>
         <template v-if="isCoach">

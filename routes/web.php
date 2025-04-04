@@ -11,6 +11,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Coach\AvailabilityController;
+use App\Http\Controllers\Startups\ReservationController;
 
 Route::get('/', function () {
     // Si l'utilisateur est authentifié, le rediriger vers le tableau de bord ou une autre page
@@ -28,19 +29,26 @@ Route::get('/dashboard', function () {
 Route::get('/activation-message', function () {
     return Inertia::render('Coach/ActivationMessage');
 })->name('activation.message');
+
 Route::prefix('admin')->middleware(['auth', 'verified'])->name('admin.')->group(function () {  
 Route::get('/activate-coach/{id}', [CoachController::class, 'activateCoach'])->name('activate_coach');
 Route::get('/activate-startup/{id}', [CoachController::class, 'activateStartup'])->name('activate_startup');
 Route::get('/activate-investisseur/{id}', [CoachController::class, 'activateInvestisseur'])->name('activate_investisseur');
-
 Route::get('/coaches', [CoachController::class, 'index'])->name('coaches');
 Route::get('/dashboard', [CoachController::class, 'Dashboard'])->name('dashboard');
 Route::get('/startups', [CoachController::class, 'startup'])->name('startups');
 Route::get('/investisseurs', [CoachController::class, 'investisseurs'])->name('investisseurs');
 
 });
+Route::prefix('startup')->middleware(['auth', 'verified'])->name('startup.')->group(function () {  
+    Route::get('/dashboard', [ListStartupController::class, 'ListMembres'])->name('list');
+    Route::get('/calendar', [ListStartupController::class, 'FullCalandryStartup'])->name('calendar');
+    Route::get('/res/create', [ListStartupController::class, 'create'])->name('reservation.create');
 
-
+});
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    Route::get('/startup/reservations/create', [ReservationController::class, 'create']);
+});
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::get('/ListStartups', [ListStartupController::class, 'List'])->name('list.startup');
