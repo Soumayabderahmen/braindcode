@@ -1,8 +1,0 @@
-fastapi
-uvicorn
-httpx
-transformers
-torch
-rasa
-pydantic
-requests

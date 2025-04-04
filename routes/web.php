@@ -11,7 +11,7 @@ use Inertia\Inertia;
 use App\Http\Middleware\CheckAdmin;
 use App\Http\Middleware\CheckRole;
 use App\Http\Controllers\Chatbot\ChatbotController;
-
+use App\Http\Controllers\Faq\FaqController;
 
 // Route pour le tableau de bord, sans authentification
 Route::get('/', function () {
@@ -48,6 +48,8 @@ Route::middleware('auth')->group(function () {
 Route::post('/api/chatbot', [ChatbotController::class, 'sendMessage'])->name('chatbot.send');
 Route::middleware('auth')->get('/api/chatbot/history', [ChatbotController::class, 'getHistory']);
 
+// Route Faq
+Route::get('/faqs', [FaqController::class, 'index']);
 
 // Routes Admin (Support Messages)
 Route::prefix('admin')->middleware(['auth', 'verified', CheckAdmin::class])->name('admin.')->group(function () {

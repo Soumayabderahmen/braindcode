@@ -12,6 +12,7 @@ const messageContainer = ref(null);
 const botStatus = ref("unknown"); // "online", "offline"
 const user = computed(() => usePage().props.auth.user);
 const isAuthenticated = computed(() => !!user.value);
+const isLoading = ref(false)
 
 // Scroll toujours en bas après chaque nouveau message
 const scrollToBottom = async () => {
@@ -26,16 +27,18 @@ const sendMessage = async (message) => {
 
     messages.value.push({ text: message, sender: "user" });
     scrollToBottom();
-
+    isLoading.value = true
     try {
         const response = await axios.post("/api/chatbot", { message });
         console.log("Réponse du bot (source):", response.data.source);
         messages.value.push({ text: response.data.reply, sender: "bot" });
     } catch (error) {
     messages.value.push({
-        text: "Le chatbot est temporairement indisponible. Je te répondrai bientôt 🤖.",
+        text: "⏳ Je réfléchis... cela peut prendre un peu de temps...",
         sender: "bot"
     });
+}     finally {
+    isLoading.value = false
 }
 
     scrollToBottom();
@@ -105,6 +108,9 @@ onMounted(async () => {
         <div class="chatbot-messages" ref="messageContainer">
           <ChatBubble v-for="(msg, index) in messages" :key="index" :message="msg" />
         </div>
+        <div v-if="isLoading" class="chatbot-spinner">
+            ⏳ Chargement de la réponse...
+        </div>
   
         <ChatInput @send-message="sendMessage" />
       </div>
@@ -113,6 +119,13 @@ onMounted(async () => {
   
 
 <style scoped>
+.chatbot-spinner {
+  text-align: center;
+  color: #007bff;
+  margin: 10px;
+  font-style: italic;
+}
+
 .chatbot-container {
     position: fixed;
     bottom: 20px;

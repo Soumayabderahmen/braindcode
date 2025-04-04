@@ -14,56 +14,44 @@ class ChatbotController extends Controller
      * Gérer l'envoi d'un message au chatbot
      */
     public function sendMessage(Request $request)
-    {
-        $request->validate([
-            'message' => 'required|string|max:1000',
+{
+    $request->validate([
+        'message' => 'required|string|max:1000',
+    ]);
+
+    $userMessage = $request->input('message');
+    $user = Auth::user();
+    $source = 'ollama';
+
+    if ($user) {
+        ChatMessage::create([
+            'user_id' => $user->id,
+            'message' => $userMessage,
+            'sender' => 'user',
         ]);
-    
-        $userMessage = $request->input('message');
-        $user = Auth::user();
-        $source = 'unknown'; // ✅ Initialisation ici
-    
-        if ($user) {
-            ChatMessage::create([
-                'user_id' => $user->id,
-                'message' => $userMessage,
-                'sender' => 'user',
-            ]);
-        }
-    
-        try {
-            $response = Http::withHeaders([
-                'Connection' => 'keep-alive'
-            ])->timeout(5)->post(env('CHATBOT_API_URL'), [
-                'sender' => $user ? "user_{$user->id}" : "guest",
-                'message' => $userMessage,
-            ]);
-        
-            logger('🧪 Réponse brute du chatbot : ' . $response->body());
-        
-            if ($response->successful()) {
-                $botReply = $response->json();
-                $botMessage = $botReply['reply'] ?? "Je n'ai pas compris.";
-                $source = $botReply['source'] ?? 'inconnu';
-            } else {
-                logger('⚠️ Réponse NON successful : ' . $response->status());
-                $botMessage = "Je rencontre un souci technique.";
-                $source = "unknown";
-            }
-        
-        } catch (\Exception $e) {
-            logger('❌ Erreur appel chatbot: ' . $e->getMessage());
-            $botMessage = "Le chatbot est temporairement indisponible.";
-            $source = "unknown";
-        }
-        
-        return response()->json([
-            'reply' => $botMessage,
-            'source' => $source,
-        ]);
-        
-        
     }
+
+    try {
+        $response = Http::timeout(300)->post(env('CHATBOT_API_URL'), [
+            'sender' => $user ? "user_{$user->id}" : "guest",
+            'message' => $userMessage,
+        ]);
+
+        if ($response->successful()) {
+            $botReply = $response->json();
+            $botMessage = $botReply['reply'] ?? "Je n'ai pas compris.";
+        } else {
+            $botMessage = "Erreur du chatbot.";
+        }
+    } catch (\Exception $e) {
+        $botMessage = "Chatbot hors ligne.";
+    }
+
+    return response()->json([
+        'reply' => $botMessage,
+        'source' => $source,
+    ]);
+}
     
     public function getHistory()
     {
