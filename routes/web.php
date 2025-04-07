@@ -43,12 +43,11 @@ Route::get('/investisseurs', [CoachController::class, 'investisseurs'])->name('i
 Route::prefix('startup')->middleware(['auth', 'verified'])->name('startup.')->group(function () {  
     Route::get('/dashboard', [ListStartupController::class, 'ListMembres'])->name('list');
     Route::get('/calendar', [ListStartupController::class, 'FullCalandryStartup'])->name('calendar');
-    Route::get('/res/create', [ListStartupController::class, 'create'])->name('reservation.create');
+    Route::get('/res/create', [ReservationController::class, 'create'])->name('reservation.create');
+    Route::post('/reservation/add', [ReservationController::class, 'store'])->name('reservation.store');
 
 });
-Route::middleware(['auth:sanctum', 'verified'])->group(function () {
-    Route::get('/startup/reservations/create', [ReservationController::class, 'create']);
-});
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::get('/ListStartups', [ListStartupController::class, 'List'])->name('list.startup');

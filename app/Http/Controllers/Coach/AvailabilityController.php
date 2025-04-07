@@ -45,7 +45,7 @@ class AvailabilityController extends Controller
             'honoraire' => 'nullable|numeric', // Validation du champ honoraire
         ]);
     
-        $coach = Coach::findOrFail($request->coach_id); // Récupère le coach basé sur l'id
+        $coach = Coach::findOrFail($request->coach_id); 
         if (Auth::user()->id !== $coach->user_id) {
             return back()->withErrors(['error' => 'Accès non autorisé.']);
         }

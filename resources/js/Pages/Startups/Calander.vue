@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -13,9 +13,52 @@ const props = defineProps({
   coachs: Array,
 });
 
-const selectedCoachId = ref(null); // Valeur initiale pour aucun coach sélectionné
+const selectedSpecialty = ref(null);
 
-// Options du calendrier
+// Liste des domaines uniques
+const specialties = computed(() => {
+  return [...new Set(props.coachs.map(coach => coach.specialty))];
+});
+
+
+// Coachs filtrés selon le domaine sélectionné
+const filteredCoachs = computed(() => {
+  if (!selectedSpecialty.value) return [];
+  return props.coachs.filter(coach => coach.specialty === selectedSpecialty.value);
+});
+
+// Charger les disponibilités des coachs du domaine sélectionné
+function loadDomainAvailabilities() {
+  if (!selectedSpecialty.value) {
+    calendarOptions.value.events = [];
+    return;
+  }
+
+  const coachIds = filteredCoachs.value.map(coach => coach.coach_id); // ID coachs
+  const domainAvailabilities = props.availabilities.filter(
+    (avail) => coachIds.includes(avail.coach_id) && avail.statut === 'available'
+  );
+
+  calendarOptions.value.events = domainAvailabilities.map((avail) => {
+    const coach = props.coachs.find(c => c.coach_id === avail.coach_id);
+    return {
+      id: avail.id,
+      title: `Coach: ${coach?.name || 'Inconnu'}`,
+      start: `${avail.date}T${avail.start_time}`,
+      end: `${avail.date}T${avail.end_time}`,
+      color: '#28a745',
+      extendedProps: {
+        coach_id: avail.coach_id,
+        statut: avail.statut,
+      },
+    };
+  });
+}
+// Recharger les disponibilités à chaque changement de domaine
+watch(selectedSpecialty, () => {
+  loadDomainAvailabilities();
+});
+
 const calendarOptions = ref({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
   initialView: 'dayGridMonth',
@@ -24,93 +67,56 @@ const calendarOptions = ref({
     center: 'title',
     right: 'dayGridMonth,timeGridWeek,timeGridDay',
   },
-  events: [], // Initialement vide
-  editable: true,
-  selectable: true,
-  selectMirror: true,
+  events: [],
+  editable: false,
+  selectable: true,  // Permet la sélection des événements
   dayMaxEvents: true,
   weekends: true,
   eventClick: async function(info) {
-  const event = info.event;
-  
-  if (!selectedCoachId.value) {
-    alert('Veuillez sélectionner un coach');
-    return;
-  }
+    const event = info.event;
+    const coachId = event.extendedProps.coach_id;
 
-  if (event.extendedProps.statut === 'available') {
-    try {
-      const params = {
-        coach_id: Number(selectedCoachId.value),
-        date: event.startStr.substring(0, 10),
-        availability_id: Number(event.id)
-      };
+    if (event.extendedProps.statut === 'available') {
+      try {
+        // Préparation des paramètres pour la redirection
+        const params = {
+          coach_id: coachId,
+          availability_id: Number(event.id),
+        };
 
-      await router.visit('/startup/reservations/create', {
-        method: 'get',
-        data: params,
-        onSuccess: () => console.log('Redirection réussie'),
-        onError: (errors) => {
-          console.error('Erreurs:', errors);
-          alert('Données invalides - Veuillez réessayer');
-        }
-      });
-    } catch (error) {
-      console.error('Erreur complète:', error);
+        // Redirection vers la page de réservation avec les paramètres dans l'URL
+        await router.visit(`/startup/res/create?coach_id=${params.coach_id}&availability_id=${params.availability_id}`, {
+          method: 'get',
+          onSuccess: () => console.log('Redirection réussie'),
+          onError: (errors) => {
+            console.error('Erreurs:', errors);
+            alert('Données invalides - Veuillez réessayer');
+          },
+        });
+      } catch (error) {
+        console.error('Erreur complète:', error);
+      }
     }
   }
-}
-});
-// Fonction pour charger les disponibilités du coach sélectionné
-function loadCoachAvailabilities() {
-  if (!selectedCoachId.value) {
-    // Si aucun coach n'est sélectionné, afficher un calendrier vide
-    calendarOptions.value.events = [];
-    return;
-  }
-
-  // Filtrer les disponibilités du coach sélectionné
-  const coachAvailabilities = props.availabilities.filter(
-    (avail) => avail.coach_id === selectedCoachId.value
-  );
-
-  // Mettre à jour les événements du calendrier
-  calendarOptions.value.events = coachAvailabilities.map((avail) => ({
-    id: avail.id,
-    title: avail.statut === 'available' ? 'Disponible' : 'Indisponible',
-    start: `${avail.date}T${avail.start_time}`,
-    end: `${avail.date}T${avail.end_time}`,
-    color: avail.statut === 'available' ? '#28a745' : '#dc3545',
-    extendedProps: {
-      statut: avail.statut,
-    },
-  }));
-}
-
-// Calculer dynamiquement le nom du coach sélectionné
-const selectedCoachName = computed(() => {
-  const coach = props.coachs.find(coach => coach.id === selectedCoachId.value);
-  return coach ? coach.name : 'Aucun Coach'; // Affiche 'Aucun Coach' si aucun coach n'est sélectionné
 });
 </script>
 
 <template>
   <Main :showSidebar="true">
     <div>
-      <!-- Sélecteur de coach -->
-      <div class="mb-4">
-        <h6 for="coachSelect" class="form-label">Sélectionner un Coach</h6>
-        <select id="coachSelect" v-model.number="selectedCoachId" 
-          class="form-select form-select-lg mb-3"
-          aria-label="Large select example"
-          @change="loadCoachAvailabilities"
-          >
-          <option :value="null" disabled>Choisir un coach</option> <!-- 👈 ici on met null -->
-          <option v-for="coach in props.coachs" :key="coach.id" :value="coach.id">
-            {{ coach.name }}
+      <!-- Sélecteur de domaine -->
+      <div class="mb-3">
+        <label for="specialtySelect" class="form-label">Sélectionner un domaine</label>
+        <select
+          id="specialtySelect"
+          v-model="selectedSpecialty"
+          class="form-select"
+        >
+          <option :value="null" disabled>Choisir un domaine</option>
+          <option v-for="specialty in specialties" :key="specialty" :value="specialty">
+            {{ specialty }}
           </option>
         </select>
-
       </div>
 
       <!-- Calendrier -->
@@ -119,7 +125,9 @@ const selectedCoachName = computed(() => {
           <div class="col-md-12">
             <div id="right">
               <div class="card-header">
-                <h2 class="card-title text-center mb-4">Le Calendrier de {{ selectedCoachName }}</h2>
+                <h2 class="card-title text-center mb-4">
+                  Disponibilités des coachs du domaine : {{ selectedSpecialty || '...' }}
+                </h2>
               </div>
               <div class="card-body">
                 <FullCalendar :options="calendarOptions" />

@@ -60,9 +60,7 @@ const toggleSidebar = () => {
           <li>
             <a href="/startup/calendar" class="menu-item">🗓️ Calandrier</a>
           </li>
-          <li>
-            <a href="/startup/res/create" class="menu-item">🗓️ teste</a>
-          </li>
+          
         </template>
         <template v-if="isCoach">
           <li>
