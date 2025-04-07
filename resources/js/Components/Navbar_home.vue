@@ -31,6 +31,9 @@ onClickOutside(dropdownRef, () => {
                     <Link :href="route('contactus')" class="text-gray-700 hover:text-gray-900">
                         Contact Us
                     </Link>
+                    <Link :href="route('faq')" class="text-gray-700 hover:text-gray-900">
+                        FAQ
+                    </Link>
                 </div>
 
                 <!-- Menu utilisateur / connexion -->

@@ -54,7 +54,8 @@ const menuItems = computed(() => {
       { name: "Coachs", route: "admin.dashboard", icon: "bx bx-chalkboard" },
       { name: "Investisseurs", route: "admin.dashboard", icon: "bx bx-money" },
       { name: "Startups", route: "admin.dashboard", icon: "bx bx-rocket" },
-      { name: "Messages Support", route: "admin.support.messages", icon: "bx bx-envelope" }
+      { name: "Messages Support", route: "admin.support.messages", icon: "bx bx-envelope" },
+      { name: "FAQs", route: "admin.faqs.index", icon: "bx bx-question-mark" }
     ];
   } else {
     return [

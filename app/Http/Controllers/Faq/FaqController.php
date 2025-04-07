@@ -6,17 +6,22 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Models\Faq;
-use Illuminate\Support\Facades\Auth;
-
-
-
-
-
-
+use Inertia\Inertia;
 class FaqController extends Controller
 {
+    // Affichage de la page Vue (frontend)
     public function index()
     {
-        return Faq::where('is_active', true)->get();
+        return Inertia::render('Faq/Faq');
+    }
+
+    // Appel API pour récupérer les données dynamiques
+    public function list()
+    {
+        return Faq::where('is_active', true)->orderBy('id')->get();
     }
 }
+
+
+
+

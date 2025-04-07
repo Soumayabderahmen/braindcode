@@ -12,7 +12,7 @@ use App\Http\Middleware\CheckAdmin;
 use App\Http\Middleware\CheckRole;
 use App\Http\Controllers\Chatbot\ChatbotController;
 use App\Http\Controllers\Faq\FaqController;
-
+use App\Http\Controllers\Admin\AdminFaqController;
 // Route pour le tableau de bord, sans authentification
 Route::get('/', function () {
     return Inertia::render('Home');
@@ -49,7 +49,8 @@ Route::post('/api/chatbot', [ChatbotController::class, 'sendMessage'])->name('ch
 Route::middleware('auth')->get('/api/chatbot/history', [ChatbotController::class, 'getHistory']);
 
 // Route Faq
-Route::get('/faqs', [FaqController::class, 'index']);
+Route::get('/faqs', [FaqController::class, 'index'])->name('faq');
+Route::get('/faqs/list', [FaqController::class, 'list']);
 
 // Routes Admin (Support Messages)
 Route::prefix('admin')->middleware(['auth', 'verified', CheckAdmin::class])->name('admin.')->group(function () {
@@ -57,6 +58,10 @@ Route::prefix('admin')->middleware(['auth', 'verified', CheckAdmin::class])->nam
     Route::get('/support-messages', [SupportMessageAdminController::class, 'index'])->name('support.messages');
     Route::get('/support-messages/{id}', [SupportMessageAdminController::class, 'show'])->name('support.message.view');
     Route::delete('/support-messages/{id}', [SupportMessageAdminController::class, 'destroy'])->name('support.messages.delete');
+    Route::get('/faqs', [AdminFaqController::class, 'index'])->name('faqs.index');
+    Route::post('/faqs', [AdminFaqController::class, 'store'])->name('faqs.store');
+    Route::put('/faqs/{faq}', [AdminFaqController::class, 'update'])->name('faqs.update');
+    Route::delete('/faqs/{faq}', [AdminFaqController::class, 'destroy'])->name('faqs.destroy');
 });
 
 
