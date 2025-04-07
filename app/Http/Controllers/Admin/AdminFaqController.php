@@ -14,8 +14,10 @@ class AdminFaqController extends Controller
      */
     public function index()
     {
+
         return Inertia::render('Admin/FaqAdmin', [
-            'faqs' => Faq::latest()->paginate(10)
+            'faqs' => Faq::latest()->paginate(10),
+            'faqs' => Faq::orderBy('id')->get()
         ]);
     }
 

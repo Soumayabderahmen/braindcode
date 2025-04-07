@@ -1,6 +1,7 @@
 <script setup>
 import Navbar_home from '@/Components/Navbar_home.vue';
 import Chatbot from '@/Pages/Chatbot/Chatbot.vue';
+import Footer from '@/Components/Footer.vue';
 
 </script>
 
@@ -21,4 +22,5 @@ import Chatbot from '@/Pages/Chatbot/Chatbot.vue';
             </div>
         </main>
     </div>
+    <Footer />
 </template>

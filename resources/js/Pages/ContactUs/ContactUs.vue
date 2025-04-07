@@ -1,8 +1,8 @@
 <script setup>
 import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import Navbar_home from '@/Components/Navbar_home.vue'; // ✅ Navbar global
-
+import Navbar_home from '@/Components/Navbar_home.vue'; 
+import Footer from '@/Components/Footer.vue';
 const form = useForm({
     name: '',
     email: '',
@@ -107,10 +107,10 @@ const handleFileChange = (event) => {
 
                 <!-- Infos Contact -->
                 <div class="space-y-6">
-                    <div class="flex items-center space-x-4 bg-white shadow-lg p-6 rounded-lg">
-                        <i class="fa fa-map-marker text-indigo-600 text-3xl"></i>
+                    <div class="flex items-center space-x-4 bg-white shadow-lg p-6 rounded-lg" >
+                        <i class="fa fa-map-marker text-indigo-600 text-3xl" ></i>
                         <div>
-                            <h4 class="text-lg font-semibold">Notre Adresse</h4>
+                            <h4 class="text-lg font-semibold" >Notre Adresse</h4>
                             <p class="text-gray-600">3481 Melrose Place, Beverly Hills</p>
                         </div>
                     </div>
@@ -119,7 +119,7 @@ const handleFileChange = (event) => {
                         <i class="fa fa-envelope text-indigo-600 text-3xl"></i>
                         <div>
                             <h4 class="text-lg font-semibold">Email</h4>
-                            <p class="text-gray-600">support@braindcode.com</p>
+                            <p class="text-blue-600-600">support@braindcode.com</p>
                         </div>
                     </div>
 
@@ -143,6 +143,7 @@ const handleFileChange = (event) => {
             </div>
         </div>
     </div>
+    <Footer />
 </template>
 
 <style scoped>

@@ -2,6 +2,8 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import Navbar_home from '@/Components/Navbar_home.vue'
+import Footer from '@/Components/Footer.vue'
+
 
 const selected = ref(null)
 const faqs = ref([])
@@ -65,6 +67,7 @@ onMounted(async () => {
       </div>
     </div>
   </div>
+  <Footer />
 </template>
 
 <style scoped>
