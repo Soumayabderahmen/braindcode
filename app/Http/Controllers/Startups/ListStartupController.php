@@ -46,63 +46,48 @@ class ListStartupController extends Controller
     }
 
     public function FullCalandryStartup()
-{
-    // Récupérer tous les coachs avec leurs disponibilités
-    $coachs = User::where('role', 'coach')
-        ->with('coach.availabilities') // Récupère la relation 'coach' et les 'availabilities' associées
-        ->get();
+    {
+        // Récupérer les utilisateurs qui sont coachs avec leurs coachs et disponibilités
+        $users = User::where('role', 'coach')
+            ->with('coach.availabilities') // charge la relation coach et les disponibilités
+            ->get();
     
-    // Vérifier si des coachs existent
-    if ($coachs->isEmpty()) {
-        return redirect()->route('home')->with('error', 'No coaches found');
-    }
-
-    // Préparer les disponibilités des coachs
-    $availabilities = $coachs->flatMap(function ($coach) {
-        return $coach->coach->availabilities->map(function ($item) use ($coach) {
+        // Vérifier si des coachs existent
+        if ($users->isEmpty()) {
+            return redirect()->route('home')->with('error', 'No coaches found');
+        }
+    
+        // Préparer la liste des coachs avec infos nécessaires
+        $coachs = $users->map(function ($user) {
             return [
-                'coach_name' => $coach->name,  // Ajout du nom du coach
-                'coach_id' => $coach->id,
-                'id' => $item->id,
-                'date' => $item->date,
-                'start_time' => $item->start_time,
-                'end_time' => $item->end_time,
-                'statut' => $item->statut,
+                'coach_id' => $user->coach->id,       // coachs.id
+                'user_id' => $user->id,               // users.id
+                'name' => $user->name,                // nom de l'utilisateur
+                'specialty' => $user->specialty ?? null, // si tu ajoutes "specialty" dans la table coachs
             ];
         });
-    });
-
-    // Renvoie les données à la vue Inertia
-    return Inertia::render('Startups/Calander', [
-        'availabilities' => $availabilities,
-        'coachs' => $coachs,  // Passer la liste des coachs à la vue
-    ]);
-}
-
-public function create(Request $request)
-{
-    // 1. Validation basique
-    $validated = $request->validate([
-        'coach_id' => 'required|exists:coach,id',
-        'date' => 'required|date',
-        'availability_id' => 'required|integer|exists:disponibilite,id'
-    ]);
-
-    // 2. Récupération des données
-    $coach = Coach::findOrFail($validated['coach_id']);
-    $availability = Disponibilite::findOrFail($validated['availability_id']);
-
-    // 3. Vérification que la disponibilité est libre
-    if ($availability->status !== 'available') {
-        return back()->with('error', 'Ce créneau n\'est plus disponible');
+    
+        // Préparer les disponibilités
+        $availabilities = $users->flatMap(function ($user) {
+            return $user->coach->availabilities->map(function ($item) use ($user) {
+                return [
+                    'coach_id' => $user->coach->id,
+                    'coach_name' => $user->name,
+                    'id' => $item->id,
+                    'date' => $item->date,
+                    'start_time' => $item->start_time,
+                    'end_time' => $item->end_time,
+                    'statut' => $item->statut,
+                ];
+            });
+        });
+    
+        return Inertia::render('Startups/Calander', [
+            'availabilities' => $availabilities,
+            'coachs' => $coachs,
+        ]);
     }
+    
 
-    // 4. Retour de la vue Inertia SANS redirection
-    return inertia('Reservations/Create', [
-        'coach' => $coach,
-        'availability' => $availability,
-        'date' => $validated['date']
-    ]);
-}
 
 }
