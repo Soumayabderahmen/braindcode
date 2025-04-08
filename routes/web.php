@@ -38,6 +38,7 @@ Route::get('/coaches', [CoachController::class, 'index'])->name('coaches');
 Route::get('/dashboard', [CoachController::class, 'Dashboard'])->name('dashboard');
 Route::get('/startups', [CoachController::class, 'startup'])->name('startups');
 Route::get('/investisseurs', [CoachController::class, 'investisseurs'])->name('investisseurs');
+Route::get('/reservations', [ReservationController::class, 'indexAdmin'])->name('reservations');
 
 });
 Route::prefix('startup')->middleware(['auth', 'verified'])->name('startup.')->group(function () {  
@@ -45,9 +46,19 @@ Route::prefix('startup')->middleware(['auth', 'verified'])->name('startup.')->gr
     Route::get('/calendar', [ListStartupController::class, 'FullCalandryStartup'])->name('calendar');
     Route::get('/res/create', [ReservationController::class, 'create'])->name('reservation.create');
     Route::post('/reservation/add', [ReservationController::class, 'store'])->name('reservation.store');
+    Route::get('/reservation-message', function () {return Inertia::render('Startups/ReservationMessage');})->name('reservation.message');
+    Route::get('/reservations', [ReservationController::class, 'indexStartup'])->name('reservations');
 
 });
+Route::prefix('coach')->middleware(['auth', 'verified'])->name('coach.')->group(function () {  
+    Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');
+    Route::post('/availability', [AvailabilityController::class, 'store'])->name('availability.store');
+    Route::delete('/availability/{id}', [AvailabilityController::class, 'destroy'])->name('availability.destroy');
+    Route::put('/availability/{id}', [AvailabilityController::class, 'updateTimes'])->name('availability.updateTimes');
+    Route::put('/availabilityStatut/{id}', [AvailabilityController::class, 'updateStatus'])->name('availability.updateStatus');  
+    Route::get('/reservations', [ReservationController::class, 'indexCoach'])->name('reservations');
 
+});
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::get('/ListStartups', [ListStartupController::class, 'List'])->name('list.startup');
@@ -56,10 +67,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/ListCoachs', [CoachProfileController::class, 'List'])->name('list.coach');
     Route::get('/profile/Investisseur/{id}', [ListInvestisseurController::class, 'profile'])->name('profile.investisseur');
     Route::get('/profile/startup/{id}', [ListStartupController::class, 'profile'])->name('profile.startup');
-    Route::get('/coach/availability', [AvailabilityController::class, 'index'])->name('coach.availability.index');
-    Route::post('/coach/availability', [AvailabilityController::class, 'store'])->name('coach.availability.store');
-    Route::delete('/coach/availability/{id}', [AvailabilityController::class, 'destroy'])->name('coach.availability.destroy');
-    Route::put('/coach/availability/{id}', [AvailabilityController::class, 'updateTimes'])->name('coach.availability.updateTimes');
+   
     Route::put('/coach/availabilityStatut/{id}', [AvailabilityController::class, 'updateStatus'])->name('coach.availability.updateStatus');
     Route::get('/calendar', [AvailabilityController::class, 'FullCalandry'])->name('coach.calendar');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -7,6 +7,7 @@ use App\Models\Coach;
 use App\Models\Disponibilite;
 use App\Models\Reservation;
 use App\Models\Startup;
+use App\Notifications\ReservationRequestNotification;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -17,11 +18,37 @@ class ReservationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        //
-    }
  
+        public function indexAdmin()
+        {
+            $reservations = Reservation::with(['startup.user', 'coach.user'])->get();        
+            return Inertia::render('Admin/ListReservations', [
+                'reservations' => $reservations,
+            ]);
+        }
+   
+        public function indexStartup()
+        {
+            $startup = Auth::user()->startup;
+
+            $reservations = Reservation::where('startup_id', $startup->id)
+            ->with(['startup.user', 'coach.user'])
+            ->get();        
+            return Inertia::render('Startups/ListeReservation', [
+                'reservations' => $reservations,
+            ]);
+        }
+        public function indexCoach()
+        {
+            $coach = Auth::user()->coach;
+
+            $reservations = Reservation::where('coach_id', $coach->id)
+            ->with(['startup.user', 'coach.user'])
+            ->get();        
+            return Inertia::render('Coach/ListeReservation', [
+                'reservations' => $reservations,
+            ]);
+        }
     
     public function create(Request $request)
     {
@@ -74,7 +101,7 @@ class ReservationController extends Controller
         $availability = Disponibilite::findOrFail($validated['availability_id']);
 
     // Création de la réservation
-    Reservation::create([
+    $reservation = Reservation::create([
         'coach_id'      => $availability->coach_id,
         'startup_id'    => $startup->id,
         'meeting_time'  => $validated['selected_time'],
@@ -83,8 +110,12 @@ class ReservationController extends Controller
         'message'       => $validated['message'] ?? '',
         'statut'        => 'en attente', // valeur par défaut
     ]);
+    $coachUser = $reservation->coach->user ?? null;
+    if ($coachUser) {
+        $coachUser->notify(new ReservationRequestNotification($reservation));
+    }
 
-    return redirect()->route('reservations.index')->with('success', 'Réservation enregistrée avec succès.');
+    return redirect()->route('startup.reservation.message')->with('success', 'Réservation enregistrée avec succès.');
 
     }
 
