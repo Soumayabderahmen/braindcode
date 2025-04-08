@@ -40,6 +40,9 @@ const toggleSidebar = () => {
           <li>
             <a href="/admin/startups" class="menu-item">🚀 Startups</a>
           </li>
+          <li>
+            <a href="/admin/reservations" class="menu-item">📍 Réservations</a>
+          </li>
         </template>
         <template v-if="isStartup">
           <li>
@@ -60,7 +63,9 @@ const toggleSidebar = () => {
           <li>
             <a href="/startup/calendar" class="menu-item">🗓️ Calandrier</a>
           </li>
-          
+          <li>
+            <a href="/startup/reservations" class="menu-item">📍 Réservations</a>
+          </li>
         </template>
         <template v-if="isCoach">
           <li>
@@ -80,6 +85,9 @@ const toggleSidebar = () => {
           </li>
           <li>
             <a href="/calendar" class="menu-item">🗓️ Calandrier</a>
+          </li>
+          <li>
+            <a href="/coach/reservations" class="menu-item">📍 Réservations</a>
           </li>
         </template>
         <template v-if="isInvestisseur">
