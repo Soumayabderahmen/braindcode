@@ -1,8 +1,10 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-import requests
 from langdetect import detect
+import httpx
+import logging
+import time
 
 app = FastAPI()
 
@@ -14,6 +16,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+logging.basicConfig(level=logging.INFO)
+
 def detect_language(text):
     try:
         return detect(text)
@@ -23,49 +27,68 @@ def detect_language(text):
 @app.post("/chat")
 async def chat(request: Request):
     data = await request.json()
-    message = data.get("message", "")
+    message = data.get("message", "").strip()
     lang = detect_language(message)
 
-    try:
-        response = requests.post(
-            "http://127.0.0.1:11434/api/generate",
-            json={
-                "model": "llama3",
-                "prompt": message,
-                "stream": False
-            },
-            timeout=300  # ⏱️ Augmente le timeout 5 minutes
-        )
-        response.raise_for_status()
-        json_data = response.json()
-        bot_response = json_data.get("response", "").strip()
+    # ✅ Limite la taille du message
+    message = message[:500]
+    logging.info(f"[Prompt reçu] {message}")
 
-        if not bot_response:
-            bot_response = "Désolé, je n'ai pas bien compris."
+    MAX_RETRIES = 2
+    for attempt in range(MAX_RETRIES):
+        try:
+            start = time.time()
 
-        return JSONResponse({
-            "reply": bot_response,
-            "language": lang,
-            "source": "ollama"
-        })
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    "http://127.0.0.1:11434/api/generate",
+                    json={"model": "llama3", "prompt": message, "stream": False}
+                )
 
-    except Exception as e:
-        print("Erreur backend LLM:", str(e))
-        return JSONResponse({
-            "reply": f"⏱️ Temps dépassé ou erreur LLM : {str(e)}",
-            "language": lang,
-            "source": "offline"
-    })
+            duration = time.time() - start
+            logging.info(f"[Réponse Ollama] ✅ en {duration:.2f}s")
 
+            result = response.json()
+            logging.debug(f"[Réponse JSON brute] {result}")
 
+            reply = result.get("response", "").strip()
+            if reply:
+                return JSONResponse({
+                    "reply": reply,
+                    "language": lang,
+                    "source": "ollama"
+                })
+
+        except Exception as e:
+            logging.error(f"[Tentative {attempt + 1}] ❌ Erreur Ollama : {type(e).__name__} - {e}")
+            if attempt == MAX_RETRIES - 1:
+                return JSONResponse({
+                    "reply": f"⏱️ Temps dépassé ou erreur interne : {str(e)}",
+                    "language": lang,
+                    "source": "offline"
+                })
 @app.get("/ping")
-def ping():
+async def ping():
     return {"status": "ok"}
+@app.get("/debug-ollama")
+async def debug_ollama():
+    import time
+    prompt = "Test de connectivité avec le modèle LLaMA 3."
 
-@app.get("/test-ollama")
-def test_ollama():
     try:
-        r = requests.get("http://localhost:11434")
-        return {"status": "reachable", "content": r.text}
+        start = time.time()
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(
+                "http://localhost:11434/api/generate",
+                json={"model": "llama3", "prompt": prompt, "stream": False}
+            )
+        duration = time.time() - start
+
+        if response.status_code == 200:
+            content = response.json().get("response", "").strip()
+            return {"status": "ok", "response": content, "time": f"{duration:.2f}s"}
+        else:
+            return {"status": "error", "code": response.status_code}
+
     except Exception as e:
-        return {"status": "error", "error": str(e)}
+        return {"status": "failed", "error": str(e)}
