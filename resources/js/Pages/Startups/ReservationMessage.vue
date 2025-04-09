@@ -1,14 +1,17 @@
-<script>
-export default {
-  name: 'ActivationMessage',
-};
+<script setup>
 import Main from '../../Layouts/main.vue';
+
 
 </script>
 <template>
   <Main :showSidebar="true">
 
-    <div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-purple-200">
+    <div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-purple-200" style="
+    margin-right: -272px;
+    margin-top: -23px;
+    margin-left: -21px;
+    height: auto;
+">
       <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center animate-fade-in">
         <!-- GIF animé -->
         <img src="/storage/startups/braindcode.png" alt="Chargement en attente" class="mx-auto w-20 h-20 mb-4" />

@@ -29,6 +29,7 @@ class ReservationRequestNotification extends Notification
             'reservation_id' => $this->reservation->id,
             'startup_name' => $this->reservation->startup->user->name ?? 'Startup',
             'meeting_time' => $this->reservation->meeting_time,
+            'statut'=>$this->reservation->statut,
             'message' => 'Une nouvelle réservation a été créée.',
 
         ];

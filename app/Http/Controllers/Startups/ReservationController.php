@@ -118,7 +118,16 @@ class ReservationController extends Controller
     return redirect()->route('startup.reservation.message')->with('success', 'Réservation enregistrée avec succès.');
 
     }
-
+    public function respond(Request $request, Reservation $reservation)
+    {
+        $status = $request->input('statut');
+        $reservation->statut = $status;
+        $reservation->save();
+    
+        // Optionnel : mettre à jour la notification si tu veux
+        return response()->json(['success' => true]);
+    }
+    
     /**
      * Display the specified resource.
      */

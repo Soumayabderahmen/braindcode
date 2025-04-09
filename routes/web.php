@@ -29,6 +29,21 @@ Route::get('/dashboard', function () {
 Route::get('/activation-message', function () {
     return Inertia::render('Coach/ActivationMessage');
 })->name('activation.message');
+// Route::middleware('auth')->get('/notifications', function () {
+//     return Auth::user()->notifications()->latest()->get();
+// });
+
+Route::middleware('auth')->patch('/notifications/{id}', function ($id) {
+    Auth::user()->notifications()->findOrFail($id)->markAsRead();
+    return response()->noContent();
+});
+Route::middleware('auth')->get('/notifications', function () {
+    $user = Auth::user();
+
+    // Récupérer toutes les notifications de type ReservationRequestNotification
+    return response()->json($user->notifications()->where('type', 'App\\Notifications\\ReservationRequestNotification')->get());
+});
+Route::post('/reservations/{reservation}/response', [ReservationController::class, 'respond']);
 
 Route::prefix('admin')->middleware(['auth', 'verified'])->name('admin.')->group(function () {  
 Route::get('/activate-coach/{id}', [CoachController::class, 'activateCoach'])->name('activate_coach');

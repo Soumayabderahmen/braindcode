@@ -11,9 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('startup', function (Blueprint $table) {
-            $table->dropColumn('phone_number');
-        });
+        Schema::dropIfExists('notifications');
     }
 
     /**
@@ -21,8 +19,13 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('startup', function (Blueprint $table) {
-            $table->dropColumn('phone_number');
+        Schema::create('notifications', function (Blueprint $table) {
+            $table->id();
+            $table->string('type');
+            $table->morphs('notifiable');
+            $table->text('data');
+            $table->timestamp('read_at')->nullable();
+            $table->timestamps();
         });
     }
 };
