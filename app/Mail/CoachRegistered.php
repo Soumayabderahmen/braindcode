@@ -44,7 +44,7 @@ class CoachRegistered extends Mailable
                         'coachSpecialite' => $this->coach->specialty,
                         'coachNumber' => $this->coach->phone_number,
 
-                        'activationLink' => route('admin.activate_coach', ['coach' => $this->coach->id]) // Lien d'activation
+                        'activationLink' => route('admin.activate_coach', ['id' => $this->coach->id]) // Lien d'activation
 
                     ])
                     ->attach(storage_path('app/public/' . $this->coach->document), [ // Attacher le fichier

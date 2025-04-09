@@ -43,7 +43,7 @@ class StartupRegistered extends Mailable
                         'startupNumber' => $this->startup->phone_number,
 
                         'startupDomain' => $this->startup->domain_name,
-                        'activationLink' => route('admin.startups', ['startup' => $this->startup->id]) // Lien d'activation
+                        'activationLink' => route('admin.startups', ['id' => $this->startup->id]) // Lien d'activation
 
                     ]);
                   

@@ -49,7 +49,7 @@ const toggleSidebar = () => {
             <a href="/startup/dashboard" class="menu-item">🏠 Dashboard</a>
           </li>
           <li>
-            <a href="/profile" class="menu-item">👤 Profil</a>
+            <a href="/profile" class="menu-item">👨🏻‍💻 Profil</a>
           </li>
           <li>
             <a href="/ListCoachs" class="menu-item">👨‍🏫 Coachs</a>
@@ -72,7 +72,7 @@ const toggleSidebar = () => {
             <a href="/dashboard" class="menu-item">🏠 Dashboard</a>
           </li>
           <li>
-            <a href="/profile" class="menu-item">👤 Profil</a>
+            <a href="/profile" class="menu-item">👨🏻‍💻 Profil</a>
           </li>
           <li>
             <a href="/ListStartups" class="menu-item">🚀 Startups</a>
@@ -95,7 +95,7 @@ const toggleSidebar = () => {
             <a href="/dashboard" class="menu-item">🏠 Dashboard</a>
           </li>
           <li>
-            <a href="/profile" class="menu-item">👤 Profil</a>
+            <a href="/profile" class="menu-item">👨🏻‍💻 Profil</a>
           </li>
           <li>
             <a href="/ListStartups" class="menu-item">🚀 Startups</a>

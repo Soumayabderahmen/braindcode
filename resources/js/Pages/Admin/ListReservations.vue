@@ -55,8 +55,8 @@ const filteredReservations = computed(() => {
                                 <span v-if="reservation.statut === 'en attente'"   style="background-color: darkgray; padding: 5px 10px; border-radius: 50px; color: white;">
                                     En
                                     attente</span>
-                                <span v-else-if="reservation.statut === 'accepter'"
-                                    class="label label-success">Acceptée</span>
+                                    <span v-else-if="reservation.statut === 'acceptée'"
+                                    style="background-color: #119b5bbf; padding: 5px 10px; border-radius: 50px; color: white;">Acceptée</span>
                                 <span v-else-if="reservation.statut === 'refuser'"
                                     class="label label-danger">Refusée</span>
                                 <span v-else class="label label-warning">Inconnu</span>

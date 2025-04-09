@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\CoachActivated;
 use App\Mail\InvestisseurActivated;
 use App\Mail\StartupActivated;
+use App\Models\Reservation;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -131,14 +132,12 @@ class CoachController extends Controller
 }
 public function Dashboard()
     {
-        $coaches = User::where('role', 'coach')->get();
-        $startups = User::where('role', 'startup')->get();
-        $investisseurs = User::where('role', 'investisseur')->get();
+        $users = User::all();
+        $reservations = Reservation::all();
 
         return Inertia::render('Admin/Dashboard', [
-            'coaches' => $coaches,
-            'startups' => $startups,
-            'investisseurs' => $investisseurs
+            'users' => $users,
+            'reservations' => $reservations,
 
         ]);
        

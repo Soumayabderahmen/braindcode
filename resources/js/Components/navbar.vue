@@ -5,6 +5,7 @@ import Dropdown from "../Components/Dropdown.vue"; // Vérifie que ce composant 
 import DropdownLink from "../Components/DropdownLink.vue"; // Vérifie que ce composant existe bien
 import { usePage } from "@inertiajs/vue3";
 import { computed, ref } from "vue";
+import Notifications from "./Notifications.vue";
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
@@ -25,15 +26,15 @@ const show = ref(false);
                         :class="{ 'bg-slate-700': show }"
                     >
                         <p>{{ user.name }}</p>
-                        <i class="fa-solid fa-angle-down"></i>
-                    </div>
+                        👨🏻‍💻                    </div>
 
                     <!-- Menu déroulant de l'utilisateur -->
                     <div v-show="show" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2">
-                        <DropdownLink :href="route('profile.edit')">Profil</DropdownLink>
-                        <DropdownLink :href="route('logout')" method="post" as="button">Déconnexion</DropdownLink>
+                        <DropdownLink :href="route('profile.edit')"> 👨🏻‍💻       Profil</DropdownLink>
+                        <DropdownLink :href="route('logout')" method="post" as="button"> 🏃🚪Déconnexion</DropdownLink>
                     </div>
                 </div>
+                <Notifications v-if="user" :user="user" />
 
                 <!-- Invité -->
                 <div v-else class="space-x-6">

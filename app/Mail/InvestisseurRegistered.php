@@ -43,7 +43,7 @@ class InvestisseurRegistered extends Mailable
                         'investisNumber' => $this->investisseur->phone_number,
 
                         'investisVisibility' => $this->investisseur->visibility,
-                        'activationLink' => route('admin.investisseurs', ['investisseur' => $this->investisseur->id]) // Lien d'activation
+                        'activationLink' => route('admin.investisseurs', ['id' => $this->investisseur->id]) // Lien d'activation
 
                     ]);
                   
