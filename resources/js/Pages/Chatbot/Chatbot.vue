@@ -23,26 +23,36 @@ const scrollToBottom = async () => {
 
 // Envoi de message
 const sendMessage = async (message) => {
-    if (!message.trim()) return;
+  if (!message.trim()) return;
 
-    messages.value.push({ text: message, sender: "user" });
-    scrollToBottom();
-    isLoading.value = true
-    try {
-        const response = await axios.post("/api/chatbot", { message });
-        console.log("Réponse du bot (source):", response.data.source);
-        messages.value.push({ text: response.data.reply, sender: "bot" });
-    } catch (error) {
-    messages.value.push({
-        text: "⏳ Je réfléchis... cela peut prendre un peu de temps...",
-        sender: "bot"
+  messages.value.push({ text: message, sender: "user" });
+  scrollToBottom();
+  isLoading.value = true;
+
+  try {
+    const trimmedMessage = message.slice(0, 500); // max 500 caractères
+    const response = await axios.post("/api/chatbot", { message });
+    console.log("Réponse du bot (source):", response.data.source);
+    console.log("Longueur réponse :", response.data.reply.length);
+
+    const chunks = response.data.reply.match(/.{1,500}/g) || [];
+    chunks.forEach(chunk => {
+      messages.value.push({ text: chunk, sender: "bot" });
     });
-}     finally {
-    isLoading.value = false
-}
 
-    scrollToBottom();
+  } catch (error) {
+    messages.value.push({
+      text: "⏳ Je réfléchis... cela peut prendre un peu de temps...",
+      sender: "bot"
+    });
+  } finally {
+    isLoading.value = false;
+  }
+
+  scrollToBottom();
 };
+
+
 const checkBotStatus = async () => {
     try {
         const response = await axios.get("http://127.0.0.1:5005/ping"); // Ou ton endpoint FastAPI

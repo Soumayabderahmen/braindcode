@@ -24,6 +24,7 @@ class ChatbotController extends Controller
     $source = 'ollama';
 
     if ($user) {
+        // Enregistrer le message utilisateur
         ChatMessage::create([
             'user_id' => $user->id,
             'message' => $userMessage,
@@ -40,6 +41,15 @@ class ChatbotController extends Controller
         if ($response->successful()) {
             $botReply = $response->json();
             $botMessage = $botReply['reply'] ?? "Je n'ai pas compris.";
+
+            // ✅ Enregistrer la réponse du bot
+            if ($user) {
+                ChatMessage::create([
+                    'user_id' => $user->id,
+                    'message' => $botMessage,
+                    'sender' => 'bot',
+                ]);
+            }
         } else {
             $botMessage = "Erreur du chatbot.";
         }

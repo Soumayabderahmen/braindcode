@@ -2,9 +2,11 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from langdetect import detect
+from fastapi.responses import StreamingResponse
 import httpx
 import logging
 import time
+import re
 
 app = FastAPI()
 
@@ -24,14 +26,15 @@ def detect_language(text):
     except:
         return "unknown"
 
+# ✅ Route PRINCIPALE pour le chatbot
 @app.post("/chat")
 async def chat(request: Request):
     data = await request.json()
     message = data.get("message", "").strip()
     lang = detect_language(message)
 
-    # ✅ Limite la taille du message
-    message = message[:500]
+    # Limiter message + nettoyage
+    message = re.sub(r'\s+', ' ', message).strip()[:500]
     logging.info(f"[Prompt reçu] {message}")
 
     MAX_RETRIES = 2
@@ -39,19 +42,23 @@ async def chat(request: Request):
         try:
             start = time.time()
 
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(
                     "http://127.0.0.1:11434/api/generate",
-                    json={"model": "llama3", "prompt": message, "stream": False}
+                    json={
+                        "model": "llama3",
+                        "prompt": f"{message}\n\n(Répondez en 500 caractères maximum)",
+                        "stream": False,
+                        "options": {"num_predict": 512}
+                    }
                 )
 
             duration = time.time() - start
             logging.info(f"[Réponse Ollama] ✅ en {duration:.2f}s")
 
             result = response.json()
-            logging.debug(f"[Réponse JSON brute] {result}")
-
             reply = result.get("response", "").strip()
+
             if reply:
                 return JSONResponse({
                     "reply": reply,
@@ -67,17 +74,20 @@ async def chat(request: Request):
                     "language": lang,
                     "source": "offline"
                 })
+
+# ✅ Vérifier le statut
 @app.get("/ping")
 async def ping():
     return {"status": "ok"}
+
+# ✅ Test manuel depuis navigateur
 @app.get("/debug-ollama")
 async def debug_ollama():
-    import time
     prompt = "Test de connectivité avec le modèle LLaMA 3."
 
     try:
         start = time.time()
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=300.0) as client:
             response = await client.post(
                 "http://localhost:11434/api/generate",
                 json={"model": "llama3", "prompt": prompt, "stream": False}
