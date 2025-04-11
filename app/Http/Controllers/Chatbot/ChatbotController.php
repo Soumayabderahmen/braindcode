@@ -76,7 +76,7 @@ class ChatbotController extends Controller
         $messages = ChatMessage::where('user_id', $user->id)
             ->where('created_at', '>=', $twoWeeksAgo)
             ->orderBy('created_at', 'asc')
-            ->get(['message', 'sender', 'created_at']); // Tu peux filtrer les colonnes utiles
+            ->get(['message', 'sender', 'created_at']); // filtrer les colonnes utiles
     
         return response()->json(['history' => $messages]);
     }
