@@ -3,15 +3,19 @@
 namespace App\Http\Controllers\Startups;
 
 use App\Http\Controllers\Controller;
+use App\Mail\StatutUpdatedMail;
 use App\Models\Coach;
 use App\Models\Disponibilite;
 use App\Models\Reservation;
 use App\Models\Startup;
+use App\Models\User;
 use App\Notifications\ReservationRequestNotification;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class ReservationController extends Controller
 {
@@ -123,11 +127,17 @@ class ReservationController extends Controller
         $status = $request->input('statut');
         $reservation->statut = $status;
         $reservation->save();
-    
+        $startupUser = $reservation->startup->user;
+
+        if ($startupUser && $startupUser->email) {
+            Mail::to($startupUser->email)->send(new StatutUpdatedMail($reservation));
+        }
+        
         // Optionnel : mettre à jour la notification si tu veux
         return response()->json(['success' => true]);
     }
-    
+ 
+
     /**
      * Display the specified resource.
      */
