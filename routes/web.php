@@ -13,6 +13,7 @@ use App\Http\Middleware\CheckRole;
 use App\Http\Controllers\Chatbot\ChatbotController;
 use App\Http\Controllers\Faq\FaqController;
 use App\Http\Controllers\Admin\AdminFaqController;
+use App\Http\Controllers\Admin\ChatbotAdminController;
 // Route pour le tableau de bord, sans authentification
 Route::get('/', function () {
     return Inertia::render('Home');
@@ -62,6 +63,8 @@ Route::prefix('admin')->middleware(['auth', 'verified', CheckAdmin::class])->nam
     Route::post('/faqs', [AdminFaqController::class, 'store'])->name('faqs.store');
     Route::put('/faqs/{faq}', [AdminFaqController::class, 'update'])->name('faqs.update');
     Route::delete('/faqs/{faq}', [AdminFaqController::class, 'destroy'])->name('faqs.destroy');
+    Route::get('/chatbot', [ChatbotAdminController::class, 'index'])->name('chatbot.index');
+    Route::get('/chatbot/messages', [ChatbotAdminController::class, 'messages']);
 });
 
 
