@@ -84,8 +84,13 @@ const submitReservation = () => {
 
 <template>
   <Main :showSidebar="true">
-    <div>
-      <h1> 📍Réservation avec {{ coach?.user?.name || 'Coach non spécifié' }} 📍</h1>
+
+    <div  class ="p-6 bg-white shadow rounded-lg"style="
+    margin-right: -155px;
+    margin-left: 97px;
+    margin-top: 23px;
+">
+      <h1><center>📍Réservation avec {{ coach?.user?.name || 'Coach non spécifié' }} 📍</center> </h1>
 
       <form @submit.prevent="submitReservation">
         <div class="form-group">
@@ -125,7 +130,9 @@ const submitReservation = () => {
           <textarea v-model="form.message" class="form-control" placeholder="Ajouter un message" />
         </div>
 
-        <button type="submit" class="btn btn-primary mt-3">Réserver</button>
+        <button type="submit" class="btn btn-primary mt-3" style="
+    margin-left: 896px;
+">Réserver</button>
       </form>
     </div>
     

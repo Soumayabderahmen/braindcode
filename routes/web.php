@@ -63,6 +63,7 @@ Route::prefix('startup')->middleware(['auth', 'verified'])->name('startup.')->gr
     Route::post('/reservation/add', [ReservationController::class, 'store'])->name('reservation.store');
     Route::get('/reservation-message', function () {return Inertia::render('Startups/ReservationMessage');})->name('reservation.message');
     Route::get('/reservations', [ReservationController::class, 'indexStartup'])->name('reservations');
+    Route::get('/reservation/{coach}/{availability}/{date}', [ReservationController::class, 'showBookingForm'])->name('reservation.form');
 
 });
 Route::prefix('coach')->middleware(['auth', 'verified'])->name('coach.')->group(function () {  
