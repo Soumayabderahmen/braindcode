@@ -7,7 +7,7 @@ import httpx
 import logging
 import time
 import re
-
+#main.py
 app = FastAPI()
 
 app.add_middleware(
@@ -41,13 +41,14 @@ async def chat(request: Request):
     for attempt in range(MAX_RETRIES):
         try:
             start = time.time()
+            prompt = generate_language_sensitive_prompt(message) + "\n\n(Réponds en 500 caractères maximum)"
 
             async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(
                     "http://127.0.0.1:11434/api/generate",
                     json={
                         "model": "llama3",
-                        "prompt": f"{message}\n\n(Répondez en 500 caractères maximum)",
+                        "prompt": prompt,
                         "stream": False,
                         "options": {"num_predict": 512}
                     }
@@ -102,3 +103,26 @@ async def debug_ollama():
 
     except Exception as e:
         return {"status": "failed", "error": str(e)}
+    
+def generate_language_sensitive_prompt(message: str) -> str:
+    try:
+        lang = detect(message)
+    except Exception:
+        lang = "unknown"
+
+    if lang == "fr":
+        return (
+            "Tu es un assistant IA sympathique. Si quelqu’un écrit 'bonjour' ou 'salut', "
+            "réponds simplement par une salutation naturelle comme 'Bonjour ! 😊', 'Salut !', ou autre. "
+            f"Voici le message utilisateur : {message}"
+        )
+    elif lang == "en":
+        return (
+            "You are a friendly AI assistant. If the user says 'hello' or 'hi', "
+            "just respond with a natural greeting like 'Hey there!', 'Hello! 😊', or something similar. "
+            f"Here is the user message: {message}"
+        )
+    else:
+        return (
+            f"You are a helpful assistant. Respond simply and naturally to the user message: {message}"
+        )

@@ -14,6 +14,7 @@ const isAuthenticated = computed(() => !!user.value);
 const isLoading = ref(false);
 const chatStarted = ref(false); // contrôle l'affichage de l'input pour les non-connectés
 
+//chatbot.vue
 
 
 const resetChat = () => {

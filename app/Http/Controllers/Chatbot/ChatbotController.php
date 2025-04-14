@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Models\ChatMessage; // Stocker les messages si utilisateur authentifié
 use Illuminate\Support\Facades\Auth;
+//chabotcontroller.php
 
 class ChatbotController extends Controller
 {
