@@ -41,23 +41,43 @@ const sendMessage = async (message) => {
   isLoading.value = true;
 
   try {
-    const trimmedMessage = message.slice(0, 500);
-    const response = await axios.post("/api/chatbot", { message });
-    const chunks = response.data.reply.match(/.{1,500}/g) || [];
-    chunks.forEach((chunk) => {
-      messages.value.push({ text: chunk, sender: "bot" });
+    // 1️⃣ Appel direct à FastAPI
+    const response = await fetch("http://127.0.0.1:5005/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message }),
     });
+
+    const result = await response.json();
+    const reply = result.reply || "❌ Pas de réponse du bot.";
+
+    // 2️⃣ Affiche la réponse
+    // const chunks = reply.match(/.{1,500}/g) || [];
+    // chunks.forEach((chunk) => {
+    //   messages.value.push({ text: chunk, sender: "bot" });
+    // });
+    messages.value.push({ text: reply, sender: "bot" });
+
+    // 3️⃣ Si connecté → enregistrer l’historique dans Laravel
+    if (isAuthenticated.value) {
+      await axios.post("/api/chatbot/history/save", {
+        userMessage: message,
+        botMessage: reply,
+      });
+    }
+
   } catch (error) {
-    messages.value.push({
-      text: "⏳ Je réfléchis... cela peut prendre un peu de temps...",
-      sender: "bot",
-    });
+    messages.value.push({ text: "Erreur réseau ou bot hors ligne.", sender: "bot" });
   } finally {
     isLoading.value = false;
+    scrollToBottom();
   }
-  scrollToBottom();
 };
-
+// const copyToClipboard = (text) => {
+//   navigator.clipboard.writeText(text).then(() => {
+//     alert("✅ Réponse copiée !");
+//   });
+// };
 const checkBotStatus = async () => {
   try {
     const response = await axios.get("http://127.0.0.1:5005/ping");
@@ -137,15 +157,30 @@ onMounted(async () => {
 
 
       <div class="chatbot-messages" ref="messageContainer">
-        <div v-for="(msg, index) in messages" :key="index" class="message-wrapper">
-          <ChatBubble :message="msg" />
-          <small class="msg-date" v-if="msg.date">🕒 {{ formatDate(msg.date) }}</small>
-        </div>
-      </div>
+        <div
+  v-for="(msg, index) in messages"
+  :key="index"
+  class="message-block"
+  :class="[
+    msg.sender === 'user' ? 'user' : 'bot',
+    msg.sender === 'bot' && msg.text.match(/^\d+\./m) ? 'list-message' : ''
+  ]"
+>
+  <div class="chat-bubble">
+    <!-- <span v-if="msg.sender === 'bot'" class="copy-btn" @click="copyToClipboard(msg.text)">📋</span> -->
 
-      <div v-if="isLoading" class="chatbot-spinner">
-        ⏳ Chargement de la réponse...
-      </div>
+    <span>{{ msg.text }}</span>
+  </div>
+  <small class="msg-date" v-if="msg.date">🕒 {{ formatDate(msg.date) }}</small>
+</div>
+
+  <!-- 💬 Loading (thinking) indicator -->
+  <div v-if="isLoading" class="chat-bubble bot thinking">
+    <span class="dot"></span>
+    <span class="dot"></span>
+    <span class="dot"></span>
+  </div>
+</div>
 
       <!-- Input visible si utilisateur connecté OU si le non-connecté a cliqué sur "commencer" -->
       <transition name="fade">
@@ -166,6 +201,154 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.message-block.bot.list-message .chat-bubble {
+  background: linear-gradient(to right, #00c6ff, #0072ff);
+  border: 1px solid #ffd17b;
+  color: #333;
+}
+.chatbot-messages {
+  height: 250px;
+  overflow-y: auto;
+  padding: 12px;
+  background: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* 🆕 espace vertical entre les messages */
+}
+.message-block {
+  display: flex;
+  flex-direction: column;
+  max-width: 75%;
+}
+
+.message-block.user {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.message-block.bot {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+/* 💬 Bulle de base */
+.chat-bubble {
+  /* max-width: 80%; */
+  padding: 10px 15px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06); /* effet doux */
+  word-wrap: break-word;
+  white-space: pre-line;
+}
+
+/* 👤 Message utilisateur */
+.chat-bubble.user {
+  
+  background-color: #e5e7eb;
+  color: #333;
+  align-self: flex-end;
+  border-bottom-right-radius: 0;
+  margin-left: auto;
+}
+
+/* 🤖 Message du bot */
+.chat-bubble.bot {
+  background: linear-gradient(to right, #00c6ff, #00c6ff);
+  color: rgb(0, 0, 0);
+  align-self: flex-start;
+  border-bottom-left-radius: 0;
+  margin-right: auto;
+}
+
+
+.message-block.user .chat-bubble {
+  background-color: #e5e7eb;
+  color: #333;
+  border-bottom-right-radius: 0;
+}
+
+.message-block.bot .chat-bubble {
+  /* background: linear-gradient(to right, #00c6ff, #2b9dbd); */
+  background: linear-gradient(to right, #00c6ff, #0072ff);
+  color: rgb(6, 6, 6);
+  border-bottom-left-radius: 0;
+}
+/* .copy-btn {
+  float: right;
+  margin-left: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: white;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  padding: 2px 5px;
+}
+.message-block.bot .chat-bubble {
+  position: relative;
+  padding-top: 25px;
+} */
+
+
+/* .chat-bubble {
+  max-width: 75%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.4;
+  display: inline-block;
+  margin-bottom: 6px;
+} */
+
+/* .chat-bubble.user {
+  background-color: #4e46e3;
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 0;
+  margin-left: auto;
+} */
+/* .chat-bubble.bot {
+  background-color: #f1f1f1;
+  color: #333;
+  align-self: flex-start;
+  border-bottom-left-radius: 0;
+  margin-right: auto;
+} */
+/* Thinking dots animation */
+.thinking {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-left: 10px;
+  margin-top: 4px;
+}
+
+.dot {
+  height: 7px;
+  width: 7px;
+  opacity: 0.7;
+  border-radius: 50%;
+  background: #1f1f1f;
+  animation: dotPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 44% {
+    transform: translateY(0);
+  }
+  28% {
+    transform: translateY(-4px);
+    opacity: 0.4;
+  }
+  72% {
+    transform: translateY(4px);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+}
 .chat-icon-wrapper:hover {
   transform: scale(1.1);
   transition: transform 0.3s ease;
@@ -255,19 +438,8 @@ onMounted(async () => {
   border-radius: 4px;
 }
 
-.chat-icon-wrapper {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  cursor: pointer;
-  z-index: 1000;
-}
-.chat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-}
+
+
 .chatbot-container {
   position: fixed;
   bottom: 90px;
@@ -321,12 +493,12 @@ onMounted(async () => {
   font-size: 14px;
   color: #444;
 }
-.chatbot-messages {
+/* .chatbot-messages {
   height: 250px;
   overflow-y: auto;
   padding: 10px;
   background: #f9f9f9;
-}
+} */
 .chatbot-spinner {
   text-align: center;
   color: #007bff;
@@ -338,8 +510,11 @@ onMounted(async () => {
 }
 .msg-date {
   font-size: 11px;
-  color: #888;
-  margin-left: 12px;
+  color: #999;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 .fade-enter-active, .fade-leave-active {
   transition: opacity 0.4s ease;
