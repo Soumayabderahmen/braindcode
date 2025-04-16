@@ -24,21 +24,43 @@ const selectUser = (user) => {
 
   onMounted(fetchMessages);
 
-  const uniqueUsers = computed(() => {
-    const users = allMessages.value.map((msg) => msg.user_name);
-    return [...new Set(users)];
+  const groupedUsersByRole = computed(() => {
+  const groups = {};
+
+  allMessages.value.forEach((msg) => {
+    if (!msg.user_id) return;
+
+    const role = msg.user_role || 'invité';
+
+    // ✅ Ne pas inclure les admins
+    if (role.toLowerCase() === 'admin') return;
+
+    if (!groups[role]) groups[role] = {};
+
+    if (!groups[role][msg.user_id]) {
+      groups[role][msg.user_id] = {
+        id: msg.user_id,
+        name: msg.user_name,
+        role: role
+      };
+    }
   });
+
+  return groups;
+});
+
+
 
   onMounted(async () => {
   await fetchMessages();
   scrollToBottom();
 });
 
-  const selectedUserMessages = computed(() => {
-    return allMessages.value.filter(
-      (msg) => msg.user_name === selectedUser.value
-    );
-  });
+const selectedUserMessages = computed(() => {
+  return allMessages.value.filter(
+    (msg) => msg.user_id === selectedUser.value?.id
+  );
+});
 
   // const selectUser = (user) => {
   //   selectedUser.value = user;
@@ -55,37 +77,48 @@ const selectUser = (user) => {
       <h2 class="admin-chat-title">📲 Conversations avec le chatbot</h2>
 
       <div class="chat-layout">
-        <!-- Liste des utilisateurs à gauche -->
-        <div class="user-list">
-          <div
-            v-for="(user, index) in uniqueUsers"
-            :key="index"
-            :class="['user-item', { active: selectedUser === user }]"
-            @click="selectUser(user)"
-          >
-            {{ user }}
-          </div>
-        </div>
-
-        <!-- Vue conversationnelle -->
-        <div class="chat-window">
-          <div v-if="selectedUserMessages.length === 0" class="no-messages">
-            📢 Aucun message sélectionné.
-          </div>
-          <div v-else class="messages" ref="messageContainer">
-
-            <div
-              v-for="(msg, index) in selectedUserMessages"
-              :key="index"
-              :class="['message-bubble', msg.sender === 'user' ? 'user' : 'bot']"
-            >
-              <p class="msg-text">{{ msg.message }}</p>
-              <span class="msg-meta">{{ formatDate(msg.created_at) }}</span>
-            </div>
-          </div>
-        </div>
+  <!-- ✅ Liste des utilisateurs à gauche -->
+  <div class="user-list">
+    <div
+      v-for="(usersByRole, role) in groupedUsersByRole"
+      :key="role"
+      class="user-group"
+    >
+      <div class="role-title">{{ role }}</div>
+      <div
+        v-for="user in Object.values(usersByRole)"
+        :key="user.id"
+        :class="['user-item', { active: selectedUser?.id === user.id }]"
+        @click="selectUser(user)"
+      >
+        {{ user.name }}
       </div>
     </div>
+  </div>
+
+  <!-- ✅ Messages à droite -->
+  <div class="chat-window">
+    <div v-if="selectedUserMessages.length === 0" class="no-messages">
+      📢 Aucun message sélectionné.
+    </div>
+    <div v-else class="messages" ref="messageContainer">
+      <div
+        v-for="(msg, index) in selectedUserMessages"
+        :key="index"
+        :class="['message-bubble', msg.sender === 'user' ? 'user' : 'bot']"
+      >
+        <p class="msg-text">{{ msg.message }}</p>
+        <span class="msg-meta">{{ formatDate(msg.created_at) }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+
+
+       
+   
   </Main>
 </template>
 
@@ -97,6 +130,14 @@ const selectUser = (user) => {
   max-height: 430px;
   overflow-y: auto;
   padding-right: 8px;
+}
+.role-title {
+  font-weight: bold;
+  font-size: 14px;
+  padding: 10px 15px 5px;
+  background: #eaeaea;
+  color: #333;
+  text-transform: capitalize;
 }
 
 .admin-chat-container {
@@ -112,21 +153,24 @@ const selectUser = (user) => {
   font-weight: 600;
 }
 
-.chat-layout {
-  display: flex;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  height: 500px;
-}
+
 
 .user-list {
   width: 250px;
-  border-right: 1px solid #ddd;
   background: #f7f7f7;
+  border-right: 1px solid #ddd;
   overflow-y: auto;
 }
+
+.chat-window {
+  flex: 1;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  overflow-y: auto;
+}
+
 
 .user-item {
   padding: 15px;
@@ -140,15 +184,7 @@ const selectUser = (user) => {
   color: #007bff;
 }
 
-.chat-window {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
+
 
 .no-messages {
   color: #888;
@@ -157,11 +193,11 @@ const selectUser = (user) => {
   font-style: italic;
 }
 
-.messages {
+/* .messages {
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
+} */
 
 .message-bubble {
   max-width: 70%;
@@ -193,4 +229,13 @@ const selectUser = (user) => {
   color: #888;
   margin-top: 4px;
 }
+.chat-layout {
+  display: flex;
+  height: 500px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
 </style>

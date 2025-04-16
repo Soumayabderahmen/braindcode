@@ -2,7 +2,6 @@
 import { ref, computed, onMounted, nextTick } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import axios from "axios";
-import ChatBubble from "./ChatBubble.vue";
 import ChatInput from "./ChatInput.vue";
 const welcomeShown = ref(false);
 const messages = ref([]);
@@ -134,6 +133,16 @@ onMounted(async () => {
 
 <template>
   <div>
+     <!-- ✅ BACKDROP flouté -->
+     <transition name="fade">
+      <div
+        v-if="isOpen"
+        class="chatbot-backdrop"
+        @click="toggleChatbot"
+      ></div>
+    </transition>
+
+    <!-- ✅ BOUTON FLOTANT -->
     <div
   class="chat-icon-wrapper"
   :class="{ 'chat-open': isOpen, 'pulse': !isOpen }"
@@ -142,7 +151,7 @@ onMounted(async () => {
   <img src="/images/chat-icon.png" alt="chatbot icon" class="chat-icon" />
   <div class="chat-tooltip">Besoin d’aide ?</div>
 </div>
-    <transition name="fade">
+    <transition name="chatbot-popup">
       <div v-if="isOpen" class="chatbot-container">
       <div class="chatbot-header">
         <div class="chatbot-info">
@@ -201,19 +210,27 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.chatbot-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25); 
+  backdrop-filter: blur(3px);      
+  z-index: 998;                    
+}
+
 .message-block.bot.list-message .chat-bubble {
   background: linear-gradient(to right, #00c6ff, #0072ff);
   border: 1px solid #ffd17b;
   color: #333;
 }
 .chatbot-messages {
-  height: 250px;
+  flex: 1; 
   overflow-y: auto;
   padding: 12px;
   background: #f9f9f9;
   display: flex;
   flex-direction: column;
-  gap: 10px; /* 🆕 espace vertical entre les messages */
+  gap: 10px;
 }
 .message-block {
   display: flex;
@@ -314,6 +331,39 @@ onMounted(async () => {
   border-bottom-left-radius: 0;
   margin-right: auto;
 } */
+
+
+/* ✅ Animation d’ouverture style scale + fade */
+.chatbot-popup-enter-active {
+  animation: chatbotScaleIn 0.35s ease-out;
+}
+.chatbot-popup-leave-active {
+  animation: chatbotScaleOut 0.25s ease-in;
+}
+
+@keyframes chatbotScaleIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes chatbotScaleOut {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+}
+
+
 /* Thinking dots animation */
 .thinking {
   display: flex;
@@ -442,15 +492,19 @@ onMounted(async () => {
 
 .chatbot-container {
   position: fixed;
-  bottom: 90px;
+  bottom: 80px;
   right: 20px;
-  width: 350px;
+  width: 360px;            
+  height: 500px;           
   background: white;
-  border-radius: 10px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;     
+  box-shadow: 0px 6px 24px rgba(0, 0, 0, 0.12);
   overflow: hidden;
   z-index: 999;
+  display: flex;
+  flex-direction: column;
 }
+
 .chatbot-header {
   background: linear-gradient(to right, #00c6ff, #0072ff);
   color: white;
