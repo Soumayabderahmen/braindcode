@@ -7,7 +7,7 @@
         <div class="footer-left">
           <h2>BraindCode Startup Studio :</h2>
           <p>Des idées claires, des illustrations épurées</p>
-          <div class="social-icons">
+          <div class="social-icons"style="margin-top: 33%;">
             <i class="bx bxl-facebook-circle"></i>
             <i class="bx bxl-instagram"></i>
             <i class="bx bxl-twitter"></i>
@@ -22,7 +22,7 @@
             <li><Link href="#">Startup</Link></li>
             <li><Link href="#">Investisseur</Link></li>
             <li><Link href="#">Coach</Link></li>
-            <li><Link href="#">À propos</Link></li>
+            <li><Link href="#">À Propos</Link></li>
           </ul>
         </div>
   
@@ -56,7 +56,8 @@
   
   <style scoped>
   .footer {
-    background-color: #0066b2;
+    background-color: rgb(19, 127, 209);
+    ;
     color: white;
     padding: 3rem 2rem;
   }

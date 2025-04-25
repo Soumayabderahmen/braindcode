@@ -12,6 +12,7 @@ const user = computed(() => usePage().props.auth.user);
 const isAuthenticated = computed(() => !!user.value);
 const isLoading = ref(false);
 const chatStarted = ref(false); // contrôle l'affichage de l'input pour les non-connectés
+const activeReactionIndex = ref(null);
 
 //chatbot.vue
 
@@ -40,7 +41,7 @@ const sendMessage = async (message) => {
   isLoading.value = true;
 
   try {
-    // 1️⃣ Appel direct à FastAPI
+    // Appel direct à FastAPI
     const response = await fetch("http://127.0.0.1:5005/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -49,19 +50,17 @@ const sendMessage = async (message) => {
 
     const result = await response.json();
     const reply = result.reply || "❌ Pas de réponse du bot.";
+    const intent = result.intent || null;
+ 
+    messages.value.push({ text: reply, sender: "bot", reactable: true });
 
-    // 2️⃣ Affiche la réponse
-    // const chunks = reply.match(/.{1,500}/g) || [];
-    // chunks.forEach((chunk) => {
-    //   messages.value.push({ text: chunk, sender: "bot" });
-    // });
-    messages.value.push({ text: reply, sender: "bot" });
 
-    // 3️⃣ Si connecté → enregistrer l’historique dans Laravel
+    //  Si connecté → enregistrer l’historique dans Laravel
     if (isAuthenticated.value) {
       await axios.post("/api/chatbot/history/save", {
         userMessage: message,
         botMessage: reply,
+        intent: intent
       });
     }
 
@@ -72,11 +71,7 @@ const sendMessage = async (message) => {
     scrollToBottom();
   }
 };
-// const copyToClipboard = (text) => {
-//   navigator.clipboard.writeText(text).then(() => {
-//     alert("✅ Réponse copiée !");
-//   });
-// };
+
 const checkBotStatus = async () => {
   try {
     const response = await axios.get("http://127.0.0.1:5005/ping");
@@ -90,9 +85,11 @@ const loadHistory = async () => {
   try {
     const response = await axios.get("/api/chatbot/history");
     messages.value = response.data.history.map((m) => ({
-      text: m.message,
-      sender: m.sender,
-      date: m.created_at,
+  text: m.message,
+  sender: m.sender,
+  date: m.created_at,
+  reaction: m.reaction || null,
+  reactable: m.sender === 'bot' && m.message !== 'Bienvenue ! 🎉 Je suis là pour vous aider. Que puis-je faire pour vous aujourd’hui ?',
     }));
     scrollToBottom();
   } catch (error) {
@@ -112,14 +109,35 @@ const toggleChatbot = async () => {
       // ✅ Afficher les messages d’accueil
       messages.value.push({
         text: "Bienvenue ! 🎉 Je suis là pour vous aider. Que puis-je faire pour vous aujourd’hui ?",
-        sender: "bot"
+        sender: "bot",
+        reactable: false,
       });
-
-     
-
       welcomeShown.value = true;
       scrollToBottom();
     }
+  }
+};
+
+const toggleReaction = (index) => {
+  activeReactionIndex.value = activeReactionIndex.value === index ? null : index;
+};
+
+const setReaction = (index, emoji) => {
+  // ⛔️ Ignorer les messages non réactables
+  if (!messages.value[index].reactable) return;
+
+  if (messages.value[index].reaction === emoji) {
+    messages.value[index].reaction = null;
+  } else {
+    messages.value[index].reaction = emoji;
+  }
+  activeReactionIndex.value = null;
+
+  if (isAuthenticated.value) {
+    axios.post("/chatbot/reaction", {
+      message: messages.value[index].text,
+      reaction: messages.value[index].reaction,
+    });
   }
 };
 
@@ -129,6 +147,7 @@ onMounted(async () => {
   }
   await checkBotStatus();
 });
+
 </script>
 
 <template>
@@ -175,16 +194,42 @@ onMounted(async () => {
     msg.sender === 'bot' && msg.text.match(/^\d+\./m) ? 'list-message' : ''
   ]"
 >
-  <div class="chat-bubble">
-    <!-- <span v-if="msg.sender === 'bot'" class="copy-btn" @click="copyToClipboard(msg.text)">📋</span> -->
-
+<div v-if="msg.sender === 'bot'" class="bot-message-wrapper">
+  <img src="/images/bot-avatar.png" alt="bot icon" class="bot-icon" />
+  
+  <div class="chat-bubble bot">
     <span>{{ msg.text }}</span>
+  
+    <!-- ✅ Réaction fixe en bas à droite de la bulle -->
+    <div class="reaction-fixed" v-if="msg.reactable">
+  <button class="reaction-trigger" @click="toggleReaction(index)">
+    {{ msg.reaction || '😊' }}
+  </button>
+
+      <!-- 😍 Mini menu emojis -->
+      <div v-if="activeReactionIndex === index && msg.reactable" class="emoji-picker">
+        <span @click="setReaction(index, '👍')">👍</span>
+        <span @click="setReaction(index, '👎')">👎</span>
+      </div>
+     
+
+    </div>
+  
   </div>
-  <small class="msg-date" v-if="msg.date">🕒 {{ formatDate(msg.date) }}</small>
+
 </div>
 
-  <!-- 💬 Loading (thinking) indicator -->
-  <div v-if="isLoading" class="chat-bubble bot thinking">
+
+
+<div v-else class="chat-bubble user">
+  <span>{{ msg.text }}</span>
+</div>
+
+  <small class="msg-date" v-if="msg.date">🕒 {{ formatDate(msg.date) }}</small>
+  
+</div>
+
+<div v-if="isLoading" class="chat-bubble bot thinking">
     <span class="dot"></span>
     <span class="dot"></span>
     <span class="dot"></span>
@@ -210,6 +255,135 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.reaction-emoji {
+  font-size: 20px;
+  display: inline-block;
+  animation: popIn 0.25s ease;
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Bouton emoji masqué par défaut */
+.reaction-icon-wrapper {
+  position: absolute;
+  top: 0;
+  right: -28px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Affiche l'icône emoji quand on survole */
+.bot-message-wrapper:hover .reaction-icon-wrapper {
+  opacity: 1;
+}
+
+/* Style du bouton emoji à droite */
+.emoji-icon-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.emoji-icon-btn:hover {
+  transform: scale(1.2);
+}
+/* ✅ Le bouton de réaction dans un coin fixe */
+.reaction-fixed {
+  position: absolute;
+  bottom: -14px;
+  right: 6px;
+}
+
+.reaction-trigger {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.reaction-trigger:hover {
+  transform: scale(1.2);
+}
+.reaction-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  margin-left: 4px;
+  opacity: 0.6;
+  transition: transform 0.2s;
+}
+.reaction-button:hover {
+  transform: scale(1.2);
+  opacity: 1;
+}
+
+.emoji-picker {
+  position: absolute;
+  bottom: 140%;
+  right: 0;
+  display: flex;
+  gap: 6px;
+  background: white;
+  padding: 6px 10px;
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  animation: fadeInEmoji 0.2s ease;
+}
+.chat-bubble.bot {
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(to right, #00c6ff, #0072ff);
+  color: rgb(0, 0, 0);
+  border-bottom-left-radius: 0;
+  margin-right: auto;
+}
+.reaction-display {
+  margin-top: 4px;
+  font-size: 20px;
+}
+
+.emoji-picker span {
+  font-size: 18px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.emoji-picker span:hover {
+  transform: scale(1.25);
+}
+
+@keyframes fadeInEmoji {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.reaction-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.bot-message-wrapper:hover .reaction-icon-wrapper {
+  opacity: 1;
+}
+
+
+
 .chatbot-backdrop {
   position: fixed;
   inset: 0;
@@ -291,46 +465,7 @@ onMounted(async () => {
   color: rgb(6, 6, 6);
   border-bottom-left-radius: 0;
 }
-/* .copy-btn {
-  float: right;
-  margin-left: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  color: white;
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 4px;
-  padding: 2px 5px;
-}
-.message-block.bot .chat-bubble {
-  position: relative;
-  padding-top: 25px;
-} */
 
-
-/* .chat-bubble {
-  max-width: 75%;
-  padding: 10px 14px;
-  border-radius: 16px;
-  font-size: 14px;
-  line-height: 1.4;
-  display: inline-block;
-  margin-bottom: 6px;
-} */
-
-/* .chat-bubble.user {
-  background-color: #4e46e3;
-  color: white;
-  align-self: flex-end;
-  border-bottom-right-radius: 0;
-  margin-left: auto;
-} */
-/* .chat-bubble.bot {
-  background-color: #f1f1f1;
-  color: #333;
-  align-self: flex-start;
-  border-bottom-left-radius: 0;
-  margin-right: auto;
-} */
 
 
 /* ✅ Animation d’ouverture style scale + fade */
@@ -365,7 +500,7 @@ onMounted(async () => {
 
 
 /* Thinking dots animation */
-.thinking {
+.chat-bubble.thinking {
   display: flex;
   gap: 4px;
   align-items: center;
@@ -373,7 +508,7 @@ onMounted(async () => {
   margin-top: 4px;
 }
 
-.dot {
+.thinking .dot {
   height: 7px;
   width: 7px;
   opacity: 0.7;
@@ -578,5 +713,18 @@ onMounted(async () => {
 }
 .fade-enter-to, .fade-leave-from {
   opacity: 1;
+}
+.bot-message-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.bot-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  margin-top: 2px;
 }
 </style>

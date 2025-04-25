@@ -9,7 +9,7 @@ class ChatMessage extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'message', 'sender'];
+    protected $fillable = ['user_id', 'message', 'sender','intent'];
     public $timestamps = true;
 
 

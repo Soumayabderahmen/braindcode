@@ -29,29 +29,30 @@ onMounted(async () => {
   <Navbar_home />
 
   <div class="faq-page">
-    <h1 class="main-title">
-      <span class="highlight">FAQ</span>
-      <span class="brand"> - BrainCode Startup Studio</span>
-    </h1>
-
+  <div class="faq-header">
+    <h1 class="main-title">FAQ – BraindCode Startup Studio</h1>
     <h2 class="subtitle">Questions fréquemment posées</h2>
-
-    <div class="faq-section">
-      <div class="faq-image">
-        <img src="/images/faq-illustration.png" alt="FAQ" />
-      </div>
-      <div class="faq-list">
-        <div v-for="(faq, index) in faqs" :key="index" class="faq-item" @click="toggleFaq(index)">
-          <div class="faq-question">
-            <span>{{ faq.question }}</span>
-            <span class="symbol">{{ selected === index ? '✖' : '+' }}</span>
-          </div>
-          <div v-if="selected === index" class="faq-answer">
-            {{ faq.answer }}
-          </div>
+  </div>
+  <div class="faq-section">
+    <div class="faq-image">
+      <img src="/images/faq-illustration.png" alt="FAQ" />
+    </div>
+    <div class="faq-list">
+      <!-- Boucle sur les questions ici -->
+      <div v-for="(faq, index) in faqs" :key="index" class="faq-item" @click="toggleFaq(index)">
+        <div class="faq-question">
+          <span>{{ faq.question }}</span>
+          <span class="symbol">{{ selected === index ? '–' : '+' }}</span>
+        </div>
+        <div v-if="selected === index" class="faq-answer">
+          {{ faq.answer }}
         </div>
       </div>
     </div>
+  </div>
+
+
+
 
     <hr class="divider" />
 
@@ -71,103 +72,162 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+
 .faq-page {
-  max-width: 1200px;
   margin: auto;
   padding: 3rem 1rem;
   font-family: 'Inter', sans-serif;
+  background: var(--Gris-White, #FFF);
+}
+
+.faq-header {
+  margin-top: 2%;
+  text-align: left;
+  margin-bottom: 2rem;
+  margin-left: 44%; 
+  margin-right: 1%;
+  font-family: 'Poppins', sans-serif;
+  /* Ajuste cette valeur */
+  
 }
 
 .main-title {
-  text-align: center;
-  font-size: 36px;
-  margin-bottom: 1rem;
+  font-size: 2.5rem;
+  font-weight: 800;
+ 
+  margin-bottom: 0.2rem;
+color: var(--Blue-blue-700, #253d4d);
+
+font-family: 'Poppins', sans-serif;
+font-size: 49px;
+font-style: bold;
+line-height: 100%; 
 }
 
-.highlight {
-  background-color: #ffeb3b;
-  padding: 0 10px;
-  font-weight: bold;
-}
-
-.brand {
-  color: #1e88e5;
-  font-weight: bold;
-}
+/* .brand {
+  color: #1976d2;
+} */
 
 .subtitle {
-  text-align: center;
-  font-size: 20px;
-  margin-bottom: 2rem;
+ 
+  color: var(--Blue-blue-500, #1c82c2);
+/* H4 / Regular */
+font-family: 'Poppins', sans-serif;
+margin-top: 2%;
+font-size: 25px;
+font-style: normal;
+font-weight: 400;
+line-height: 30px;
 }
 
 .faq-section {
   display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
   align-items: flex-start;
-  margin-bottom: 3rem;
+  margin-left: 10%; /* Aligne avec le titre */
 }
 
 .faq-image img {
-  width: 100%;
-  max-width: 400px;
+  width: 95%;
+  margin-top: -125px;  
+ 
 }
 
 .faq-list {
-  flex: 1;
+  min-width: 57%;
 }
 
 .faq-item {
-  background: #fff;
-  border-bottom: 1px solid #ddd;
-  padding: 1rem 0;
+  background: #eef4fa;
+  /* f4faff */
+  border-radius: 12px;
+  margin-bottom: 1.2rem;
+  box-shadow: 0 2px 8px rgba(30,136,229,0.06);
+  transition: box-shadow 0.2s;
   cursor: pointer;
-  transition: all 0.2s;
+  border: 1px solid #e3eaf5;
 }
 
 .faq-item:hover {
-  background-color: #f9f9f9;
+  box-shadow: 0 4px 18px rgba(30,136,229,0.12);
+  background-color: #e9f4fb;
+
 }
 
 .faq-question {
+  padding: 1.2rem 1.5rem;
   display: flex;
   justify-content: space-between;
-  font-weight: bold;
-  color: #333;
-}
-
-.faq-answer {
-  margin-top: 0.5rem;
-  color: #555;
-  font-size: 15px;
-  line-height: 1.5;
+  align-items: center;
+  font-weight: 700;
+  color: #263a4e;
+  
+  font-family: 'Poppins', sans-serif;
+   line-height: 19.2px
 }
 
 .symbol {
-  font-weight: bold;
-  font-size: 20px;
-  color: #1e88e5;
+  font-size: 1.5rem;
+  color: #1976d2;
 }
+
+.faq-answer {
+  color: var(--Black-black-300, #737373);
+  font-size: 1rem;
+  line-height: 1.6;
+  font-family: 'Poppins', sans-serif;
+  border-left: 4px solid #0086D9;
+  padding-left: 1rem;
+  background: #fff;
+  padding: 1%;
+  font-style: normal;
+  font-weight: 400;
+
+}
+
+
 
 .divider {
   margin: 3rem 0;
-  border-color: #ccc;
+  border-color: #f5efef;
 }
 
 .tutorials h3 {
+  margin-bottom: 1.5rem;
+  margin-left: 6%;
+  color: #0086D9;
+  font-family: 'Poppins', sans-serif;
   font-size: 20px;
-  margin-bottom: 1rem;
+  font-weight: 700;
+  border-bottom: 2px solid #0086D9;
+  display: inline-block;
+  padding-bottom: 4px;
 }
+
 
 .tutorials-list {
   display: flex;
-  gap: 2rem;
+  gap: 9rem;
   flex-wrap: wrap;
   justify-content: center;
 }
 
 .tutorial {
+  box-shadow: 10px 8px 20px 0px rgba(0, 81, 131, 0.25);
   text-align: center;
+  border-radius: 5%;
+  background-color: #e1e9ee;
+
+}
+
+@media (max-width: 900px) {
+  .faq-section {
+    flex-direction: column;
+    align-items: center;
+    margin-left: 0; 
+  }
+  .faq-header {
+    text-align: center;
+    margin-left: 0; 
+  }
 }
 </style>

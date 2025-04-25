@@ -40,37 +40,22 @@
 <script setup>
 import { computed, ref } from "vue";
 import { usePage, Link } from "@inertiajs/vue3";
+import { adminMenuItems, userMenuItems } from "@/constants/menuItems"
+import { route } from 'ziggy-js'
 
-const isClosed = ref(false);
+
 const page = usePage();
 const user = computed(() => page.props.auth.user);
 const isAdmin = computed(() => user.value && user.value.role === "admin");
 
 // Correction du routage avec `route()`
-const menuItems = computed(() => {
-  if (isAdmin.value) {
-    return [
-      { name: "Dashboard", route: "admin.dashboard", icon: "bx bx-home" },
-      { name: "Coachs", route: "admin.dashboard", icon: "bx bx-chalkboard" },
-      { name: "Investisseurs", route: "admin.dashboard", icon: "bx bx-money" },
-      { name: "Startups", route: "admin.dashboard", icon: "bx bx-rocket" },
-      { name: "Messages Support", route: "admin.support.messages", icon: "bx bx-envelope" },
-      { name: "FAQs", route: "admin.faqs.index", icon: "bx bx-question-mark" },
-      { name: "Chatbot IA", route: "admin.chatbot.index", icon: "bx bx-bot" }
+const menuItems = computed(() => isAdmin.value ? adminMenuItems : userMenuItems)
 
-    ];
-  } else {
-    return [
-      { name: "Dashboard", route: "dashboard", icon: "bx bx-home" },
-      { name: "Profil", route: "profile.edit", icon: "bx bx-user" },
-      
-    ];
-  }
-});
 
-const toggleSidebar = () => {
-  isClosed.value = !isClosed.value;
-};
+defineProps(['isClosed'])
+const emit = defineEmits(['toggle'])
+
+const toggleSidebar = () => emit('toggle')
 
 </script>
 <style scoped>

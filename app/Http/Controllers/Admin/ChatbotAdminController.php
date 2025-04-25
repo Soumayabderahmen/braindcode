@@ -33,6 +33,7 @@ class ChatbotAdminController extends Controller
                 'user_role' => $msg->user?->role ?? 'invité', // ➕ ajout du rôle
                 'message' => $msg->message,
                 'sender' => $msg->sender,
+                'intent' => $msg->intent,
                 'created_at' => $msg->created_at,
             ];
         });

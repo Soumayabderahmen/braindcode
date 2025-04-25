@@ -57,10 +57,19 @@ const selectUser = (user) => {
 });
 
 const selectedUserMessages = computed(() => {
-  return allMessages.value.filter(
+  let messages = allMessages.value.filter(
     (msg) => msg.user_id === selectedUser.value?.id
   );
+
+  if (showWithoutIntentOnly.value) {
+    messages = messages.filter(
+      (msg) => msg.sender === 'bot' && !msg.intent
+    );
+  }
+
+  return messages;
 });
+
 
   // const selectUser = (user) => {
   //   selectedUser.value = user;
@@ -69,6 +78,9 @@ const selectedUserMessages = computed(() => {
   const formatDate = (datetime) => {
     return new Date(datetime).toLocaleString();
   };
+
+  const showWithoutIntentOnly = ref(false);
+
 </script>
 
 <template>
@@ -96,8 +108,15 @@ const selectedUserMessages = computed(() => {
     </div>
   </div>
 
+
   <!-- ✅ Messages à droite -->
   <div class="chat-window">
+    <div class="filter-bar">
+    <label>
+      <input type="checkbox" v-model="showWithoutIntentOnly" />
+      Afficher uniquement les messages sans intention reconnue
+    </label>
+  </div>
     <div v-if="selectedUserMessages.length === 0" class="no-messages">
       📢 Aucun message sélectionné.
     </div>
@@ -108,7 +127,12 @@ const selectedUserMessages = computed(() => {
         :class="['message-bubble', msg.sender === 'user' ? 'user' : 'bot']"
       >
         <p class="msg-text">{{ msg.message }}</p>
-        <span class="msg-meta">{{ formatDate(msg.created_at) }}</span>
+        <span class="msg-meta">
+    🕒 {{ formatDate(msg.created_at) }}
+    <span v-if="msg.sender === 'bot' && msg.intent" class="intent-badge">
+    🎯 {{ msg.intent }}
+  </span>
+  </span>
       </div>
     </div>
   </div>
@@ -123,6 +147,24 @@ const selectedUserMessages = computed(() => {
 </template>
 
 <style scoped>
+.intent-badge {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: #007bff;
+  background: #e1f0ff;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.filter-bar {
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #333;
+}
+
+
 .messages {
   display: flex;
   flex-direction: column;

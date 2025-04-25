@@ -14,6 +14,10 @@ use App\Http\Controllers\Chatbot\ChatbotController;
 use App\Http\Controllers\Faq\FaqController;
 use App\Http\Controllers\Admin\AdminFaqController;
 use App\Http\Controllers\Admin\ChatbotAdminController;
+use App\Http\Controllers\API\IntentionController;
+use App\Http\Controllers\Admin\IntentionAdminController;
+use App\Http\Controllers\Chatbot\ChatbotReactionController;
+use App\Http\Controllers\Admin\ChatbotReactionAdminController;
 // Route pour le tableau de bord, sans authentification
 Route::get('/', function () {
     return Inertia::render('Home');
@@ -35,6 +39,9 @@ Route::get('/dashboard/investisseur', function () {
     return Inertia::render('Users/DashboardInvestisseur');
 })->middleware(['auth', CheckRole::class.':investisseur'])->name('dashboard.investisseur');
 
+
+Route::get('/intentions', [IntentionController::class, 'index']);
+
 // Page ContactUs (visible par tous)
 Route::get('/contact', [SupportMessageController::class, 'create'])->name('contactus');
 Route::post('/contact/store', [SupportMessageController::class, 'store'])->name('contact.store');
@@ -43,6 +50,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // ✅ Ajout : enregistre la réaction à un message du bot
+    Route::post('/chatbot/reaction', [ChatbotReactionController::class, 'store']);
 });
 
 // Route API pour envoyer un message au chatbot
@@ -53,6 +63,8 @@ Route::middleware('auth')->post('/api/chatbot/history/save', [ChatbotController:
 // Route Faq
 Route::get('/faqs', [FaqController::class, 'index'])->name('faq');
 Route::get('/faqs/list', [FaqController::class, 'list']);
+
+
 
 // Routes Admin (Support Messages)
 Route::prefix('admin')->middleware(['auth', 'verified', CheckAdmin::class])->name('admin.')->group(function () {
@@ -66,6 +78,16 @@ Route::prefix('admin')->middleware(['auth', 'verified', CheckAdmin::class])->nam
     Route::delete('/faqs/{faq}', [AdminFaqController::class, 'destroy'])->name('faqs.destroy');
     Route::get('/chatbot', [ChatbotAdminController::class, 'index'])->name('chatbot.index');
     Route::get('/chatbot/messages', [ChatbotAdminController::class, 'messages']);
+    Route::get('/chatbot/reactions', [ChatbotReactionAdminController::class, 'index'])->name('chatbot.reactions');
+
+
+    // Route::get('/intentions', [IntentionAdminController::class, 'index'])->name('intentions');
+    // Route::get('/intentions-list', [IntentionAdminController::class, 'list']);
+    // Route::post('/intentions', [IntentionAdminController::class, 'store']);
+    // Route::put('/intentions/{intention}', [IntentionAdminController::class, 'update']);
+    // Route::delete('/intentions/{intention}', [IntentionAdminController::class, 'destroy']);
+    
+
 });
 
 
