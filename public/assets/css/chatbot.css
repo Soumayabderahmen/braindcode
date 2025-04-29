@@ -1,0 +1,216 @@
+:root {
+    --bs-primary: #F3F4F7;
+    --bs-hover: #E6F4FD;
+    --bs-focus: #0093EE;
+}
+/*----------------------------------
+chat 
+------------------------------------*/
+.cardChat h5 {
+    color: var(--Blue-500, #0093EE);
+    font-family: Poppins;
+    font-size: 31px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 55px;
+    /* 177.419% */
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.cardChat .chat-container {
+    height: 400px;
+    overflow-y: auto;
+    background-color: #fff;
+}
+.cardChat .chat-container::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+.cardChat .chat-container::-webkit-scrollbar-thumb {
+    background: var(--bs-hover) !important;
+    border-radius: 10px;
+}
+
+.cardChat .chat-container::-webkit-scrollbar-thumb:hover {
+    background: var(--bs-focus);
+}
+.cardChat .chat-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.cardChat .message {
+    max-width: 80%;
+    padding: 0.75rem;
+    border-radius: 1rem;
+    position: relative;
+    /* 120% */
+    /* shdow final */
+    box-shadow: 10px 8px 20px 0px rgba(0, 81, 131, 0.25) !important;
+}
+
+.cardChat .user-message {
+    align-self: flex-end;
+    background-color: #007bff;
+    color: white;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.cardChat .bot-message {
+    color: var(--Blue-500, #0093EE);
+    /* Headline / Regular */
+    font-family: Poppins;
+    font-size: 15px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 24px;
+    align-self: flex-start;
+    background-color: white;
+    border-bottom-left-radius: 0.25rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.cardChat .message-time {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    margin-top: 0.25rem;
+}
+
+.cardChat .chat-input {
+    border-radius: 0px 0px 30px 30px;
+    background: var(--Color, #FFF);
+    box-shadow: -10px -8px 20px 0px rgba(0, 81, 131, 0.25);
+}
+
+.cardChat .input-group {
+    box-shadow: none !important;
+    background-color: #fff;
+}
+
+.cardChat .input-group input {
+    border: none;
+    padding: 0.75rem 1rem;
+}
+
+.cardChat .input-group input:focus {
+    box-shadow: none !important;
+}
+
+.cardChat .input-group button {
+    width: 50px;
+    height: 50px;
+    border-radius: 15px 15px 15px 15px !important;
+    box-shadow: 5px 4px 10px 0px rgba(0, 81, 131, 0.25);
+}
+
+.cardChat .file-previews {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.cardChat .file-preview {
+    position: relative;
+    margin-bottom: 0.5rem;
+}
+
+.cardChat .image-preview {
+    width: 100px;
+    height: 100px;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    position: relative;
+}
+
+.cardChat .preview-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cardChat .document-preview {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    max-width: 200px;
+}
+
+.cardChat .document-preview i {
+    font-size: 13px;
+    color: #fff;
+}
+
+.cardChat .document-preview span {
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cardChat .remove-file {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background-color: #FF5454;
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+}
+@media(max-width:992px){
+    .cardChat h5 {
+        font-size: 25px;
+    }
+    .cardChat .bot-message {
+        font-size: 14px;
+    }
+    .cardChat .message-time {
+        font-size: 0.5rem;
+    }
+    .cardChat .document-preview span {
+        font-size: 12px;
+    }
+    .cardChat .message {
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+    }
+    .cardChat .input-group button {
+        width: 45px;
+        height: 45px;
+    }
+}
+@media(max-width:768px){
+    .cardChat h5 {
+        font-size: 20px;
+    }
+    .cardChat .bot-message {
+        font-size: 12px;
+    }
+    .cardChat .message-time {
+        font-size: 0.5rem;
+    }
+    .cardChat .document-preview span {
+        font-size: 12px;
+    }
+    .cardChat .message {
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+    }
+    .cardChat .input-group button {
+        width: 40px;
+        height: 40px;
+    }
+}

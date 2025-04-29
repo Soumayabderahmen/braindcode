@@ -1,12 +1,6 @@
 <script setup>
-import Checkbox from '@/Components/Checkbox.vue';
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-
+import fullwidth from '@/Layouts/fullwidth.vue';
 defineProps({
     canResetPassword: {
         type: Boolean,
@@ -27,59 +21,107 @@ const submit = () => {
         onFinish: () => form.reset('password'),
     });
 };
-
 </script>
 
 <template>
-    <GuestLayout>
+    <fullwidth> <!-- 👈 ici aussi -->
 
-        <Head title="Log in" />
+        <Head title="Connexion" />
 
-        <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
-            {{ status }}
+        <div class="container-xxl flex-grow-1 container-p-y auth-container" style="height:100vh;">
+            <img src="/assets/img/dash/circletop.png" alt="" class="circle circletop">
+            <img src="/assets/img/dash/circleright.png" alt="" class="circle circleright">
+            <img src="/assets/img/dash/circletopright.png" alt="" class="circle circletopright">
+            
+            <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col-lg-5 col-md-6 col-12">
+                    <div class="card cardLogin">
+                        <div class="card-body">
+                            
+                            <div v-if="Object.keys(form.errors).length > 0" class="alert alert-danger alert-dismissible" role="alert">
+                                <ul>
+                                    <li v-for="(error, key) in form.errors" :key="key">{{ error }}</li>
+                                </ul>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+
+                            <div v-if="status" class="alert alert-success dark alert-dismissible fade show" role="alert">
+                                <span>{{ status }}</span>
+                                <button class="btn-close" type="button" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+
+                            <form @submit.prevent="submit">
+                                <h5 class="mb-5 title">Accéder à mon compte</h5>
+
+                                <div class="input-group mb-4">
+                                    <span class="input-group-text">
+                                        <img src="/assets/img/icons/Mail-2.png" alt="">
+                                    </span>
+                                    <input 
+                                        type="email" 
+                                        class="form-control" 
+                                        placeholder="Exemple@gmail.com" 
+                                        v-model="form.email" 
+                                        required 
+                                        autofocus
+                                    >
+                                </div>
+
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">
+                                        <img src="/assets/img/icons/lock.png" alt="">
+                                    </span>
+                                    <input 
+                                        type="password" 
+                                        class="form-control" 
+                                        placeholder="Mot de passe" 
+                                        v-model="form.password" 
+                                        required
+                                    >
+                                </div>
+
+                                <div class="mb-4 d-flex justify-content-end">
+                                    <Link v-if="canResetPassword" :href="route('password.request')">
+                                        <small>Mot de passe oublié?</small>
+                                    </Link>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100 mb-4" :disabled="form.processing">
+                                    Se connecter
+                                </button>
+                            </form>
+
+                            <div class="text-center mb-4">
+                                <p class="text">
+                                    Vous n’êtes pas encore client ? 
+                                    <Link :href="route('register')">Créer un compte</Link>
+                                </p>
+                            </div>
+
+                            <div class="d-flex align-items-center justify-content-center px-3 mb-4">
+                                <div class="hr"></div>
+                                <p>ou</p>
+                                <div class="hr"></div>
+                            </div>
+
+                            <div class="card-footer bg-transp border-0 pb-0">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <button class="btn btn-rect">
+                                        <span class="iconify" data-icon="flowbite:google-solid" data-inline="false"></span>
+                                    </button>
+                                    <!--
+                                    <button class="btn">
+                                        <img src="/assets/img/icons/facebook.png" alt="">
+                                    </button>
+                                    -->
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="email" value="Email" />
-
-                <TextInput id="email" type="email" class="mt-1 block w-full" v-model="form.email" required autofocus
-                    autocomplete="username" />
-
-                <InputError class="mt-2" :message="form.errors.email" />
-            </div>
-
-            <div class="mt-4">
-                <InputLabel for="password" value="Password" />
-
-                <TextInput id="password" type="password" class="mt-1 block w-full" v-model="form.password" required
-                    autocomplete="current-password" />
-
-                <InputError class="mt-2" :message="form.errors.password" />
-            </div>
-
-            <div class="mt-4 block">
-                <label class="flex items-center">
-                    <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ms-2 text-sm text-gray-600">Remember me</span>
-                </label>
-            </div>
-
-            <div class="mt-4 flex items-center justify-end">
-                <Link :href="route('register')"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                Register
-                </Link>
-                <Link v-if="canResetPassword" :href="route('password.request')"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                Forgot your password?
-                </Link>
-
-                <PrimaryButton class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                    Log in
-                </PrimaryButton>
-               
-            </div>
-        </form>
-    </GuestLayout>
+    </fullwidth> <!-- 👈 n'oublie de fermer ici -->
 </template>

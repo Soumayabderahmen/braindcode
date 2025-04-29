@@ -1,21 +1,20 @@
 <script setup>
-import { ref } from "vue";
-import { useForm, router } from "@inertiajs/vue3";
-import Main from "../../Layouts/main.vue";
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import { ref, watch } from "vue";
+import axios from "axios";
+import { route } from "ziggy-js";
 
 const props = defineProps({
   availabilities: Array,
-  coachId: Number, // ID du coach
+  coachId: {
+    type: [Number, String],
+    required: true,
+  },
 });
-const getDayOfWeek = (date) => {
-  const days = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-  const d = new Date(date);
-  return days[d.getDay()];
-};
-// Formulaire d'ajout d'une disponibilité
-const form = useForm({
+
+const isEditing = ref(false);
+
+// 🔹 Formulaire d'ajout
+const form = ref({
   coach_id: props.coachId,
   date: "",
   start_time: "",
@@ -25,8 +24,8 @@ const form = useForm({
   honoraire: "",
 });
 
-// Formulaire de modification
-const editForm = useForm({
+// 🔹 Formulaire d'édition
+const editForm = ref({
   id: null,
   date: "",
   start_time: "",
@@ -35,100 +34,147 @@ const editForm = useForm({
   honoraire: "",
 });
 
-// Indicateur d'édition
-const isEditing = ref(false);
-
-// Ajouter une disponibilité
-const submitAvailability = () => {
-  form.day_of_week = getDayOfWeek(form.date);
-  form.post(route("coach.availability.store"), {
-    onSuccess: () => {
-      form.reset(); // Réinitialisation après succès
+// 🔹 Mise à jour coach_id dès qu’il est disponible
+watch(
+  () => props.coachId,
+  (newCoachId) => {
+    if (newCoachId) {
+      form.value.coach_id = newCoachId;
+      console.log("Coach ID mis à jour dans form :", newCoachId);
     }
-  });
+  },
+  { immediate: true }
+);
+
+// 🔹 Obtenir le jour de la semaine depuis une date
+const getDayOfWeek = (date) => {
+  const days = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+  return days[new Date(date).getDay()];
 };
 
-const updateStatus = (id, newStatus) => {
+// 🔹 Réinitialiser le formulaire d’ajout sans toucher à coach_id
+const resetForm = () => {
+  form.value.date = "";
+  form.value.start_time = "";
+  form.value.end_time = "";
+  form.value.statut = "available";
+  form.value.day_of_week = "";
+  form.value.honoraire = "";
+};
+
+// 🔹 Réinitialiser le formulaire de modification
+const resetEditForm = () => {
+  editForm.value = {
+    id: null,
+    date: "",
+    start_time: "",
+    end_time: "",
+    day_of_week: "",
+    honoraire: "",
+  };
+  isEditing.value = false;
+};
+
+// 🔹 Ajout d’une disponibilité
+const submitAvailability = async () => {
+  form.value.day_of_week = getDayOfWeek(form.value.date);
+
+  if (!form.value.coach_id) {
+    alert("Coach ID manquant !");
+    console.error("Coach ID absent dans form :", form.value);
+    return;
+  }
+
+  try {
+    await axios.post('/coach/availability', form.value);
+    alert("Disponibilité ajoutée !");
+    resetForm();
+    location.reload(); // optionnel : utiliser un événement ou props
+  } catch (error) {
+    if (error.response && error.response.data && error.response.data.errors) {
+      console.error("Erreur de validation :", error.response.data.errors);
+      alert("Erreur de validation : " + JSON.stringify(error.response.data.errors));
+    } else {
+      console.error("Erreur inconnue :", error);
+      alert("Une erreur est survenue.");
+    }
+  }
+};
+
+// 🔹 Mise à jour du statut
+const updateStatus = async (id, newStatus) => {
   if (!newStatus) {
     alert("Veuillez sélectionner un statut.");
-    return; // Arrêter l'exécution si le statut est manquant
+    return;
   }
+  try {
 
-  const statusForm = useForm({
-    statut: newStatus,
-  });
-
-  statusForm.put(route("coach.availability.updateStatus", id), {
-    onSuccess: () => {
-      alert("Statut mis à jour avec succès !");
-    },
-    onError: (errors) => {
-      console.error("Erreur de mise à jour :", errors);
-      alert("Une erreur s'est produite lors de la mise à jour du statut.");
-    },
-  });
+      const response = await axios.put(route("coach.availability.updateStatus",id), { statut: newStatus });
+    alert("Statut mis à jour !");
+  } catch (error) {
+    console.error("Erreur mise à jour statut :", error);
+    alert("Erreur lors de la mise à jour.");
+  }
 };
 
-// Supprimer une disponibilité
-const deleteAvailability = (id) => {
+// 🔹 Suppression d’une disponibilité
+const deleteAvailability = async (id) => {
   if (confirm("Voulez-vous supprimer cette disponibilité ?")) {
-    router.delete(route("coach.availability.destroy", id), {
-      onSuccess: () => {
-        console.log("Disponibilité supprimée avec succès");
-      },
-    });
+    try {
+      await axios.delete(route("coach.availability.destroy", id));
+      alert("Disponibilité supprimée.");
+      location.reload(); // ou filtre localement
+    } catch (error) {
+      console.error("Erreur suppression :", error);
+      alert("Erreur lors de la suppression.");
+    }
   }
 };
 
-
-// Préparer le formulaire de modification
+// 🔹 Pré-remplissage du formulaire d’édition
 const editAvailability = (availability) => {
   isEditing.value = true;
-  editForm.id = availability.id;
-  editForm.date = availability.date;
-  editForm.start_time = availability.start_time;
-  editForm.end_time = availability.end_time;
-  editForm.day_of_week = getDayOfWeek(availability.date);
-  editForm.honoraire = availability.honoraire;
-
+  editForm.value = {
+    id: availability.id,
+    date: availability.date,
+    start_time: availability.start_time,
+    end_time: availability.end_time,
+    day_of_week: getDayOfWeek(availability.date),
+    honoraire: availability.honoraire,
+  };
 };
 
-// Mettre à jour la disponibilité (uniquement date et heures)
-const updateTimes = () => {
-  // Fonction pour formater correctement l'heure
-  const formatTimeForBackend = (time) => {
-    if (!time) return null;
-    // Si l'heure est au format HH:MM
-    if (time.length === 5) return time;
-    // Si c'est un input time HTML (HH:MM)
-    if (time.length === 8) return time.substring(0, 5);
-    return null;
-  };
-  editForm.day_of_week = getDayOfWeek(editForm.date);
+const updateTimes = async () => {
+  editForm.value.day_of_week = getDayOfWeek(editForm.value.date);
+
+  const formatTime = (time) => time?.substring(0, 5) || null;
+
   const payload = {
-    date: editForm.date || null,
-    start_time: formatTimeForBackend(editForm.start_time),
-    end_time: formatTimeForBackend(editForm.end_time),
-    day_of_week: editForm.day_of_week,
-    honoraire: editForm.honoraire,
+    date: editForm.value.date,
+    start_time: formatTime(editForm.value.start_time),
+    end_time: formatTime(editForm.value.end_time),
+    day_of_week: editForm.value.day_of_week,
+    honoraire: editForm.value.honoraire,
   };
 
-  editForm.put(route("coach.availability.updateTimes", editForm.id), {
-    data: payload,
-    onSuccess: () => {
-      alert("Disponibilité mise à jour avec succès !");
-      isEditing.value = false;
-      editForm.reset();
+  try {
+    const response = await axios.put(route('coach.availability.updateTimes', editForm.value.id), payload);    if (response.status === 200) {
+      alert("Disponibilité modifiée !");
+      resetEditForm();
+      location.reload();
     }
-  });
+  } catch (error) {
+    console.error("Erreur modification :", error.response?.data || error);
+    alert("Erreur lors de la modification.");
+  }
 };
 </script>
 
 <template>
-  <Main>
-    <div class="d-flex justify-content-center align-items-center " style="margin-left:206px">
+  
+    <div class="d-flex justify-content-center align-items-center " >
       <div class="card-body">
-        <h2 class="card-title text-center mb-4">Gérer mes disponibilités</h2>
+        <h2 class="card-title text-center mb-4"></h2>
 
         <!-- Formulaire d'ajout -->
         <form v-if="!isEditing" @submit.prevent="submitAvailability">
@@ -169,7 +215,7 @@ const updateTimes = () => {
         <form v-else @submit.prevent="updateTimes">
           <div class="row">
             <div class="mb-12">
-              <label class="form-label">Date</label>
+              <label class="form-label"><strong>Date</strong></label>
               <input type="date" v-model="editForm.date" class="form-control" />
             </div>
 
@@ -200,22 +246,23 @@ const updateTimes = () => {
     </div>
 
     <br />
-    <hr style="margin-left: 184px;" />
-    <div class="d-flex justify-content-center align-items-center " style="margin-left:206px">
+   
+    <br />
+    <div class="d-flex justify-content-center align-items-center " >
       <div class="card-body">
-        <h2 class="card-title text-center mb-4">Mes disponibilités</h2>
+       
 
         <table class="table-auto w-full border-collapse border border-gray-200" style="margin-right: 260px;">
           <thead>
             <tr class="bg-gray-100">
-              <th class="border p-2">Date</th>
-              <th class="border p-2">Début</th>
-              <th class="border p-2">Fin</th>
-              <th class="border p-2">Jour de la semaine</th>
-              <th class="border p-2">Honoraire (€)</th>
+              <th class="border p-2"><center>Date</center></th>
+              <th class="border p-2"><center>Début</center></th>
+              <th class="border p-2"><center>Fin</center></th>
+              <th class="border p-2"><center>Jour de la semaine</center></th>
+              <th class="border p-2"><center>Honoraire (€)</center></th>
 
-              <th class="border p-2">Statut</th>
-              <th class="border p-2">Actions</th>
+              <th class="border p-2"><center>Statut</center></th>
+              <th class="border p-2"><center>Actions</center></th>
             </tr>
           </thead>
           <tbody>
@@ -231,7 +278,7 @@ const updateTimes = () => {
               <td class="border border-gray-300 px-6 py-4">
                 <!-- Menu déroulant pour changer le statut -->
                 <select v-model="availability.statut" @change="updateStatus(availability.id, availability.statut)"
-                  class="form-select" required
+                  class="form-select" required style="color: white;"
                   :class="availability.statut === 'available' ? 'badge bg-success' : 'badge bg-danger'">
                   <option :class="availability.statut === 'available' ? 'badge bg-success' : 'badge bg-danger'"
                     value="available">Disponible</option>
@@ -243,17 +290,19 @@ const updateTimes = () => {
 
 
               <td>
+                <center>
                 <button class="btn btn-warning btn-sm me-2" @click="editAvailability(availability)">
                   Modifier
                 </button>
                 <button class="btn btn-danger btn-sm" @click="deleteAvailability(availability.id)">
                   Supprimer
                 </button>
+              </center>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
-  </Main>
+
 </template>

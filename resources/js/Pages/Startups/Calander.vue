@@ -4,8 +4,7 @@ import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import Main from "../../Layouts/main.vue";
-import 'bootstrap/dist/css/bootstrap.min.css';
+// import 'bootstrap/dist/css/bootstrap.min.css';
 import { router } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -102,9 +101,9 @@ const calendarOptions = ref({
 </script>
 
 <template>
-  <Main :showSidebar="true">
+ 
     <div>
-      <!-- Sélecteur de domaine -->
+  
       <div class="mb-3">
         <label for="specialtySelect" class="form-label">Sélectionner un domaine</label>
         <select
@@ -120,7 +119,7 @@ const calendarOptions = ref({
       </div>
 
       <!-- Calendrier -->
-      <div class="card-body" style="margin-right: -247px;">
+      <div class="card-body" >
         <div class="row">
           <div class="col-md-12">
             <div id="right">
@@ -137,14 +136,14 @@ const calendarOptions = ref({
         </div>
       </div>
     </div>
-  </Main>
+
 </template>
 
 <style scoped>
 .calendar-container {
-  max-width: 900px;
+  
   margin: auto;
-  padding: 20px;
+  /* padding: 20px; */
   background: white;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);

@@ -15,6 +15,13 @@
         <p><strong>Coût total :</strong> {{ $reservation->total }} €</p>
 
         <p>🧾 <strong>Veuillez procéder au paiement</strong> pour recevoir le lien du meeting.</p>
+        <form action="{{ route('paiement.show', $reservation->id) }}" method="GET">
+            @csrf
+            <button type="submit" style="padding: 12px 24px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                Procéder au paiement 💳
+            </button>
+        </form>
+
         <p>Merci de votre confiance 🙏</p>
 
     @elseif($reservation->statut === 'refusée')

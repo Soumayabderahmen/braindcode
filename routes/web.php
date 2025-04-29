@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CoachController;
+use App\Http\Controllers\AgentIA\AgentController;
 use App\Http\Controllers\Coach\CoachProfileController;
 use App\Http\Controllers\Investisseurs\ListInvestisseurController;
 use App\Http\Controllers\ProfileController;
@@ -11,6 +12,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Coach\AvailabilityController;
+use App\Http\Controllers\Startups\PaiementController;
 use App\Http\Controllers\Startups\ReservationController;
 
 Route::get('/', function () {
@@ -24,7 +26,7 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    return view('coach.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('/activation-message', function () {
     return Inertia::render('Coach/ActivationMessage');
@@ -70,10 +72,16 @@ Route::prefix('coach')->middleware(['auth', 'verified'])->name('coach.')->group(
     Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');
     Route::post('/availability', [AvailabilityController::class, 'store'])->name('availability.store');
     Route::delete('/availability/{id}', [AvailabilityController::class, 'destroy'])->name('availability.destroy');
-    Route::put('/availability/{id}', [AvailabilityController::class, 'updateTimes'])->name('availability.updateTimes');
+    Route::put('/availabilities/{id}', [AvailabilityController::class, 'updateTimes'])->name('availability.updateTimes');
     Route::put('/availabilityStatut/{id}', [AvailabilityController::class, 'updateStatus'])->name('availability.updateStatus');  
     Route::get('/reservations', [ReservationController::class, 'indexCoach'])->name('reservations');
 
+});
+
+Route::prefix('agentia')->group(function () {
+    Route::get('/', [AgentController::class, 'agentia'])->name('coach.agentia');
+    Route::get('/details', [AgentController::class, 'detailsAgentia'])->name('coach.agentia.details');
+    Route::get('/add', [AgentController::class, 'addAgentia'])->name('coach.agentia.add');
 });
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -84,6 +92,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/Investisseur/{id}', [ListInvestisseurController::class, 'profile'])->name('profile.investisseur');
     Route::get('/profile/startup/{id}', [ListStartupController::class, 'profile'])->name('profile.startup');
    
+    // Page de paiement
+    Route::get('/paiement/{reservation}', [PaiementController::class, 'show'])->name('paiement.show');
+    
+    // API de création du paiement Stripe
+    Route::post('/paiement/create-intent', [PaiementController::class, 'createStripeIntent'])->name('paiement.intent');
+    
     Route::put('/coach/availabilityStatut/{id}', [AvailabilityController::class, 'updateStatus'])->name('coach.availability.updateStatus');
     Route::get('/calendar', [AvailabilityController::class, 'FullCalandry'])->name('coach.calendar');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

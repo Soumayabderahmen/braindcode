@@ -82,7 +82,7 @@ class ListStartupController extends Controller
             });
         });
     
-        return Inertia::render('Startups/Calander', [
+        return view('Calendrier.index', [
             'availabilities' => $availabilities,
             'coachs' => $coachs,
         ]);

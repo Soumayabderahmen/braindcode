@@ -1,0 +1,447 @@
+.btn-rect {
+    display: inline-flex;
+    padding: var(--Full-padding, 12px);
+    justify-content: center;
+    align-items: center;
+    gap: var(--Spacing, 8px);
+    border-radius: 8px;
+    background: var(--Final-Background, #F3F4F7);
+    /* Shadow1 */
+    box-shadow: -10px -10px 30px 0px rgba(255, 255, 255, 0.90), 4px 4px 15px 0px rgba(114, 114, 114, 0.25) !important;
+}
+
+.btn-rect.size-sm {
+    padding: var(--Full-padding, 5px);
+    border-radius: 5px;
+}
+.btn-primary,
+.btn-secondary {
+    min-height: 50px;
+}
+.btn-secondary i,
+.btn-primary i {
+    margin-left: 8px;
+}
+
+.btn-outline-primary {
+    border-radius: 6px;
+    border: 2px solid var(--Pupule-500, #0093EE);
+    color: var(--Pupule-500, #0093EE);
+    /* Body / Bold */
+    font-family: Lato;
+    font-size: 15px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 24px;
+    padding: 8px 15px;
+    /* 150% */
+    min-height: 50px;
+}
+
+.btn-outline-primary svg {
+    margin-left: 5px;
+}
+
+a:hover {
+    text-decoration: none !important;
+}
+
+.input-group {
+    border-radius: 8px;
+    background: #F3F4F7;
+    /* Inner Shadow2 */
+    box-shadow: -7px -7px 7px 0px #FFF inset, 5px 5px 10px 1px rgba(169, 169, 169, 0.25) inset;
+    padding: 5px 5px;
+    height: 50px;
+}
+
+.input-group:focus-within {
+    box-shadow: -7px -7px 7px 0px #FFF inset, 5px 5px 10px 1px rgba(169, 169, 169, 0.25) inset !important;
+}
+
+.input-group span {
+    background-color: transparent;
+    border: none;
+    padding: 0px 0px;
+    padding-left: 10px;
+}
+
+.input-group span img {
+    width: 15px;
+}
+
+.input-group .form-control {
+    color: var(--GrayScale-Text-Title, #0F0F0F);
+    /* Headline/Light */
+    font-family: "SF Pro Display";
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 122%;
+    /* 24.4px */
+    border: none;
+    background: transparent !important;
+    box-shadow: none !important;
+    height: auto !important;
+
+}
+
+.form-control::placeholder {
+    color: var(--Gris-200, #B5B5B5);
+}
+
+.input-group .form-control:focus {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none;
+}
+
+.form-select {
+    border-radius: var(--Radius-S, 4px);
+    background: var(--Final-Background, #F3F4F7);
+    /* Shadow1 */
+    box-shadow: -10px -10px 30px 0px rgba(255, 255, 255, 0.90), 4px 4px 15px 0px rgba(114, 114, 114, 0.25);
+    color: var(--Disabled, #919191);
+    /* Body / Light */
+    font-family: Lato;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 24px;
+    /* 150% */
+    border: none;
+    min-height: 50px;
+}
+
+@media(max-width:992px) {
+
+    .form-select,
+    .form-control,
+    .btn-secondary,
+    .btn-primary,
+    .dropdown .btn,
+    .btn-outline-primary {
+        font-size: 14px;
+    }
+
+    .dropdown .dropdown-menu h5 {
+        font-size: 15px;
+    }
+
+    .dropdown .dropdown-menu .form-check label {
+        font-size: 12px;
+    }
+
+    .btn-rect {
+        padding: 10px;
+    }
+}
+
+@media(max-width:570px) {
+
+    .form-select,
+    .form-control,
+    .btn-secondary,
+    .btn-primary,
+    .dropdown .btn,
+    .btn-outline-primary {
+        font-size: 12px;
+    }
+
+    .form-select,
+    .form-control,
+    .btn-secondary,
+    .btn-primary,
+    .dropdown .btn,
+    .input-group {
+        width: 100%;
+        margin-left: 0px !important;
+        margin-right: 0px !important;
+
+    }
+
+
+    .btn-rect {
+        padding: 8px;
+    }
+}
+
+/*----------------------------------------------------------
+# auth
+*----------------------------------------------------------*/
+.auth-container {
+    position: relative;
+}
+
+.circletop {
+    position: fixed;
+    width: 300px;
+    top: 0px;
+    left: 0px;
+}
+
+.abonnements .circletop {
+    width: 250px;
+}
+
+.circleright {
+    position: fixed;
+    bottom: 3%;
+    right: 0px;
+    height: 302px;
+}
+
+.abonnements .circleBottomLeft {
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    height: 202px;
+}
+
+.abonnements .circleRight2 {
+    position: fixed;
+    bottom: 5%;
+    right: 0;
+    height: 502px;
+}
+
+.circletopright {
+    position: fixed;
+    top: 0px;
+    right: 10%;
+    width: 231.631px;
+}
+
+.abonnements .circleLeft {
+    position: fixed;
+    width: 150px;
+    top: 100vh;
+    left: 0px !important;
+}
+
+@media(max-width:768px) {
+    .circle {
+        display: none;
+    }
+
+    .filterLine h1 {
+        font-size: 18px !important;
+    }
+}
+
+
+
+.cardLogin {
+    border-radius: var(--Radius, 8px);
+    background: var(--Final-Background, #F3F4F7);
+    box-shadow: -10px -10px 30px 0px rgba(255, 255, 255, 0.90), 15px 15px 25px 0px rgba(0, 0, 0, 0.25);
+    height: fit-content;
+}
+
+.cardLogin h5 {
+    color: var(--GrayScale-Text-Title, #0F0F0F);
+    /* H3 / Bold */
+    font-family: "SF Pro Display";
+    font-size: 25px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 37.2px;
+    text-align: center;
+    /* 120% */
+}
+
+.cardLogin .text {
+    color: #AAA;
+    /* Body / Regular */
+    font-family: Lato;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 24px;
+    /* 150% */
+    text-transform: lowercase !important;
+}
+
+.cardLogin .text a {
+    color: var(--Vert-500, #0093EE);
+    font-weight: 700;
+}
+
+.cardLogin .hr {
+    height: 1px;
+    background-color: #d6d6d6;
+    width: 50%;
+
+}
+
+.cardLogin p {
+    color: var(--Gris-300, #919191);
+    /* Headline/Regular */
+    font-family: "SF Pro Display";
+    font-size: 15px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 148%;
+    /* 29.6px */
+    text-transform: uppercase;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.cardLogin .card-footer img {
+    height: 48px !important;
+    object-fit: contain;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px;
+    border-radius: 8px;
+}
+
+
+
+.cardPack {
+    border-radius: 8px;
+    background: var(--Final-Background, #F3F4F7);
+    /* ShadowFormulaire */
+    box-shadow: -3px -3px 10px 0px rgba(255, 255, 255, 0.90), 3px 3px 20px 0px rgba(72, 72, 72, 0.25);
+    width: 100%;
+    max-width: 323px;
+    height: 100%;
+}
+
+.cardPack.selected {
+    margin-top: -100px;
+}
+
+
+
+.cardPack .box {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: var(--Number-Scale-2s-XS, 6px);
+    background: var(--Final-Background, #F3F4F7);
+    /* InnerShadow */
+    box-shadow: -5px -5px 5px 0px #FFF inset, 3px 3px 5px 0px rgba(62, 52, 69, 0.25) inset;
+}
+
+.cardPack h4 {
+    color: var(--Violet-500, #0093EE);
+    text-align: center;
+    /* Headline/Bold */
+    font-family: "SF Pro Display";
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 104%;
+    /* 20.8px */
+    margin-top: 10px;
+}
+
+.cardPack h5 {
+    color: var(--Violet-500, #0287C5);
+    text-align: center;
+    /* Headline/Bold */
+    font-family: "SF Pro Display";
+    font-size: 17px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 104%;
+    /* 20.8px */
+}
+
+.cardPack .form-check {
+    display: flex;
+    align-items: center;
+}
+
+.cardPack label {
+    color: #623CA5;
+    /* Body / Regular */
+    font-family: "SF Pro Display";
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 700;
+    margin-left: 5px;
+    /* 150% */
+}
+
+.cardPack label small {
+    font-weight: 500;
+}
+
+.cardPack p {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    color: var(--GrayScale-Text-Caption, #474747);
+    font-family: Lato;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 30px;
+    /* 230.769% */
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.cardPack p i {
+    font-size: 15px;
+    color: #0093EE !important;
+    margin-right: 5px;
+}
+
+@media(max-width:768px) {
+    .cardPack.selected {
+        margin-top: 0px;
+    }
+
+    .cardPack h4 {
+        font-size: 16px;
+    }
+
+    .cardPack p {
+        font-size: 12px;
+    }
+
+    .cardPack label {
+        font-size: 12px;
+    }
+
+    .cardPack .btn {
+        font-size: 12px;
+    }
+}
+
+.title {
+    color: var(--GrayScale-Text-Title, #0F0F0F);
+    /* H3 / Bold */
+    font-family: "SF Pro Display";
+    font-size: 31px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 37.2px;
+    /* 120% */
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+@media(max-width:992px) {
+    .title {
+        font-size: 25px;
+    }
+}
+
+@media(max-width:768px) {
+    .title {
+        font-size: 20px;
+    }
+}
+
+@media(max-width:570px) {
+    .title {
+        font-size: 18px;
+    }
+}
