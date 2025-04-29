@@ -26,7 +26,7 @@ class ReservationController extends Controller
         public function indexAdmin()
         {
             $reservations = Reservation::with(['startup.user', 'coach.user'])->get();        
-            return Inertia::render('Admin/ListReservations', [
+            return view('reservations.index', [
                 'reservations' => $reservations,
             ]);
         }

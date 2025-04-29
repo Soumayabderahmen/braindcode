@@ -1,0 +1,516 @@
+a {
+    text-decoration: none !important;
+}
+
+.aside {
+    background-color: #F3F4F7 !important;
+    box-shadow: 1px 1px 20px 0px rgba(119, 119, 119, 0.25);
+}
+
+.navbar {
+    background-color: transparent !important;
+    filter: none !important;
+    box-shadow: none !important;
+}
+
+.aside .menu-icon img {
+    width: 20px;
+    height: 18px;
+    object-fit: contain;
+}
+
+.titleSide {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+}
+
+.titleSide h1 {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    color: #0287C5 !important;
+}
+
+.btn-profil {
+    color: #03A9F5 !important;
+    font-family: 'SF Pro Display', sans-serif;
+    text-align: center;
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 700 !important;
+    line-height: normal;
+    border-radius: 6px;
+    background: #F3F4F7;
+    height: 48px;
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+    display: flex;
+    justify-content: space-between;
+
+    /* Shadow1 */
+    box-shadow: -10px -10px 30px 0px rgba(255, 255, 255, 0.90), 4px 4px 15px 0px rgba(114, 114, 114, 0.25);
+}
+
+.btn-profil img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: none;
+}
+
+@media(max-width:768px) {
+    .btn-profil img {
+        display: block;
+    }
+
+    .btn-profil p,
+    .btn-profil i {
+        display: none;
+    }
+
+    .btn-profil {
+        padding: 0px !important;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+    }
+}
+
+.btn-profil .bi-chevron-down {
+    margin-left: 10px;
+}
+
+.input-group {
+    border-radius: 8px;
+    background: #F3F4F7;
+    /* Inner Shadow2 */
+    box-shadow: -7px -7px 7px 0px #FFF inset, 5px 5px 10px 1px rgba(169, 169, 169, 0.25) inset;
+    padding: 5px 5px;
+}
+
+.input-group:focus-within {
+    box-shadow: -7px -7px 7px 0px #FFF inset, 5px 5px 10px 1px rgba(169, 169, 169, 0.25) inset !important;
+}
+
+.input-group span {
+    background-color: transparent;
+    border: none;
+    padding: 0px 0px;
+    padding-left: 10px;
+}
+
+.input-group span img {
+    width: 15px;
+}
+
+.input-group .form-control {
+    color: var(--Gris-200, #B5B5B5);
+    /* Headline/Light */
+    font-family: "SF Pro Display";
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 122%;
+    /* 24.4px */
+    border: none;
+    background: transparent;
+}
+
+.input-group .form-control:focus {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none;
+}
+
+.menu-inner .menu-link {
+    text-decoration: none !important;
+}
+
+.menu-inner .menu-link i span {
+    font-size: 1rem !important;
+}
+
+.menu-inner .menu-link.active {
+    background-color: var(--bs-focus) !important;
+    border-radius: var(--Number-Scale-2s-2-XS, 4px);
+    border: 1.25px solid var(--Vert-200, #B8E0B9);
+    background: var(--Vert-500, #03A9F5);
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+}
+
+.menu-inner .menu-header-text {
+    color: var(--Vert-600, #03A9F5);
+    /* Body / Bold */
+    font-family: "Lato" !important;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 24px;
+    /* 150% */
+}
+
+.menu-inner .menu-header {
+    border-bottom: 2px solid #e3e3e3;
+    border-top: 2px solid #e3e3e3;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.menu-inner .menu-header:first-child {
+    border-top: none !important;
+}
+
+@media (min-width: 1200px) {
+
+    .tutoriels .layout-navbar-fixed:not(.layout-menu-collapsed) .layout-content-navbar:not(.layout-without-menu) .layout-navbar,
+    .tutoriels .layout-menu-fixed.layout-navbar-fixed:not(.layout-menu-collapsed) .layout-content-navbar:not(.layout-without-menu) .layout-navbar,
+    .tutoriels .layout-menu-fixed-offcanvas.layout-navbar-fixed:not(.layout-menu-collapsed) .layout-content-navbar:not(.layout-without-menu) .layout-navbar {
+        left: 0rem !important;
+        width: 100%;
+        z-index: 9999 !important;
+    }
+
+    .layout-navbar-fixed:not(.layout-menu-collapsed) .layout-content-navbar:not(.layout-without-menu) .layout-navbar,
+    .layout-menu-fixed.layout-navbar-fixed:not(.layout-menu-collapsed) .layout-content-navbar:not(.layout-without-menu) .layout-navbar,
+    .layout-menu-fixed-offcanvas.layout-navbar-fixed:not(.layout-menu-collapsed) .layout-content-navbar:not(.layout-without-menu) .layout-navbar {
+        left: 0rem !important;
+        width: 100%;
+        z-index: 9999 !important;
+    }
+}
+
+.tutoriels .navbar {
+    background: var(--Final-Background, #F3F4F7) !important;
+    /* Shadow1 */
+    box-shadow: -10px -10px 30px 0px rgba(255, 255, 255, 0.90), 4px 4px 15px 0px rgba(114, 114, 114, 0.25) !important;
+    height: 5rem !important;
+    width: 100% !important;
+    padding-top: 1rem !important;
+}
+
+.tutoriels .layout-navbar-fixed body:not(.modal-open) .layout-content-navbar .layout-navbar,
+.tutoriels .layout-menu-fixed body:not(.modal-open) .layout-content-navbar .layout-navbar {
+    width: 100% !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}
+
+.tutoriels .layout-navbar.navbar-detached.container-xxl {
+    max-width: 100% !important;
+    padding-bottom: 20px !important;
+}
+
+.tutoriels .btn-langue {
+    border-radius: var(--Number-Scale-2s-2-XS, 4px);
+    background: var(--Final-Background, #F3F4F7);
+    /* Shadow1 */
+    box-shadow: -10px -10px 30px 0px rgba(255, 255, 255, 0.90), 4px 4px 15px 0px rgba(114, 114, 114, 0.25);
+    color: #000;
+    /* Headline/Regular */
+    font-family: "SF Pro Display";
+    font-size: 15px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 29.6px;
+    /* 29.6px */
+    min-height: 50px;
+    width: fit-content;
+}
+
+.tutoriels .btn-langue img,
+.tutoriels .menu-langue img {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: url(<path-to-image>) lightgray 50% / cover no-repeat;
+    /* Shadow1 */
+    box-shadow: -10px -10px 30px 0px rgba(255, 255, 255, 0.90), 4px 4px 15px 0px rgba(114, 114, 114, 0.25);
+    margin-right: 5px;
+}
+
+.tutoriels .menu-langue img {
+    width: 25px;
+    height: 25px;
+}
+
+.tutoriels .app-brand {
+    margin-top: 0rem !important;
+    margin-bottom: 0px !important;
+    height: fit-content !important;
+}
+
+.tutoriels .layout-navbar.navbar-detached {
+    margin-top: 0px !important;
+}
+
+.tutoriels .tutoriels .app-brand-link {
+    margin-left: 0px !important;
+}
+
+.tutoriels .app-brand-link .app-brand-logo {
+    margin-right: 0px;
+    width: auto !important;
+    height: auto !important;
+}
+
+.tutoriels .app-brand-link .app-brand-logo img {
+    width: 43px !important;
+    height: 43px !important;
+    object-fit: contain;
+}
+
+.tutoriels .app-brand-link .app-brand-text {
+    color: #474747;
+    font-family: Arial;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+
+.tutoriels .app-brand-link .app-brand-text span {
+    color: #03A9F5;
+}
+
+.dropdown-language .dropdown-menu {
+    border-radius: var(--Number-Scale-2s-XS, 6px);
+    background: var(--Final-Background, #F3F4F7);
+    box-shadow: 4px 4px 15px 0px rgba(114, 114, 114, 0.25);
+    margin-top: 10px;
+}
+
+.dropdown-language li a span {
+    color: var(--GrayScale-Text-Caption, #474747);
+    text-align: center;
+    /* Body / Bold */
+    font-family: Lato;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 24px;
+    /* 150% */
+}
+
+.tutoriels .aside .layout-menu-toggle {
+    position: absolute;
+    top: 1rem !important;
+    right: 1rem !important;
+}
+
+
+.tutoriels .menu-inner {
+    padding-top: 100px !important;
+}
+
+@media(max-width:1200px) {
+    .tutoriels .app-brand-link .app-brand-text {
+        font-size: 13px;
+    }
+
+    .tutoriels .app-brand-link .app-brand-logo img {
+        width: 33px !important;
+        height: 33px !important;
+    }
+
+    .tutoriels .menu-inner {
+        padding-top: 50px !important;
+    }
+}
+
+.tutoriels .menu-inner .menu-link {
+    color: var(--Vert-500, #03A9F5) !important;
+    font-weight: 500 !important;
+}
+
+.tutoriels .bg-menu-theme .menu-sub>.menu-item>.menu-link:before {
+    content: "" !important;
+}
+
+.tutoriels .menu-inner .menu-link.active,
+.tutoriels .menu-sub .menu-link.active {
+    background: transparent !important;
+    color: var(--Vert-500, #474747) !important;
+    box-shadow: none !important;
+    border: none !important;
+    font-size: 13px !important;
+}
+
+.tutoriels .menu-sub .menu-link {
+    color: var(--GrayScale-Text-Disabaled, #6B6B6B) !important;
+    /* Subtitle / Regular */
+    font-family: Lato;
+    font-size: 13px !important;
+    font-style: normal;
+    font-weight: 400 !important;
+    line-height: 19.5px;
+    /* 150% */
+    padding-left: 1.2rem !important;
+    padding-right: rem !important;
+}
+
+.card-tuto {
+    border-radius: 5px;
+    background: var(--Final-background, #F3F4F7);
+    padding: 12px 11px;
+    /* Shadow 1 */
+    box-shadow: -10px -10px 30px 0px rgba(255, 255, 255, 0.90), 4px 4px 15px 0px rgba(114, 114, 114, 0.25);
+    height: 100%;
+}
+
+.card-tuto .card-body {
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+.card-tuto .box {
+    border-radius: var(--Number-Scale-2s-3-XS, 2px);
+    background: var(--Final-background, #F3F4F7);
+
+    /* Inner shadow */
+    box-shadow: -7px -7px 7px 0px #FFF inset, 5px 5px 10px 1px rgba(169, 169, 169, 0.25) inset;
+    width: 100%;
+    max-width: 98px;
+    height: 98px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+
+}
+
+.card-tuto .box img {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+}
+
+.card-tuto h5 {
+    /* Headline/Bold */
+    font-family: "SF Pro Display";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 24px;
+    /* 20.8px */
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.card-tuto p {
+    color: var(--Disabled, #919191);
+    /* Body / Regular */
+    font-family: Lato;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 24px;
+    /* 150% */
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.card-tuto ul {
+    list-style: none;
+    padding-left: 0px;
+    padding-top: 0px;
+    margin-top: 0px;
+}
+
+.card-tuto ul li {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.card-tuto ul li a {
+    /* Subtitle / Regular */
+    font-family: Lato;
+    font-size: 13px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 19.5px;
+    /* 150% */
+}
+
+.card-tuto ul li a:hover {
+    color: #474747 !important;
+}
+
+.card-tuto.gestion h5,
+.card-tuto.Creation h5 {
+    color: #0093EE;
+}
+
+.card-tuto.gestion ul li a,
+.card-tuto.Creation ul li a {
+    color: #4A2D7B;
+}
+
+.card-tuto.CRM h5,
+.card-tuto.Engagement h5 {
+    color: #03A9F5;
+}
+
+.card-tuto.CRM ul li a,
+.card-tuto.Engagement ul li a {
+    color: #2E6B30;
+}
+
+.card-tuto.Template h5,
+.card-tuto.Configuration h5 {
+    color: #03A9F5;
+}
+
+.card-tuto.Template ul li a,
+.card-tuto.Configuration ul li a {
+    color: #026492;
+}
+
+.title-tuto {
+    color: var(--GrayScale-Text-Caption, #474747);
+
+    /* H2 / Bold */
+    font-family: "SF Pro Display";
+    font-size: 30px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 24px;
+    /* 18.252px */
+}
+
+@media(max-width:992px) {
+    .title-tuto {
+        font-size: 25px;
+    }
+}
+
+@media(max-width:570px) {
+    .title-tuto {
+        font-size: 20px;
+    }
+
+    .card-tuto .box {
+        max-width: 50px;
+        height: 50px;
+    }
+}
+
+.content-tuto p {
+    color: #000;
+    /* Body / Regular */
+    font-family: Lato;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 24px;
+    /* 150% */
+}
+
+.content-tuto img {
+    background: url(<path-to-image>) lightgray 50% / cover no-repeat;
+    /* Shadow1 */
+    box-shadow: -10px -10px 30px 0px rgba(255, 255, 255, 0.90), 4px 4px 15px 0px rgba(114, 114, 114, 0.25);
+    margin-bottom: 10px;
+    border-radius: 5px;
+}

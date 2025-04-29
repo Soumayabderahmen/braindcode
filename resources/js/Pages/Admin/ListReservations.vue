@@ -2,7 +2,7 @@
 import { ref, computed } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import Main from "../../Layouts/main.vue";
-import 'bootstrap/dist/css/bootstrap.min.css';
+// import 'bootstrap/dist/css/bootstrap.min.css';
 
 const props = defineProps({
     reservations: Array,
@@ -21,7 +21,7 @@ const filteredReservations = computed(() => {
 </script>
 
 <template>
-    <Main :showSidebar="true">
+   
         <div class="p-6 bg-white shadow rounded-lg" style="width: 79vw; margin-left: 7px;">
             <h1 class="text-2xl font-bold mb-4 text-center">Liste des Réservations</h1>
 
@@ -57,8 +57,8 @@ const filteredReservations = computed(() => {
                                     attente</span>
                                     <span v-else-if="reservation.statut === 'acceptée'"
                                     style="background-color: #119b5bbf; padding: 5px 10px; border-radius: 50px; color: white;">Acceptée</span>
-                                <span v-else-if="reservation.statut === 'refuser'"
-                                    class="label label-danger">Refusée</span>
+                                <span v-else-if="reservation.statut === 'refusée'"
+                                    class="label label-danger" style="background-color:brown ;padding: 5px 10px; border-radius: 50px; color: white;">Refusée</span>
                                 <span v-else class="label label-warning">Inconnu</span>
                             </td>
                             <td class="py-2 px-4">{{ reservation.meeting_time }}</td>
@@ -73,7 +73,7 @@ const filteredReservations = computed(() => {
                 </table>
             </div>
         </div>
-    </Main>
+ 
 </template>
 
 <style>

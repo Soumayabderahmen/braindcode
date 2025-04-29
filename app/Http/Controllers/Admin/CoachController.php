@@ -132,13 +132,12 @@ class CoachController extends Controller
 }
 public function Dashboard()
     {
-        $users = User::all();
+        $users = User::latest()->take(5)->get();
         $reservations = Reservation::all();
 
-        return Inertia::render('Admin/Dashboard', [
+        return view('Admin.DashboardAdmin', [
             'users' => $users,
             'reservations' => $reservations,
-
         ]);
        
     }
@@ -151,7 +150,14 @@ public function Dashboard()
         ]);
        
     }
-
+    // public function startup()
+    // {
+    //     $startups = User::where('role', 'startup')->get();
+    //     return Inertia::render('Admin/ListStartup', [
+    //         'startups' => $startups
+    //     ]);
+       
+    // }
     public function investisseurs()
     {
         $investisseurs = User::where('role', 'investisseur')->get();

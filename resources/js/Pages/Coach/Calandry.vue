@@ -97,10 +97,9 @@ function handleEventResize(resizeInfo) {
 
 <template>
     <Main :showSidebar="true">
-        <div class="card" style="
-    margin-right: -249px;
-">
-            <div class="card-body">
+        <div class="card"
+>
+            <div class="card-body" >
                 <div class="row">
                     <div class="col-md-12">
                         <div id="right">
@@ -121,7 +120,7 @@ function handleEventResize(resizeInfo) {
 
 <style scoped>
 .calendar-container {
-    max-width: 900px;
+    /* max-width: 900px; */
     margin: auto;
     padding: 20px;
     background: white;

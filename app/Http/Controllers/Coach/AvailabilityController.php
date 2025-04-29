@@ -24,7 +24,7 @@ class AvailabilityController extends Controller
 
         $availabilities = Disponibilite::where('coach_id', $coach->id)->get();
     
-        return Inertia::render('Coach/Availability', [
+        return view('Disponibilite.index', [
             'availabilities' => $availabilities,
             'coachId' => $coach->id, 
         ]);
@@ -113,12 +113,13 @@ public function updateTimes(Request $request, $id)
     ]);
 
     if ($validator->fails()) {
-        return back()->withErrors($validator)->withInput();
+        return response()->json(['errors' => $validator->errors()], 422);
     }
-
+    
     $availability->update($cleanedData);
-
-    return back()->with('success', 'Disponibilité mise à jour avec succès.');
+    
+    return response()->json(['success' => true, 'message' => 'Disponibilité mise à jour avec succès.']);
+    
 }
 
 // Ajoutez ces méthodes dans votre contrôleur
@@ -162,7 +163,7 @@ public function updateStatus(Request $request, $id)
         'statut' => $request->statut,
     ]);
 
-    return back()->with('success', 'Statut mise à jour avec succès.');
+    return response()->json(['success' => true, 'message' => 'Statut mis à jour avec succès.']);
 }
     /**
      * Supprimer une disponibilité
@@ -178,8 +179,7 @@ public function updateStatus(Request $request, $id)
 
         $availability->delete();
 
-        return redirect()->route('coach.availability.index')->with('success', 'Disponibilité supprimée avec succès.');
-    }
+        return response()->json(['success' => true, 'message' => 'Disponibilité supprimée avec succès.']);    }
 
     public function FullCalandry()
 {

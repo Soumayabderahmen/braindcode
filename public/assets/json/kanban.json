@@ -1,0 +1,133 @@
+[
+  {
+    "id": "board-in-progress",
+    "title": "A faire",
+    "item": [
+      {
+        "id": "in-progress-1",
+        "title": "Tâche 4",
+        "description":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor ",
+        "comments": "12",
+        "badge-text": "Moyenne",
+        "badge": "orange",
+        "due-date": "5 April",
+        "attachments": "4",
+        "assigned": [
+          "12.png",
+          "5.png"
+        ],
+        "members": [
+          "Bruce",
+          "Clark"
+        ]
+      },
+      {
+        "id": "in-progress-2",
+        "title": "Tâche 5",
+        "description":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor ",
+        "comments": "8",
+        "badge-text": "Faible",
+        "badge": "warning",
+        "attachments": "2",
+        "due-date": "10 April",
+        "assigned": [
+          "3.png",
+          "8.png"
+        ],
+        "members": [
+          "Helena",
+          "Iris"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "board-in-review",
+    "title": "En cours",
+    "item": [
+      {
+        "id": "in-review-1",
+        "title": "Review completed Apps",
+        "description":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor ",
+        "comments": "17",
+        "badge-text": "Urgent",
+        "badge": "danger",
+        "due-date": "8 April",
+        "attachments": "8",
+        "assigned": [
+          "11.png",
+          "6.png"
+        ],
+        "members": [
+          "Laurel",
+          "Harley"
+        ]
+      },
+      {
+        "id": "in-review-2",
+        "title": "Find new images for pages",
+        "description":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor ",
+        "comments": "18",
+        "badge-text": "Faible",
+        "image": "16.jpg",
+        "badge": "warning",
+        "due-date": "2 April",
+        "attachments": "10",
+        "assigned": [
+          "9.png",
+          "2.png",
+          "3.png",
+          "12.png"
+        ],
+        "members": [
+          "Dianna",
+          "Jordan",
+          "Vinnie",
+          "Lasa"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "board-done",
+    "title": "Terminé",
+    "item": [
+      {
+        "id": "done-1",
+        "title": "Tâche 1",
+        "description":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor ",
+        "comments": "4",
+        "badge-text": "Terminé",
+        "badge": "success",
+        "due-date": "7 April",
+        "attachments": "1",
+        "assigned": [
+          "2.png",
+          "9.png",
+          "10.png"
+        ],
+        "members": [
+          "Kara",
+          "Nyssa",
+          "Darcey"
+        ]
+      },
+      {
+        "id": "done-2",
+        "title": "Tâche 2",
+        "description":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor ",
+        "comments": "21",
+        "badge-text": "Terminé",
+        "badge": "success",
+        "due-date": "7 April",
+        "attachments": "6",
+        "assigned": [
+          "1.png"
+        ],
+        "members": [
+          "Sarah"
+        ]
+      }
+    ]
+  }
+]
