@@ -5,7 +5,6 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { router } from "@inertiajs/vue3";
-import Main from "../../Layouts/main.vue";
 
 const props = defineProps({
     availabilities: Array,
@@ -13,7 +12,7 @@ const props = defineProps({
 
 const calendarOptions = ref({
     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-    initialView: 'timeGridWeek',
+    initialView: 'dayGridMonth',
     headerToolbar: {
         left: 'prev,next today',
         center: 'title',
@@ -26,9 +25,35 @@ const calendarOptions = ref({
         end: `${avail.date}T${avail.end_time}`,
         color: avail.statut === 'available' ? '#28a745' : '#dc3545',
         extendedProps: {
-            statut: avail.statut
+            statut: avail.statut,
+            place: avail.nb_place,
+            honoraires: avail.honoraire,
+
         }
     })),
+    eventContent: function(arg) {
+    const statut = arg.event.extendedProps.statut;
+    const backgroundColor = statut === 'available' ? '#28a745' : '#dc3545';
+    const title = arg.event.title;
+    const place = arg.event.extendedProps.place ?? "non défini";
+    const honoraires = arg.event.extendedProps.honoraires ?? "non défini";
+    const start = arg.event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const end = arg.event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    return {
+        html: `
+            <div style="background-color:${backgroundColor}; color:white;padding:1px;margin-bottom:6px;margin-top:-11px; border-radius:5px; font-size:12px;">
+                <div><strong>${title}</strong></div>
+                <div>Début: ${start}</div>
+                <div>Fin: ${end}</div>
+                <div> NB Place: ${place}</div>
+                <div>Honoraires: ${honoraires} € </div>
+            </div>
+        `
+    };
+},
+
+
     editable: true,
     selectable: true,
     selectMirror: true,
@@ -96,7 +121,11 @@ function handleEventResize(resizeInfo) {
 </script>
 
 <template>
-    <Main :showSidebar="true">
+<!-- <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/core/main.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid/main.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid/main.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction/main.css" rel="stylesheet"> -->
+
         <div class="card"
 >
             <div class="card-body" >
@@ -115,7 +144,7 @@ function handleEventResize(resizeInfo) {
             </div>
         </div>
 
-    </Main>
+    
 </template>
 
 <style scoped>

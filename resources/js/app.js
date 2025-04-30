@@ -17,8 +17,9 @@ import AddAgentIA from './Components/agentsIA/add.vue';
 import detailsAgentsIA from './Components/agentsIA/details.vue';
 import Calander from './Pages/Startups/Calander.vue';
 import ListReservations from './Pages/Admin/ListReservations.vue';
-import disponibilite from './Pages/Coach/Availability.vue'
-
+import disponibilite from './Pages/Coach/Availability.vue';
+import CoachCalender from './Pages/Coach/Calandry.vue';
+import reservationsCoach from './Pages/Coach/ListeReservation.vue'
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 const appElement = document.getElementById('app');
@@ -57,8 +58,10 @@ if (appElement && appElement.hasAttribute('data-page')) {
     app.component('calendrier', Calander);
     app.component('list-reservations', ListReservations);
     app.component('disponibilite', disponibilite);
+    app.component('coach-calender', CoachCalender);
+    app.component('reservations-coach', reservationsCoach);
 
-    
+
     app.config.globalProperties.$toast = Object.assign(toast, {   
         success: (msg, opts) => toast(msg, { type: "success", ...opts }),   
         error: (msg, opts) => toast(msg, { type: "error", ...opts }),   

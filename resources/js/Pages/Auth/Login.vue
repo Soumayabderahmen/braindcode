@@ -123,5 +123,5 @@ const submit = () => {
             </div>
         </div>
 
-    </fullwidth> <!-- 👈 n'oublie de fermer ici -->
+    </fullwidth> <
 </template>

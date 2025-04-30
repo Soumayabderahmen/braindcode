@@ -31,4 +31,9 @@ class Reservation extends Model
     {
         return $this->belongsTo(Startup::class);
     }
+    public function disponibilite()
+{
+    return $this->belongsTo(Disponibilite::class);
+}
+
 }

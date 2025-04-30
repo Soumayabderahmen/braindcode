@@ -27,22 +27,24 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request)
     {
         $request->authenticate();
-
         $request->session()->regenerate();
+    
         $user = Auth::user();
-
-    if ($user->role === 'admin') {
-    return redirect()->route('admin.dashboard');//redirection vers dashboard admin
-        }
-
-        if ($this->isProfileComplete($user)) {
-            return redirect()->route('dashboard'); // Rediriger vers le dashboard si les infos sont complètes
+    
+        // 👉 Cas spécial : admin → redirection vers page Blade
+        if ($user->role === 'admin') {
+            return Inertia::location(route('admin.dashboard'));
         }
     
-        return redirect()->route('profile.edit');
+        // 👉 Pour les autres rôles, on garde Inertia (SPA)
+        if ($this->isProfileComplete($user)) {
+            return redirect()->route('dashboard'); // Inertia / SPA
+        }
+    
+        return Inertia::location(route('dashboard'));
     }
 public function isProfileComplete($user):bool{
     if ($user->role === 'coach') {

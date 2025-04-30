@@ -1,8 +1,8 @@
 @php
     $role = auth()->user()->role; 
 @endphp
-@if ($role === 'Admin')
-    @include('Layouts.partials.sidebarCoach')
+@if ($role === 'admin')
+    @include('Layouts.partials.sidebarAdmin')
 
 @elseif ($role === 'startup')
     @include('Layouts.partials.sidebarStartup')
