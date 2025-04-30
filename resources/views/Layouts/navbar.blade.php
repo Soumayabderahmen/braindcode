@@ -35,8 +35,7 @@
             <notifications></notifications>
             <!--/ Notification -->
 
-            <!-- User -->
-           <!-- User -->
+          
 <li class="nav-item navbar-dropdown dropdown-user dropdown mt-0" style="margin-top: 0px !important;">
     <a class="nav-link dropdown-toggle hide-arrow btn-profil" href="javascript:void(0);"
         data-bs-toggle="dropdown">
@@ -66,9 +65,7 @@
         </li>
     </ul>
 </li>
-<!--/ User -->
 
-            <!--/ User -->
         </ul>
     </div>
 </nav>

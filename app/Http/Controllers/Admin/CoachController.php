@@ -130,11 +130,10 @@ class CoachController extends Controller
         'coaches' => User::where('role', 'coach')->get()
     ]);
 }
-public function Dashboard()
+public function dashboard()
     {
         $users = User::latest()->take(5)->get();
         $reservations = Reservation::all();
-
         return view('Admin.DashboardAdmin', [
             'users' => $users,
             'reservations' => $reservations,

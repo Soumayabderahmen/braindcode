@@ -28,6 +28,9 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     return view('coach.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+
+
 Route::get('/activation-message', function () {
     return Inertia::render('Coach/ActivationMessage');
 })->name('activation.message');
@@ -52,7 +55,7 @@ Route::get('/activate-coach/{id}', [CoachController::class, 'activateCoach'])->n
 Route::get('/activate-startup/{id}', [CoachController::class, 'activateStartup'])->name('activate_startup');
 Route::get('/activate-investisseur/{id}', [CoachController::class, 'activateInvestisseur'])->name('activate_investisseur');
 Route::get('/coaches', [CoachController::class, 'index'])->name('coaches');
-Route::get('/dashboard', [CoachController::class, 'Dashboard'])->name('dashboard');
+Route::get('/dashboard', [CoachController::class, 'dashboard'])->name('dashboard');
 Route::get('/startups', [CoachController::class, 'startup'])->name('startups');
 Route::get('/investisseurs', [CoachController::class, 'investisseurs'])->name('investisseurs');
 Route::get('/reservations', [ReservationController::class, 'indexAdmin'])->name('reservations');
@@ -98,7 +101,7 @@ Route::middleware('auth')->group(function () {
     // API de création du paiement Stripe
     Route::post('/paiement/create-intent', [PaiementController::class, 'createStripeIntent'])->name('paiement.intent');
     
-    Route::put('/coach/availabilityStatut/{id}', [AvailabilityController::class, 'updateStatus'])->name('coach.availability.updateStatus');
+    // Route::put('/coach/availabilityStatut/{id}', [AvailabilityController::class, 'updateStatus'])->name('coach.availability.updateStatus');
     Route::get('/calendar', [AvailabilityController::class, 'FullCalandry'])->name('coach.calendar');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/update', [ProfileController::class, 'updateProfile'])->name('profile.complete'); // Sauvegarder les modifications

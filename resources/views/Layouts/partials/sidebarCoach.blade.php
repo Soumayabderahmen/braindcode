@@ -28,7 +28,7 @@
 
         <!-- Layouts -->
 
-        <li class="menu-item">
+        {{-- <li class="menu-item">
             <a href=""
                 class="menu-link">
                 <i class="menu-icon">
@@ -36,7 +36,7 @@
                 </i>
                 <div data-i18n="Formation">Formation</div>
             </a>
-        </li>
+        </li> --}}
         <li class="menu-item">
             <a href="{{ route('coach.agentia') }}"
                 class="menu-link">
@@ -47,7 +47,7 @@
             </a>
         </li>
         <li class="menu-item">
-            <a href="{{ route('startup.calendar') }}"
+            <a href="{{ route('coach.calendar') }}"
                 class="menu-link">
                 <i class="menu-icon">
                     <span class="iconify" data-icon="solar:calendar-line-duotone" data-inline="false"></span>
@@ -56,7 +56,7 @@
             </a>
         </li>
         <li class="menu-item">
-            <a href="{{ route('admin.reservations') }}"
+            <a href="{{ route('coach.reservations') }}"
                 class="menu-link">
                 <i class="menu-icon">
                     <span class="iconify" data-icon="material-symbols:dashboard-outline-rounded" data-inline="false"></span>
@@ -74,7 +74,7 @@
             </a>
         </li>
        
-        <li class="menu-item">
+        {{-- <li class="menu-item">
             <a href=""
                 class="menu-link">
                 <i class="menu-icon">
@@ -82,8 +82,8 @@
                 </i>
                 <div data-i18n="Messagerie ">Messagerie </div>
             </a>
-        </li>
-        <li class="menu-item">
+        </li> --}}
+        {{-- <li class="menu-item">
             <a href=""
                 class="menu-link">
                 <i class="menu-icon">
@@ -91,6 +91,92 @@
                 </i>
                 <div data-i18n="Agent IA généraliste ">Agent IA généraliste </div>
             </a>
-        </li>
+        </li> --}}
     </ul>
+    <div class="user-profile-container mt-auto">
+        <div class="user-profile" id="user-profile">
+            <div class="user-avatar" title="{{ Auth::user()->name ?? 'Utilisateur' }}">
+                {{ Auth::user()->name[0] ?? 'U' }}
+            </div>
+            <div class="user-info">
+                <span class="user-name">{{ Auth::user()->name ?? 'Utilisateur' }}</span>
+                <span class="user-role">{{ ucfirst(Auth::user()->role ?? 'Administrateur') }}</span>
+            </div>
+        </div>
+    </div>
 </aside>
+<style>
+    .user-profile-container {
+        margin-top: auto;
+        border-top: 1px solid #e2e8f0;
+        padding: 1rem;
+        background-color: #f8fafc;
+        border-radius: 0 0 0.5rem 0.5rem;
+    }
+    
+    .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.3s ease;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        min-width: 40px; /* Empêche le rétrécissement */
+        background-color: #3b82f6;
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .user-info {
+        display: flex;
+        flex-direction: column;
+        font-size: 0.9rem;
+        overflow: hidden;
+        white-space: nowrap;
+        transition: opacity 0.2s ease, max-width 0.2s ease;
+    }
+    
+    .user-name {
+        font-weight: 600;
+        color: #1e293b;
+    }
+    
+    .user-role {
+        font-size: 0.8rem;
+        color: #64748b;
+    }
+    
+    /* Styles pour le menu collapsed */
+    .menu-collapsed .user-profile {
+        justify-content: center;
+    }
+    
+    .menu-collapsed .user-info {
+        max-width: 0;
+        opacity: 0;
+        visibility: hidden;
+    }
+    .collapsed .menu-item:hover::after {
+  content: attr(data-title);
+  position: absolute;
+  left: 70px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #005183;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+</style>

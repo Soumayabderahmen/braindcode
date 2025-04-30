@@ -22,6 +22,7 @@ const form = ref({
   statut: "available",
   day_of_week: "",
   honoraire: "",
+  nb_place: "",
 });
 
 // 🔹 Formulaire d'édition
@@ -32,6 +33,8 @@ const editForm = ref({
   end_time: "",
   day_of_week: "",
   honoraire: "",
+  nb_place: "",
+
 });
 
 // 🔹 Mise à jour coach_id dès qu’il est disponible
@@ -60,6 +63,7 @@ const resetForm = () => {
   form.value.statut = "available";
   form.value.day_of_week = "";
   form.value.honoraire = "";
+  form.value.nb_place = "";
 };
 
 // 🔹 Réinitialiser le formulaire de modification
@@ -71,6 +75,7 @@ const resetEditForm = () => {
     end_time: "",
     day_of_week: "",
     honoraire: "",
+    nb_place: "",
   };
   isEditing.value = false;
 };
@@ -141,6 +146,7 @@ const editAvailability = (availability) => {
     end_time: availability.end_time,
     day_of_week: getDayOfWeek(availability.date),
     honoraire: availability.honoraire,
+    nb_place: availability.nb_place,
   };
 };
 
@@ -155,6 +161,7 @@ const updateTimes = async () => {
     end_time: formatTime(editForm.value.end_time),
     day_of_week: editForm.value.day_of_week,
     honoraire: editForm.value.honoraire,
+    nb_place: editForm.value.nb_place,
   };
 
   try {
@@ -171,7 +178,9 @@ const updateTimes = async () => {
 </script>
 
 <template>
-  
+          <div class="card rounded"
+>
+            <div class="card-body" >
     <div class="d-flex justify-content-center align-items-center " >
       <div class="card-body">
         <h2 class="card-title text-center mb-4"></h2>
@@ -179,7 +188,7 @@ const updateTimes = async () => {
         <!-- Formulaire d'ajout -->
         <form v-if="!isEditing" @submit.prevent="submitAvailability">
           <div class="row">
-            <div class="mb-12">
+            <div class="col-mb-12 mb-3">
               <label class="form-label">Date</label>
               <input type="date" v-model="form.date" class="form-control" required />
             </div>
@@ -193,16 +202,21 @@ const updateTimes = async () => {
               <input type="time" v-model="form.end_time" class="form-control" required />
             </div>
 
+            
             <div class="mb-3">
-              <label class="form-label">Statut</label>
-              <select v-model="form.statut" class="form-select">
-                <option value="available">Disponible</option>
-                <option value="unavailable">Indisponible</option>
-              </select>
+              <label class="form-label">Nombre de Place</label>
+              <input type="number" step="0.01" v-model="form.nb_place" class="form-control" placeholder=" 20 personnes" />
             </div>
             <div class="mb-3">
               <label class="form-label">Honoraire (€)</label>
-              <input type="number" step="0.01" v-model="form.honoraire" class="form-control" placeholder="Ex: 50.00" />
+              <input type="number" step="0.01" v-model="form.honoraire" class="form-control" placeholder=" 50.00 €" />
+            </div>
+            <div class="col-md-12 mb-3" >
+              <label class="form-label">Statut</label>
+              <select v-model="form.statut" class="form-control" >
+                <option value="available">Disponible</option>
+                <option value="unavailable">Indisponible</option>
+              </select>
             </div>
 
           </div>
@@ -230,6 +244,11 @@ const updateTimes = async () => {
                 @input="editForm.end_time = $event.target.value">
             </div>
             <div class="col-md-12 mb-3">
+              <label class="form-label">Nombre de Place</label>
+              <input type="number" step="0.01" v-model="editForm.nb_place" class="form-control"
+                placeholder="20 personnes" />
+            </div>
+            <div class="col-md-12 mb-3">
               <label class="form-label">Honoraire (€)</label>
               <input type="number" step="0.01" v-model="editForm.honoraire" class="form-control"
                 placeholder="Ex: 60.00" />
@@ -244,25 +263,31 @@ const updateTimes = async () => {
         </form>
       </div>
     </div>
-
+</div>
+</div>
     <br />
    
     <br />
+    <div class="card rounded"
+>
+            <div class="card-body" >
     <div class="d-flex justify-content-center align-items-center " >
       <div class="card-body">
        
 
-        <table class="table-auto w-full border-collapse border border-gray-200" style="margin-right: 260px;">
+        <table class="table-auto w-full border-collapse  " style="background-color: azure; margin-left: 44px;">
           <thead>
-            <tr class="bg-gray-100">
+            <tr class="bg-gray-100" style="background-color: darkseagreen;">
               <th class="border p-2"><center>Date</center></th>
               <th class="border p-2"><center>Début</center></th>
               <th class="border p-2"><center>Fin</center></th>
               <th class="border p-2"><center>Jour de la semaine</center></th>
+              <th class="border p-2"><center>Nombre de Place</center></th>
+
               <th class="border p-2"><center>Honoraire (€)</center></th>
 
               <th class="border p-2"><center>Statut</center></th>
-              <th class="border p-2"><center>Actions</center></th>
+              <th class="border p-3"><center>Actions</center></th>
             </tr>
           </thead>
           <tbody>
@@ -271,6 +296,8 @@ const updateTimes = async () => {
               <td class="border border-gray-300 px-4 py-2">{{ availability.start_time }}</td>
               <td class="border border-gray-300 px-4 py-2">{{ availability.end_time }}</td>
               <td class="border border-gray-300 px-4 py-2">{{ availability.day_of_week }}</td>
+              <td class="border border-gray-300 px-4 py-2">{{ availability.nb_place ?? '—' }}</td>
+
               <td class="border border-gray-300 px-4 py-2">{{ availability.honoraire ?? '—' }}</td>
 
               <!-- Affichage du jour -->
@@ -290,19 +317,18 @@ const updateTimes = async () => {
 
 
               <td>
-                <center>
-                <button class="btn btn-warning btn-sm me-2" @click="editAvailability(availability)">
+                <button class="btn btn-warning btn-lm me-1" @click="editAvailability(availability)">
                   Modifier
                 </button>
                 <button class="btn btn-danger btn-sm" @click="deleteAvailability(availability.id)">
                   Supprimer
                 </button>
-              </center>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
-
+</div>
+</div>
 </template>

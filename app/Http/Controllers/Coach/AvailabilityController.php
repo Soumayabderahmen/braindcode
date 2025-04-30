@@ -42,7 +42,8 @@ class AvailabilityController extends Controller
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'statut' => 'required|in:available,unavailable',
-            'honoraire' => 'nullable|numeric', // Validation du champ honoraire
+            'honoraire' => 'nullable|numeric', 
+            'nb_place' => 'nullable|integer|min:1', 
         ]);
     
         $coach = Coach::findOrFail($request->coach_id); 
@@ -69,7 +70,8 @@ class AvailabilityController extends Controller
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
             'statut' => $request->statut,
-            'honoraire' => $request->honoraire, // Ajouter le champ honoraire
+            'honoraire' => $request->honoraire, 
+            'nb_place' => $request->nb_place,
         ]);
     
         return back()->with('success', 'Disponibilité est ajoutée avec succès.');
@@ -92,6 +94,7 @@ public function updateTimes(Request $request, $id)
         'end_time' => $request->end_time ? $this->formatTime($request->end_time) : null,
         'day_of_week' => $request->date ? $this->getDayOfWeek($request->date) : null,
         'honoraire' => $request->honoraire ,
+        'nb_place' => $request->nb_place,
     ];
 
     // Validation
@@ -100,7 +103,8 @@ public function updateTimes(Request $request, $id)
         'day_of_week' => 'required|string|max:20',
         'start_time' => 'required|date_format:H:i:s',
         'end_time' => 'required|date_format:H:i:s|after:start_time',
-         'honoraire' => 'nullable|numeric|min:0'
+         'honoraire' => 'nullable|numeric|min:0',
+        'nb_place' => 'nullable|integer|min:1',
     ], [
         'date.required' => 'La date est obligatoire',
         'start_time.required' => 'L\'heure de début est obligatoire',
@@ -109,7 +113,9 @@ public function updateTimes(Request $request, $id)
         'end_time.date_format' => 'Le format de l\'heure doit être HH:MM',
         'end_time.after' => 'L\'heure de fin doit être après l\'heure de début',
         'honoraire.numeric' => 'L\'honoraire doit être un nombre',
-        'honoraire.min' => 'L\'honoraire doit être supérieur ou égal à 0'
+        'honoraire.min' => 'L\'honoraire doit être supérieur ou égal à 0',
+        'nb_place.integer' => 'Le nombre de places doit être un entier',
+        'nb_place.min' => 'Le nombre de places doit être supérieur ou égal à 1',
     ]);
 
     if ($validator->fails()) {
@@ -185,7 +191,7 @@ public function updateStatus(Request $request, $id)
 {
     
     $availabilities = Auth::user()->coach->availabilities()
-        ->select('id', 'date', 'start_time', 'end_time', 'statut')
+        ->select('id', 'date', 'start_time', 'end_time', 'statut' , "nb_place", "honoraire")
         ->get()
         ->map(function ($item) {
             return [
@@ -193,11 +199,13 @@ public function updateStatus(Request $request, $id)
                 'date' => $item->date,
                 'start_time' => $item->start_time,
                 'end_time' => $item->end_time,
-                'statut' => $item->statut
+                'statut' => $item->statut,
+                'nb_place' => $item->nb_place,
+                'honoraire' => $item->honoraire,
             ];
         });
 
-    return Inertia::render('Coach/Calandry', [
+    return view('Coach.Calender', [
         'availabilities' => $availabilities,
         'coachId' => Auth::user()->coach->id
     ]);

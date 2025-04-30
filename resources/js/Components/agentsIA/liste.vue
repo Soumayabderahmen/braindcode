@@ -97,7 +97,7 @@
                                                 class="col-lg-4 col-md-4 col-sm-6 col-12 mb-4">
                                                 <div class="card card-1 cardAgent">
                                                     <div class="card-header pb-2">
-                                                        <img src="/assets/img/dash/robot_smile.png" alt="">
+                                                        <center><img src="/assets/img/dash/robot_smile.png" alt=""></center>
                                                         <h4>{{ item.name }}</h4>
                                                         <h5>{{ item.type }}</h5>
                                                     </div>

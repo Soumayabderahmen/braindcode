@@ -49,7 +49,7 @@ class ReservationController extends Controller
             $reservations = Reservation::where('coach_id', $coach->id)
             ->with(['startup.user', 'coach.user'])
             ->get();        
-            return Inertia::render('Coach/ListeReservation', [
+            return view('reservations.ReservationCoach', [
                 'reservations' => $reservations,
             ]);
         }
