@@ -1,0 +1,252 @@
+.app-calendar-wrapper {
+  position: relative;
+  border-radius: 0.375rem;
+}
+
+.app-calendar-wrapper .app-calendar-sidebar {
+  position: absolute;
+  overflow: hidden;
+  flex-grow: 0;
+  flex-basis: 18.25rem;
+  left: calc(-18.25rem - 1.2rem);
+  height: 100%;
+  width: 18.25rem;
+  transition: all 0.2s;
+  z-index: 4;
+}
+
+.app-calendar-wrapper .app-calendar-sidebar.show {
+  left: 0;
+}
+
+.app-calendar-wrapper .app-calendar-sidebar .flatpickr-month {
+  border: 0;
+}
+
+.app-calendar-wrapper .app-calendar-sidebar .flatpickr-calendar {
+  box-shadow: none;
+}
+
+.app-calendar-wrapper .app-calendar-sidebar .flatpickr-calendar .flatpickr-month,
+.app-calendar-wrapper .app-calendar-sidebar .flatpickr-calendar .flatpickr-weekday,
+.app-calendar-wrapper .app-calendar-sidebar .flatpickr-calendar .flatpickr-weekdays {
+  background: transparent;
+}
+
+.app-calendar-wrapper .app-calendar-sidebar .flatpickr-calendar .flatpickr-days {
+  border: 0;
+}
+
+.app-calendar-wrapper .app-calendar-sidebar .flatpickr-calendar:focus {
+  outline: 0;
+}
+
+.app-calendar-wrapper .app-calendar-content {
+  position: relative;
+}
+
+.app-calendar-wrapper .fc-toolbar h2 {
+  font-size: 1.125rem;
+}
+
+@media (max-width: 767.98px) {
+  .app-calendar-wrapper .fc-toolbar h2 {
+    font-size: 1rem;
+  }
+}
+
+.app-calendar-wrapper table.fc-scrollgrid {
+  border-left: 0;
+  border-right: 0;
+}
+
+.app-calendar-wrapper table.fc-scrollgrid td {
+  border-right: 0;
+}
+
+.app-calendar-wrapper .fc-timeGridDay-view table.fc-scrollgrid tbody tr:not(.fc-scrollgrid-section:first-of-type) td,
+.app-calendar-wrapper .fc-timeGridWeek-view table.fc-scrollgrid tbody tr:not(.fc-scrollgrid-section:first-of-type) td {
+  border-bottom: 0;
+}
+
+.app-calendar-wrapper .fc-dayGridMonth-view table.fc-scrollgrid td {
+  border-bottom: 0;
+}
+
+.app-calendar-wrapper .fc-header-toolbar {
+  margin-bottom: 3rem !important;
+}
+
+.app-calendar-wrapper .fc-view-container {
+  margin: 0 -1.6rem;
+}
+
+.app-calendar-wrapper .event-sidebar .ql-editor {
+  min-height: 5rem;
+}
+
+.app-calendar-wrapper .event-sidebar .select2 .select2-selection__choice {
+  display: flex;
+}
+
+.app-calendar-wrapper .event-sidebar .select2 .select2-selection__choice .avatar {
+  display: none;
+}
+
+@media (min-width: 992px) {
+  .app-calendar-wrapper .app-calendar-sidebar {
+   
+    height: auto;
+    background-color: transparent !important;
+  }
+
+  .app-calendar-wrapper .app-calendar-sidebar .flatpickr-days {
+    background-color: transparent;
+  }
+}
+
+[dir=rtl] .app-calendar-wrapper .fc .fc-toolbar .fc-sidebarToggle-button {
+  order: 1;
+}
+
+[dir=rtl] .app-calendar-wrapper .app-calendar-sidebar {
+  left: auto;
+  right: calc(-18.25rem - 1.2rem);
+}
+
+[dir=rtl] .app-calendar-wrapper .app-calendar-sidebar.show {
+  left: auto;
+  right: 0;
+}
+
+.light-style .app-calendar-wrapper .app-calendar-sidebar {
+  background-color: #fff;
+  border-right: 1px solid #dbdade;
+}
+
+.light-style .app-calendar-wrapper .app-calendar-sidebar .flatpickr-calendar .flatpickr-month,
+.light-style .app-calendar-wrapper .app-calendar-sidebar .flatpickr-calendar .flatpickr-weekday,
+.light-style .app-calendar-wrapper .app-calendar-sidebar .flatpickr-calendar .flatpickr-weekdays {
+  color: #6f6b7d;
+}
+
+.light-style .app-calendar-wrapper .app-calendar-sidebar .flatpickr-calendar .flatpickr-months svg {
+  fill: #6f6b7d;
+}
+
+.light-style[dir=rtl] .app-calendar-sidebar {
+  border-right: 0;
+  border-left: 1px solid #dbdade;
+}
+
+.dark-style .app-calendar-wrapper .app-calendar-sidebar {
+  background-color: #2f3349;
+  border-right: 1px solid #434968;
+}
+
+.dark-style .app-calendar-wrapper .app-calendar-sidebar .flatpickr-calendar {
+  background-color: #2f3349;
+}
+
+.dark-style .app-calendar-wrapper .app-calendar-sidebar .flatpickr-calendar .flatpickr-days {
+  background-color: #2f3349;
+}
+
+.dark-style[dir=rtl] .app-calendar-sidebar {
+  border-right: 0;
+  border-left: 1px solid #434968;
+}
+
+.cardCalendar {
+  border-radius: var(--Number-Scale-2s-XS, 6px);
+  background: var(--Final-Background, #F3F4F7);
+  /* Shadow1 */
+  box-shadow: -10px -10px 30px 0px rgba(255, 255, 255, 0.90), 4px 4px 15px 0px rgba(114, 114, 114, 0.25);
+}
+
+.app-calendar-wrapper .fc-header-toolbar {
+  margin-bottom: 3rem !important;
+}
+
+.app-calendar-wrapper .fc-today-button {
+  /* Body / Bold */
+  font-family: Lato;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 24px;
+  /* 150% */
+  color: var(--GrayScale-Text-Caption, #474747) !important;
+  margin-bottom: 1rem;
+}
+
+.cardCalendar .fc-toolbar-title {
+  color: var(--Pupule-400, #9878CE);
+  /* H3 / Bold */
+  font-family: "SF Pro Display";
+  font-size: 25px !important;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 37.2px;
+  /* 120% */
+  margin-bottom: 1rem;
+}
+
+.cardCalendar .fc-button-group {
+  border-radius: var(--Number-Scale-2s-XS, 6px);
+  background: var(--Final-Background, #F3F4F7);
+  /* Shadow1 */
+  box-shadow: -10px -10px 30px 0px rgba(255, 255, 255, 0.90), 4px 4px 15px 0px rgba(114, 114, 114, 0.25);
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.cardCalendar .fc-button-group .fc-button {
+  color: var(--GrayScale-Text-Disabaled, #6B6B6B);
+  /* Body / Regular */
+  font-family: Lato;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 24px;
+  /* 150% */
+}
+
+.cardCalendar .fc-scrollgrid thead {
+  background: var(--Final-Background, #F3F4F7);
+  box-shadow: 0px -7px 25px 0px #FFF, 7px 0px 25px 0px rgba(0, 0, 0, 0.25) !important;
+  padding-bottom: 0px;
+  border: none !important;
+  border-radius: 0px 0px 15px 15px;
+  margin-bottom: 1rem !important;
+}
+
+.cardCalendar .fc-col-header thead th {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border: none !important;
+}
+
+.cardCalendar .fc-col-header thead th:first-child {
+  border-radius: 0px 0px 0px 15px;
+}
+
+.cardCalendar .fc-col-header thead th:last-child {
+  border-radius: 0px 15px 15px 0px;
+}
+
+.fc-event {
+  border-radius: 0px 10px 10px 0px;
+  background: var(--Vilolet-Pupule-100, #E5DDF3);
+  box-shadow: -3px -3px 10px 0px rgba(255, 255, 255, 0.90), 3px 3px 10px 0px rgba(0, 0, 0, 0.25);
+  border-left: 5px solid #7E57C2;
+  padding: 3px;
+  color: var(--GrayScale-Text-Subtitle, #383838);
+  /* Subtitle / Bold */
+  font-family: Lato;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 19.5px;
+  /* 150% */
+}

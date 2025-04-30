@@ -1,0 +1,19 @@
+{
+    "liste_etapes_programme": {
+      "fr": "Voici les 12 étapes du programme d'incubation :\n1. Identifier un problème\n2. ...",
+      "en": "Here are the 12 steps of incubation:\n1. Identify a problem\n2. ..."
+    },
+    "contact_mentor": {
+      "fr": "Pour contacter votre coach, allez dans votre tableau de bord.",
+      "en": "To contact your coach, go to your dashboard."
+    },
+    "retard": {
+      "fr": "Vous pouvez demander une extension depuis votre espace personnel.",
+      "en": "You can request an extension from your dashboard."
+    },
+    "livrable_etape": {
+      "fr": "Le livrable attendu dépend de l'étape. Vérifiez les instructions dans votre espace.",
+      "en": "Expected deliverables vary by step. Please check your dashboard."
+    }
+  }
+  

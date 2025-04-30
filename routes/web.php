@@ -26,17 +26,17 @@ Route::get('/', function () {
 
 //  Route pour les COACHS
 Route::get('/dashboard/coach', function () {
-    return Inertia::render('Users/DashboardCoach');
+    return view('Coach.dashboard');
 })->middleware(['auth', CheckRole::class.':coach'])->name('dashboard.coach');
 
 //  Route pour les STARTUPS
 Route::get('/dashboard/startup', function () {
-    return Inertia::render('Users/DashboardStartup');
+    return view('Startup.dashboard');
 })->middleware(['auth', CheckRole::class.':startup'])->name('dashboard.startup');
 
 //  Route pour les INVESTISSEURS
 Route::get('/dashboard/investisseur', function () {
-    return Inertia::render('Users/DashboardInvestisseur');
+    return view('Investisseur.dashboard');
 })->middleware(['auth', CheckRole::class.':investisseur'])->name('dashboard.investisseur');
 
 
@@ -52,13 +52,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // ✅ Ajout : enregistre la réaction à un message du bot
-    Route::post('/chatbot/reaction', [ChatbotReactionController::class, 'store']);
 });
 
 // Route API pour envoyer un message au chatbot
 Route::post('/api/chatbot', [ChatbotController::class, 'sendMessage'])->name('chatbot.send');
 Route::middleware('auth')->get('/api/chatbot/history', [ChatbotController::class, 'getHistory']);
 Route::middleware('auth')->post('/api/chatbot/history/save', [ChatbotController::class, 'saveHistory']);
+Route::middleware('auth')->post('/chatbot/reaction', [ChatbotReactionController::class, 'store']);
 
 // Route Faq
 Route::get('/faqs', [FaqController::class, 'index'])->name('faq');
@@ -66,12 +66,13 @@ Route::get('/faqs/list', [FaqController::class, 'list']);
 
 
 
-// Routes Admin (Support Messages)
+// Routes Admin 
 Route::prefix('admin')->middleware(['auth', 'verified', CheckAdmin::class])->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    
     Route::get('/support-messages', [SupportMessageAdminController::class, 'index'])->name('support.messages');
     Route::get('/support-messages/{id}', [SupportMessageAdminController::class, 'show'])->name('support.message.view');
-    Route::delete('/support-messages/{id}', [SupportMessageAdminController::class, 'destroy'])->name('support.messages.delete');
+    Route::delete('/support-messages/{supportMessage}', [SupportMessageAdminController::class, 'destroy'])->name('support.messages.delete');
     Route::get('/faqs', [AdminFaqController::class, 'index'])->name('faqs.index');
     Route::post('/faqs', [AdminFaqController::class, 'store'])->name('faqs.store');
     Route::put('/faqs/{faq}', [AdminFaqController::class, 'update'])->name('faqs.update');

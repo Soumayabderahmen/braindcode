@@ -1,25 +1,28 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from "vue";
-import { usePage } from "@inertiajs/vue3";
+//import { usePage } from "@inertiajs/vue3";
 import axios from "axios";
 import ChatInput from "./ChatInput.vue";
+
 const welcomeShown = ref(false);
 const messages = ref([]);
 const isOpen = ref(false);
 const messageContainer = ref(null);
 const botStatus = ref("unknown");
-const user = computed(() => usePage().props.auth.user);
-const isAuthenticated = computed(() => !!user.value);
+// const user = computed(() => usePage().props.auth.user);
+// const isAuthenticated = computed(() => !!user.value);
+const props = defineProps({
+  user: Object,
+});
+const isAuthenticated = computed(() => !!props.user);
+
 const isLoading = ref(false);
-const chatStarted = ref(false); // contrôle l'affichage de l'input pour les non-connectés
+const chatStarted = ref(false);
 const activeReactionIndex = ref(null);
-
-//chatbot.vue
-
 
 const resetChat = () => {
   messages.value = [];
-  chatStarted.value = true; // après clic, on affiche l’input
+  chatStarted.value = true;
   scrollToBottom();
 };
 
@@ -41,26 +44,52 @@ const sendMessage = async (message) => {
   isLoading.value = true;
 
   try {
-    // Appel direct à FastAPI
     const response = await fetch("http://127.0.0.1:5005/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message }),
     });
 
-    const result = await response.json();
-    const reply = result.reply || "❌ Pas de réponse du bot.";
-    const intent = result.intent || null;
- 
-    messages.value.push({ text: reply, sender: "bot", reactable: true });
+    if (!response.body) {
+      throw new Error("Pas de réponse du serveur.");
+    }
 
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullBotMessage = "";
 
-    //  Si connecté → enregistrer l’historique dans Laravel
+    // Ajouter un message vide
+    const botMessageIndex = messages.value.length;
+    messages.value.push({ text: "", animatedText: "", sender: "bot", reactable: true });
+    scrollToBottom();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      fullBotMessage += chunk;
+
+      // ➡️ Mise à jour normale de text complet
+      messages.value[botMessageIndex].text = fullBotMessage.trim();
+
+      // ➡️ Mise à jour de animatedText pour l'affichage progressif caractère par caractère
+      const currentLength = messages.value[botMessageIndex].animatedText.length;
+      messages.value[botMessageIndex].animatedText = messages.value[botMessageIndex].text.slice(0, currentLength + 1);
+
+      await nextTick();
+      scrollToBottom();
+    }
+
+    // Nettoyer
+    messages.value[botMessageIndex].text = messages.value[botMessageIndex].text.replace("[FIN]", "").trim();
+    messages.value[botMessageIndex].animatedText = messages.value[botMessageIndex].text;
+
     if (isAuthenticated.value) {
       await axios.post("/api/chatbot/history/save", {
         userMessage: message,
-        botMessage: reply,
-        intent: intent
+        botMessage: messages.value[botMessageIndex].text,
+        intent: null,
       });
     }
 
@@ -71,6 +100,7 @@ const sendMessage = async (message) => {
     scrollToBottom();
   }
 };
+
 
 const checkBotStatus = async () => {
   try {
@@ -85,11 +115,11 @@ const loadHistory = async () => {
   try {
     const response = await axios.get("/api/chatbot/history");
     messages.value = response.data.history.map((m) => ({
-  text: m.message,
-  sender: m.sender,
-  date: m.created_at,
-  reaction: m.reaction || null,
-  reactable: m.sender === 'bot' && m.message !== 'Bienvenue ! 🎉 Je suis là pour vous aider. Que puis-je faire pour vous aujourd’hui ?',
+      text: m.message,
+      sender: m.sender,
+      date: m.created_at,
+      reaction: m.reaction || null,
+      reactable: m.sender === 'bot' && m.message !== 'Bienvenue ! 🎉 Je suis là pour vous aider. Que puis-je faire pour vous aujourd’hui ?',
     }));
     scrollToBottom();
   } catch (error) {
@@ -105,16 +135,15 @@ const toggleChatbot = async () => {
       await loadHistory();
     }
 
-    if (!welcomeShown.value) {
-      // ✅ Afficher les messages d’accueil
-      messages.value.push({
-        text: "Bienvenue ! 🎉 Je suis là pour vous aider. Que puis-je faire pour vous aujourd’hui ?",
-        sender: "bot",
-        reactable: false,
-      });
-      welcomeShown.value = true;
-      scrollToBottom();
-    }
+    if (!welcomeShown.value && messages.value.length === 0) {
+  messages.value.push({
+    text: "Bienvenue ! 🎉 Je suis là pour vous aider. Que puis-je faire pour vous aujourd’hui ?",
+    sender: "bot",
+    reactable: false,
+  });
+  welcomeShown.value = true;
+  scrollToBottom();
+}
   }
 };
 
@@ -123,7 +152,6 @@ const toggleReaction = (index) => {
 };
 
 const setReaction = (index, emoji) => {
-  // ⛔️ Ignorer les messages non réactables
   if (!messages.value[index].reactable) return;
 
   if (messages.value[index].reaction === emoji) {
@@ -134,9 +162,15 @@ const setReaction = (index, emoji) => {
   activeReactionIndex.value = null;
 
   if (isAuthenticated.value) {
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     axios.post("/chatbot/reaction", {
       message: messages.value[index].text,
       reaction: messages.value[index].reaction,
+    }, {
+      headers: {
+        'X-CSRF-TOKEN': token,
+        'X-Requested-With': 'XMLHttpRequest'
+      }
     });
   }
 };
@@ -147,7 +181,6 @@ onMounted(async () => {
   }
   await checkBotStatus();
 });
-
 </script>
 
 <template>
@@ -196,28 +229,22 @@ onMounted(async () => {
 >
 <div v-if="msg.sender === 'bot'" class="bot-message-wrapper">
   <img src="/images/bot-avatar.png" alt="bot icon" class="bot-icon" />
-  
   <div class="chat-bubble bot">
-    <span>{{ msg.text }}</span>
-  
-    <!-- ✅ Réaction fixe en bas à droite de la bulle -->
+    <span>{{ msg.animatedText || msg.text }}</span> <!-- 🟰 Afficher animatedText d'abord -->
+    
+    <!-- Réactions -->
     <div class="reaction-fixed" v-if="msg.reactable">
-  <button class="reaction-trigger" @click="toggleReaction(index)">
-    {{ msg.reaction || '😊' }}
-  </button>
-
-      <!-- 😍 Mini menu emojis -->
+      <button class="reaction-trigger" @click="toggleReaction(index)">
+        {{ msg.reaction || '😊' }}
+      </button>
       <div v-if="activeReactionIndex === index && msg.reactable" class="emoji-picker">
         <span @click="setReaction(index, '👍')">👍</span>
         <span @click="setReaction(index, '👎')">👎</span>
       </div>
-     
-
     </div>
-  
   </div>
-
 </div>
+
 
 
 

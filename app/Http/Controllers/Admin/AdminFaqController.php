@@ -14,9 +14,7 @@ class AdminFaqController extends Controller
      */
     public function index()
     {
-
-        return Inertia::render('Admin/FaqAdmin', [
-            'faqs' => Faq::latest()->paginate(10),
+        return view('Faq.faq', [
             'faqs' => Faq::orderBy('id')->get()
         ]);
     }
@@ -31,11 +29,19 @@ class AdminFaqController extends Controller
             'answer' => 'required|string'
         ]);
 
-        Faq::create([
+        $faq = Faq::create([
             'question' => $request->question,
             'answer' => $request->answer,
-            'is_active' => true
+            'is_active' => $request->has('is_active') ? $request->is_active : true
         ]);
+
+        // Retourner réponse JSON pour les requêtes AJAX
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'message' => 'FAQ ajoutée avec succès.',
+                'faq' => $faq
+            ]);
+        }
 
         return redirect()->back()->with('success', 'FAQ ajoutée avec succès.');
     }
@@ -48,21 +54,40 @@ class AdminFaqController extends Controller
         $request->validate([
             'question' => 'required|string|max:255',
             'answer' => 'required|string',
-            'is_active' => 'required|boolean'
+            'is_active' => 'boolean'
         ]);
 
-        $faq->update($request->only('question', 'answer', 'is_active'));
+        $faq->update([
+            'question' => $request->question,
+            'answer' => $request->answer,
+            'is_active' => $request->has('is_active') ? $request->is_active : $faq->is_active
+        ]);
+
+        // Retourner réponse JSON pour les requêtes AJAX
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'message' => 'FAQ mise à jour avec succès.',
+                'faq' => $faq
+            ]);
+        }
 
         return redirect()->back()->with('success', 'FAQ mise à jour.');
     }
 
-    /**
-     * Supprimer une FAQ.
-     */
-    public function destroy(Faq $faq)
-    {
-        $faq->delete();
-
-        return redirect()->back()->with('success', 'FAQ supprimée.');
+  /**
+ * Supprimer une FAQ.
+ */
+public function destroy(Request $request, Faq $faq)
+{
+    $faq->delete();
+    
+    // Réponse JSON pour les requêtes AJAX
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'message' => 'FAQ supprimée avec succès'
+        ]);
     }
+    
+    return redirect()->back()->with('success', 'FAQ supprimée avec succès.');
+}
 }

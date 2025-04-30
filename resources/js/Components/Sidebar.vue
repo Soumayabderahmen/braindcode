@@ -1,227 +1,189 @@
 <template>
-  <nav :class="['sidebar', { close: isClosed }]">
+  <aside :class="['aside layout-menu menu-vertical bg-menu-theme', { 'collapsed': isClosed }]" id="layout-menu">
+    <!-- Logo -->
     <div class="logo_item">
-      <i class="bx bx-menu" id="sidebarOpen" @click="toggleSidebar"></i>
-      <img src="/images/logo.jpg" alt="Logo">
-
-      Braindcode
-      
+      <img src="/images/logo.jpg" alt="Logo" />
+      <div v-if="!isClosed" class="logo-text">
+        <span class="brand-name">Braincode</span>
+        <span class="brand-subtitle">Startup Studio</span>
+      </div>
     </div>
-   
+
     <link
       href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
       rel="stylesheet"
     />
-    <div class="menu_content">
-      <ul class="menu_items">
-        <li class="item" v-for="item in menuItems" :key="item.name">
-          <Link :href="route(item.route)" class="nav_link">
-            <span class="navlink_icon">
-              <i :class="item.icon"></i>
-            </span>
-            <span class="navlink">{{ item.name }}</span>
-          </Link>
-        </li>
-      </ul>
-
-      <div class="bottom_content">
-        <div class="bottom expand_sidebar" @click="toggleSidebar" v-if="isClosed">
-          <span>Expand</span>
-          <i class="bx bx-log-in"></i>
-        </div>
-        <div class="bottom collapse_sidebar" @click="toggleSidebar" v-else>
-          <span>Collapse</span>
-          <i class="bx bx-log-out"></i>
-        </div>
-      </div>
+    <!-- Toggle button -->
+    <div class="menu-toggle-wrapper">
+      <button class="menu-toggle-btn" @click="toggleSidebar">
+        <i v-if="!isClosed" class="bx bx-chevron-left"></i>
+        <i v-else class="bx bx-chevron-right"></i>
+      </button>
     </div>
-  </nav>
-</template>
-<script setup>
-import { computed, ref } from "vue";
-import { usePage, Link } from "@inertiajs/vue3";
-import { adminMenuItems, userMenuItems } from "@/constants/menuItems"
-import { route } from 'ziggy-js'
 
+    <!-- Menu -->
+    <ul class="menu-inner py-1">
+      <li class="menu-item" v-for="item in menuItems" :key="item.name">
+        <Link :href="route(item.route)" class="menu-link">
+          <i :class="['menu-icon', item.icon]"></i>
+          <div v-if="!isClosed">{{ item.name }}</div>
+        </Link>
+      </li>
+    </ul>
+
+
+  </aside>
+</template>
+
+<script setup>
+import { ref, computed } from "vue";
+import { usePage, Link } from "@inertiajs/vue3";
+import { adminMenuItems, userMenuItems } from "@/constants/menuItems";
+import { route } from 'ziggy-js';
+
+defineProps(['isClosed']);
+const emit = defineEmits(['toggle']);
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
 const isAdmin = computed(() => user.value && user.value.role === "admin");
 
-// Correction du routage avec `route()`
-const menuItems = computed(() => isAdmin.value ? adminMenuItems : userMenuItems)
+const menuItems = computed(() => (isAdmin.value ? adminMenuItems : userMenuItems));
 
-
-defineProps(['isClosed'])
-const emit = defineEmits(['toggle'])
-
-const toggleSidebar = () => emit('toggle')
-
+const toggleSidebar = () => {
+  emit('toggle');
+};
 </script>
+
 <style scoped>
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
 
-:root {
-  --white-color: #fff;
-  --blue-color: #4070f4;
-  --grey-color: #707070;
-  --grey-color-light: #aaa;
-}
-
-.sidebar {
+/* === Structure générale === */
+#layout-menu {
   width: 260px;
+  background-color: #ffffff;
+  border-right: 1px solid #e0e0e0;
   height: 100vh;
-  background: var(--sidebar-bg);
-  transition: width 0.3s ease;
+  padding-top: 20px;
   position: fixed;
   top: 0;
   left: 0;
-  overflow: hidden;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  transition: width 0.3s ease;
+  overflow-y: auto;
 }
 
-.sidebar.close {
-  
+#layout-menu.collapsed {
   width: 80px;
 }
 
-.sidebar::-webkit-scrollbar {
-  display: none;
-}
-
-.menu_content {
-  position: relative;
-}
-
-.menu_items {
-  padding: 0;
-  list-style: none;
-}
-
-.navlink_icon {
-  position: relative;
-  font-size: 22px;
-  min-width: 50px;
-  line-height: 40px;
-  display: inline-block;
-  text-align: center;
-  border-radius: 6px;
-  /* Ensure icons are vertically centered */
-  vertical-align: middle;
-}
-
-.navlink_icon::before {
-  content: "";
-  position: absolute;
-  height: 100%;
-  width: calc(100% + 100px);
-  left: -20px;
-}
-
-.navlink_icon:hover {
-  background: var(--blue-color);
-}
-
-.sidebar .nav_link {
+/* === Logo === */
+.logo_item {
   display: flex;
   align-items: center;
-  width: 100%;
-  padding: 4px 15px;
-  border-radius: 8px;
-  text-decoration: none;
-  color: var(--grey-color);
-  white-space: nowrap;
-  /* Improve vertical alignment of text */
-  align-items: center;
+  gap: 10px;
+  padding: 0 20px;
 }
 
-.sidebar.close .navlink {
+.logo_item img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.brand-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--blue-color);
+}
+
+.brand-subtitle {
+  font-size: 12px;
+  color: var(--black-color);
+}
+
+/* === Toggle Button === */
+.menu-toggle-wrapper {
+  position: absolute;
+  top: 20px;
+  right: -15px;
+}
+
+.menu-toggle-btn {
+  width: 30px;
+  height: 30px;
+  background-color: #005183;
+  color: white;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* === Menu Items === */
+.menu-inner {
+  list-style: none;
+  padding: 0;
+  margin-top: 50px;
+}
+
+.menu-item {
+  margin-bottom: 10px;
+}
+
+.menu-link {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  color: #6cbdf0;
+  text-decoration: none;
+  transition: background-color 0.3s;
+}
+
+.menu-link:hover {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  color: #005183;
+}
+
+.menu-icon {
+  margin-right: 12px;
+  font-size: 22px;
+}
+
+/* Quand collapse */
+#layout-menu.collapsed .menu-link {
+  justify-content: center;
+}
+
+#layout-menu.collapsed .menu-link div {
   display: none;
 }
 
-.nav_link:hover {
-  color: var(--white-color);
-  background: var(--blue-color);
-}
-
-.sidebar.close .nav_link:hover {
-  background: var(--white-color);
-}
+/* === Bottom Button Expand/Collapse === */
 .bottom_content {
-  position: relative;
-    bottom: -365px;
-    left: -43px;
-    width: 100%;
-    cursor: pointer;
-    transition: all 0.5s ease;
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  text-align: center;
 }
 
 .bottom {
   display: flex;
   align-items: center;
-  justify-content: center; /* Center horizontally */
-  padding: 10px 0; /* Reduced padding */
-  text-align: center;
-  width: 100%;
-  color: var(--grey-color);
-  border-top: 1px solid var(--grey-color-light);
-  background-color: var(--white-color);
-  /* Ensure it sticks to the bottom */
-  position: relative;
+  justify-content: center;
+  cursor: pointer;
 }
 
 .bottom i {
-  font-size: 20px;
-  margin-right: 5px; /* Add spacing between icon and text */
-}
-
-.bottom span {
-  font-size: 16px;
-}
-
-.sidebar.close .bottom_content {
-  width: 50px;
-  left: 15px;
-}
-
-.sidebar.close .bottom span {
-  display: none;
-}
-
-
-
-#sidebarOpen {
-  display: none;
-}
-
-.logo_item {
-  display: flex;
-  align-items: center;
-  column-gap: 24px;
-  font-size: 22px;
-  font-weight: 500;
-  color: var(--blue-color);
-  padding: 15px 20px;
-}
-
-.logo_item img {
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-}
-.nav_link {
-  display: flex;
-  align-items: center;
-  padding: 10px;
-  text-decoration: none;
-  color: var(--grey-color);
-  transition: background 0.3s ease, box-shadow 0.3s ease;
-  border-radius: 8px;
-}
-.nav_link:hover {
-  background: var(--blue-color);
-  color: var(--white-color);
-  box-shadow: 0px 4px 6px rgba(64, 112, 244, 0.3);
+  font-size: 24px;
+  color: #005183;
 }
 </style>
-

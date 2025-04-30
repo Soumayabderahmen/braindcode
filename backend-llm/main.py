@@ -2,6 +2,16 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from langdetect import detect
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.schema.document import Document
+from langchain_community.llms import Ollama
+from langchain_community.vectorstores import Chroma
+from langchain_community.document_loaders import TextLoader
+from langchain_ollama import OllamaEmbeddings
+from langchain_ollama import OllamaLLM as Ollama
+from fastapi.responses import StreamingResponse
+
+import os
 import httpx
 import logging
 import time
@@ -19,7 +29,24 @@ app.add_middleware(
 )
 
 logging.basicConfig(level=logging.INFO)
+# Initialisation de l'embedding + LLM
+embedding_model = OllamaEmbeddings(model="nomic-embed-text")
+llm = Ollama(model="llama3")
 
+
+
+
+# Création du vecteurstore à partir du fichier intentions.txt
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=50)
+intentions_path = "intentions/intentions.txt"
+
+def create_intentions_db():
+    loader = TextLoader(intentions_path)
+    documents = loader.load()
+    texts = text_splitter.split_documents(documents)
+    return Chroma.from_documents(texts, embedding_model, persist_directory="./chroma-intentions")
+
+intentions_db = create_intentions_db()
 # Charger les intentions depuis le fichier JSON
 with open("intentions.json", encoding="utf-8") as f:
     INTENTIONS = json.load(f)
@@ -66,66 +93,26 @@ def generate_language_sensitive_prompt(message: str) -> str:
     else:
         return f"You are a helpful assistant. Respond simply and naturally to the user message: {message}"
 
-def detect_intention(message: str):
-    message = message.lower().strip()
+def detect_intention_semantic(message: str):
+    try:
+        results = intentions_db.similarity_search_with_score(message, k=1)
+        if not results:
+            logging.info("[Intentions] Aucun résultat trouvé.")
+            return None, None
+        
+        best_match: tuple[Document, float] = results[0]
+        doc, score = best_match
 
-    if "étape" in message and re.search(r"étape\s+(\d+)", message):
-        match = re.search(r"étape\s+(\d+)", message)
-        etape = match.group(1)
-        for intent in INTENTIONS:
-            if intent["name"] == "probleme_etape":
-                prompt = intent["prompt_template"].replace("{{etape}}", etape)
-                return intent["name"], prompt
+        logging.info(f"[Intentions] Similarité: {score:.4f}")
+        if score > 0.3:
+            return None, None  # Trop éloigné
 
-    for intent in INTENTIONS:
-        if intent["name"] == "liste_etapes_programme" and any(kw in message for kw in [
-            # 🇫🇷 Français
-            "étapes", "etapes", "programme d'incubation", "incubation", "étapes du programme",
-            "liste des étapes", "plan d'accompagnement", "les étapes", "étape 1", "étapes startup",
-            "parcours startup", "12 étapes", "structure du programme", "phases d'incubation",
-            "donner les étapes", "comment fonctionne le programme", "etapes d'accompagnement",
-    
-            # 🇬🇧 Anglais
-            "12 steps", "steps of incubation", "startup steps", "what are the 12 steps",
-            "give me the 12 steps", "steps of the program", "incubation steps", "program steps"
-]):
-            return intent["name"], intent["prompt_template"]
+        return "intent_detected", doc.page_content.strip()
 
-    for intent in INTENTIONS:
-        if intent["name"] == "salutation" and any(word in message for word in ["salut", "bonjour", "hello", "hey", "hi", "bonsoir"]):
-            return intent["name"], intent["prompt_template"]
+    except Exception as e:
+        logging.error(f"[Intentions ERROR] {e}")
+        return None, None
 
-        if intent["name"] == "merci" and any(word in message for word in ["merci", "je te remercie"]):
-            return intent["name"], intent["prompt_template"]
-
-        if intent["name"] == "demande_mentor" and any(word in message for word in ["mentor", "accompagnement", "coach"]):
-            return intent["name"], intent["prompt_template"]
-
-        if intent["name"] == "probleme_connection" and any(word in message for word in ["connexion", "connecter", "mot de passe"]):
-            return intent["name"], intent["prompt_template"]
-
-        if intent["name"] == "question_faq" and any(word in message for word in ["c’est quoi", "qu’est-ce que", "ça veut dire"]):
-            return intent["name"], intent["prompt_template"]
-
-        if intent["name"] == "demande_aide_document" and any(word in message for word in ["trouver", "où est", "où puis-je", "document", "business model", "canvas"]):
-            return intent["name"], intent["prompt_template"]
-
-        if intent["name"] == "question_sur_livrable" and any(word in message for word in ["livrable", "remettre", "document à envoyer", "quoi faire", "ce qu’on attend"]):
-            return intent["name"], intent["prompt_template"]
-
-        if intent["name"] == "probleme_delai" and any(word in message for word in ["retard", "pas eu le temps", "délai", "prolonger", "finir plus tard"]):
-            return intent["name"], intent["prompt_template"]
-
-        if intent["name"] == "demande_contact_admin" and any(word in message for word in ["admin", "administrateur", "contacter", "équipe", "contact"]):
-            return intent["name"], intent["prompt_template"]
-
-        if intent["name"] == "idee_marketing" and any(word in message for word in ["stratégie marketing", "plan marketing", "idée marketing"]):
-            return intent["name"], intent["prompt_template"]
-
-        if intent["name"] == "idee_generale" and any(word in message for word in ["idée", "donner des idées", "des idées", "proposer une idée"]):
-            return intent["name"], intent["prompt_template"]
-
-    return None, f"L'utilisateur a dit : {message}"
 
 @app.post("/chat")
 async def chat(request: Request):
@@ -133,9 +120,10 @@ async def chat(request: Request):
     message = data.get("message", "").strip()
     message = corriger_fautes(message)
     lang = detect_language(message)
-    intent_name, prompt_from_intent = detect_intention(message)
+    intent_name, prompt_from_intent = detect_intention_semantic(message)
 
     message = re.sub(r'\s+', ' ', message).strip()[:500]
+    message = re.sub(r"[^a-zA-ZÀ-ÿ0-9\s]", "", message).lower()
     logging.info(f"[Message utilisateur] {message}")
 
     if intent_name and prompt_from_intent:
@@ -145,61 +133,68 @@ async def chat(request: Request):
 
     if intent_name == "liste_etapes_programme":
         logging.info(f"[Réponse statique envoyée directement sans Ollama]")
-        await asyncio.sleep(3)
-
+        await asyncio.sleep(1)  # Petit délai pour l'effet
         if lang == "en":
             return JSONResponse({
                 "reply": "Here are the 12 startup incubation steps:\n\n1. Identify a problem\n2. Design an innovative solution\n3. Test the hypothesis\n4. Build the founding team\n5. Create a minimum viable product (MVP)\n6. Collect feedback and iterate\n7. Expand user base\n8. Manage financial resources\n9. Develop an effective marketing strategy\n10. Establish strategic partnerships\n11. Improve user experience\n12. Prepare to scale and grow",
                 "language": lang,
                 "source": "static",
                 "intent": intent_name
-        })
-
-        return JSONResponse({
-            "reply": prompt_to_send,
-            "language": lang,
-            "source": "static",
-            "intent": intent_name
-    })
+            })
+        else:
+            return JSONResponse({
+                "reply": prompt_to_send,
+                "language": lang,
+                "source": "static",
+                "intent": intent_name
+            })
 
     final_prompt = prompt_to_send + "\n\n(Réponds en 500 caractères maximum)"
     logging.info(f"[Prompt final envoyé à Ollama] {final_prompt}")
 
-    MAX_RETRIES = 2
-    for attempt in range(MAX_RETRIES):
-        try:
-            start = time.time()
-            async with httpx.AsyncClient(timeout=60.0) as client:
-                response = await client.post(
-                    "http://127.0.0.1:11434/api/generate",
-                    json={
-                        "model": "llama3:8b",
-                        "prompt": final_prompt,
-                        "stream": False,
-                        "options": {"num_predict": 512}
-                    }
-                )
-            duration = time.time() - start
-            logging.info(f"[Réponse Ollama ✅] en {duration:.2f}s")
-            result = response.json()
-            reply = result.get("response", "").strip()
+    async def stream_generator():
+        MAX_RETRIES = 2
+        for attempt in range(MAX_RETRIES):
+            try:
+                async with httpx.AsyncClient(timeout=60.0) as client:
+                    response = await client.post(
+                        "http://127.0.0.1:11434/api/generate",
+                        json={
+                            "model": "llama3:8b",
+                            "prompt": final_prompt,
+                            "stream": True,
+                            "options": {"num_predict": 512}
+                        }
+                    )
+                    async for line in response.aiter_lines():
+                        if line.strip():
+                            try:
+                                data = json.loads(line)
+                                part = data.get("response", "")
+                                if part:
+                                    yield part.encode("utf-8")
+                                    await asyncio.sleep(0.01)  # Petit délai pour lisser le stream
+                            except Exception as e:
+                                logging.error(f"[Stream Parsing Error] {e}")
+                break  # Pas d'erreur, sortir
+            except Exception as e:
+                logging.error(f"[Tentative {attempt + 1}] ❌ Erreur Ollama : {type(e).__name__} - {e}")
 
-            if reply:
-                return JSONResponse({
-                    "reply": reply,
-                    "language": lang,
-                    "source": "ollama",
-                    "intent": intent_name
-                })
+        yield "\n\n[FIN]".encode("utf-8")
 
-        except Exception as e:
-            logging.error(f"[Tentative {attempt + 1}] ❌ Erreur Ollama : {type(e).__name__} - {e}")
-            if attempt == MAX_RETRIES - 1:
-                return JSONResponse({
-                    "reply": f"⏱️ Temps dépassé ou erreur interne : {str(e)}",
-                    "language": lang,
-                    "source": "offline"
-                })
+    return StreamingResponse(stream_generator(), media_type="text/plain")
+
+@app.post("/intentions/train")
+async def retrain_intentions():
+    try:
+        global intentions_db
+        intentions_db = create_intentions_db()
+        logging.info("[Intentions] Base de vecteurs rechargée avec succès.")
+        return {"status": "success", "message": "Base des intentions mise à jour."}
+    except Exception as e:
+        logging.error(f"[Intentions Reload ERROR] {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
 
 @app.get("/ping")
 async def ping():

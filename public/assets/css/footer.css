@@ -1,0 +1,109 @@
+.landing-footer .app-brand-logo img {
+    width: 100px;
+    height: 65px;
+    flex-shrink: 0;
+    object-fit: contain;
+}
+
+.landing-footer p {
+    color: #000;
+   font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-style: normal;
+    font-weight: 300;
+    line-height: 150%;
+    /* 24px */
+    letter-spacing: -0.352px;
+}
+
+.landing-footer ul {
+    list-style: none;
+    padding-left: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.landing-footer ul li {
+    margin: 5px;
+}
+.landing-footer ul .footer-link {
+    color: rgba(0, 0, 0, 0.80);
+    text-align: center;
+   font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 22.5px;
+    /* 112.5% */
+    letter-spacing: -0.5px;
+    text-decoration: none;
+}
+
+.landing-footer .btn {
+    border-radius: 50px;
+    background: #FFF;
+    color: var(--black-2-b-2-b-2-b, #2B2B2B);
+    text-align: center;
+   font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: 22.5px;
+    /* 140.625% */
+    letter-spacing: -0.5px;
+}
+.landing-footer .social-media {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+.landing-footer .social-media a {
+    border-radius: 50%;
+    background: #FFF;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 5px;
+}
+@media(max-width:992px){
+    .landing-footer .app-brand-logo img {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+        object-fit: contain;
+    }
+    .landing-footer .btn,
+    .landing-footer ul .footer-link ,
+    .landing-footer p  {
+        font-size: 12px;
+    }
+    .landing-footer p {
+        margin-top: 10px !important;
+    }
+    .landing-footer .others {
+        margin-top: 10px !important;
+    }
+    .landing-footer ul {
+        margin-bottom: 0px;
+    }
+}
+@media(max-width:570px){
+    .landing-footer ul {
+        display: block !important;
+        margin-top: 10px !important;
+        margin-bottom: 0px !important;
+    }
+    .landing-footer p {
+        margin-top: 10px !important;
+        margin-bottom: 0px !important;
+    }
+    .landing-footer .others {
+        display: block !important;
+    }
+    .landing-footer .social-media {
+        justify-content: start !important;
+    }
+}

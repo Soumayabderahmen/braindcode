@@ -15,8 +15,8 @@ class ChatbotReactionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'message' => 'required|string',
-            'reaction' => 'nullable|string',
+            'message' => 'required|string|max:2000', // pour éviter des payloads gigantesques
+            'reaction' => 'nullable|string|max:10',
         ]);
 
         $user = Auth::user();

@@ -1,6 +1,7 @@
 <script setup>
-import { Link } from '@inertiajs/vue3';
-import Main from '@/Layouts/Main.vue';
+// import { Link } from '@inertiajs/vue3';
+// import Main from '@/Layouts/Main.vue';
+import { route } from 'ziggy-js';
 
 const props = defineProps({
     message: Object
@@ -8,8 +9,8 @@ const props = defineProps({
 </script>
 
 <template>
-    <Main>
-        <div class="p-6 bg-white shadow-md rounded-lg">
+    
+        <div class="message-container">
             <h1 class="text-2xl font-bold mb-4">Détail du Message</h1>
 
             <p><strong>Nom :</strong> {{ message.name }}</p>
@@ -22,9 +23,22 @@ const props = defineProps({
                 <a :href="'/storage/' + message.file_path" target="_blank" class="text-blue-600 hover:underline">Télécharger</a>
             </div>
 
-            <Link :href="route('admin.support.messages')" class="mt-4 inline-block text-gray-600 hover:underline">
+            <a :href="route('admin.support.messages')" class="mt-4 inline-block text-gray-600 hover:underline">
+
                 Retour à la liste
-            </Link>
+            </a>
         </div>
-    </Main>
+
 </template>
+<style scoped>
+.message-container {
+  margin: 20px auto;
+  padding: 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  width: 90%;
+  max-width: 900px;
+}
+</style>
+

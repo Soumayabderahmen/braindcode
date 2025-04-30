@@ -18,7 +18,7 @@ const page = usePage();
 <template>
   <Head title="Dashboard" />
 
-  <Main :showSidebar="true">
+  
     <div class="container mx-auto p-6">
       <h1 class="text-2xl font-bold mb-4">Gestion des Coachs</h1>
 
@@ -114,5 +114,5 @@ const page = usePage();
         </tbody>
       </table>
     </div>
-  </Main>
+ 
 </template>

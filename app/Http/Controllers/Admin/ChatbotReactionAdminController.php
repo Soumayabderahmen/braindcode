@@ -34,7 +34,7 @@ class ChatbotReactionAdminController extends Controller
                 ];
             });
     
-        return Inertia::render('Admin/ChatbotReactions', [
+        return view('Reaction.reaction', [
             'reactions' => $reactions
         ]);
     }

@@ -15,7 +15,7 @@ class ChatbotAdminController extends Controller
         // Liste des utilisateurs ayant des messages
         $users = User::whereHas('chatMessages')->get();
     
-        return Inertia::render('Admin/ChatbotAdmin', [
+        return view ('Chatbot.chatbot', [
             'users' => $users
         ]);
     }

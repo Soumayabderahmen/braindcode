@@ -15,7 +15,7 @@ class AdminDashboardController extends Controller
         $user = auth()->user();
         $users = User::where('role', '!=', 'admin')->get();
 
-        return Inertia::render('Admin/AdminDashboard', [
+        return view ('Admin.dashboard', [
             'users' => $users,
             'user' => $user,
         ]);
