@@ -18,6 +18,7 @@ class Reservation extends Model
         'total',
         'message',
         'statut',
+        'disponibilite_id',
     ];
 
     // Relations

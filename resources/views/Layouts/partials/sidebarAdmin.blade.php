@@ -29,7 +29,7 @@
         <!-- Layouts -->
 
         <li class="menu-item">
-            <a href=""
+            <a href="{{ route('admin.startups') }}"
                 class="menu-link">
                 <i class="menu-icon">
                     <span class="iconify" data-icon="covid:symptoms-virus-headache-2" data-inline="false"></span>
@@ -39,7 +39,7 @@
         </li>
 
         <li class="menu-item">
-            <a href=""
+            <a href="{{ route('admin.investisseurs') }}"
                 class="menu-link">
                 <i class="menu-icon">
                     <span class="iconify" data-icon="covid:symptoms-virus-headache-2" data-inline="false"></span>
@@ -47,7 +47,7 @@
                 <div data-i18n="Investisseur">Investisseur</div>
             </a>
         </li> <li class="menu-item">
-            <a href=""
+            <a href="{{ route('admin.coaches') }}"
                 class="menu-link">
                 <i class="menu-icon">
                     <span class="iconify" data-icon="covid:symptoms-virus-headache-2" data-inline="false"></span>

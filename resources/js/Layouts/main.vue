@@ -20,7 +20,6 @@
 
 <script setup>
 import { ref } from "vue";
-import Navbar from "../Components/navbar.vue";
 import Sidebar from "../Components/sidebar.vue";
 
 // Définir les propriétés pour contrôler l'affichage

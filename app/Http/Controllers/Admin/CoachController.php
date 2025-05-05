@@ -123,10 +123,26 @@ class CoachController extends Controller
                 throw new \Exception('Erreur lors de l\'envoi de l\'email.');
             }
         }
-        
+        public function startup()
+        {
+           
+            return view('Admin.ListStartup', [
+                'startupes' =>User::where('role', 'startup')->get()
+            ]);
+           
+        }
+       
+        public function investisseur()
+        {
+          
+            return view('Admin.ListInvestisseur', [
+                'investisseurs' => User::where('role', 'investisseur')->get()
+            ]);
+           
+        }     
     public function index()
 {
-    return Inertia::render('Admin/ActivateCoach', [
+    return view('Admin.ListCoach', [
         'coaches' => User::where('role', 'coach')->get()
     ]);
 }
@@ -141,28 +157,5 @@ public function dashboard()
        
     }
 
-    public function startup()
-    {
-        $startups = User::where('role', 'startup')->get();
-        return Inertia::render('Admin/startup', [
-            'startups' => $startups
-        ]);
-       
-    }
-    // public function startup()
-    // {
-    //     $startups = User::where('role', 'startup')->get();
-    //     return Inertia::render('Admin/ListStartup', [
-    //         'startups' => $startups
-    //     ]);
-       
-    // }
-    public function investisseurs()
-    {
-        $investisseurs = User::where('role', 'investisseur')->get();
-        return Inertia::render('Admin/investisseur', [
-            'investisseurs' => $investisseurs
-        ]);
-       
-    }
+   
 }
