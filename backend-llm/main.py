@@ -10,7 +10,11 @@ from langchain_community.document_loaders import TextLoader
 from langchain_ollama import OllamaEmbeddings
 from langchain_ollama import OllamaLLM as Ollama
 from fastapi.responses import StreamingResponse
+from fastapi import UploadFile, File
+from langchain_community.document_loaders import PyPDFLoader
+from fastapi import Body
 
+import tempfile
 import os
 import httpx
 import logging
@@ -39,6 +43,35 @@ llm = Ollama(model="llama3")
 # Création du vecteurstore à partir du fichier intentions.txt
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=50)
 intentions_path = "intentions/intentions.txt"
+# Stockage temporaire en RAM par utilisateur
+user_pdf_vectors = {}
+
+@app.post("/upload-user-pdf")
+async def upload_user_pdf(file: UploadFile = File(...)):
+    if not file.filename.endswith(".pdf"):
+        return JSONResponse(status_code=400, content={"error": "Fichier non PDF."})
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        tmp.write(await file.read())
+        tmp_path = tmp.name
+
+    loader = PyPDFLoader(tmp_path)
+    documents = loader.load()
+
+    if not documents:
+        return JSONResponse(status_code=400, content={"error": "PDF vide ou illisible."})
+
+    splitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=50)
+    texts = splitter.split_documents(documents)
+
+    if not texts:
+        return JSONResponse(status_code=400, content={"error": "Aucun texte détecté."})
+
+    # Stocker dans un vecteur temporaire pour l’utilisateur (UUID simple)
+    user_pdf_vectors["current"] = Chroma.from_documents(texts, embedding_model)
+
+    return {"message": "Fichier PDF analysé avec succès."}
+
 
 def create_intentions_db():
     loader = TextLoader(intentions_path)
@@ -126,71 +159,99 @@ async def chat(request: Request):
     message = re.sub(r"[^a-zA-ZÀ-ÿ0-9\s]", "", message).lower()
     logging.info(f"[Message utilisateur] {message}")
 
-    if intent_name and prompt_from_intent:
+    prompt_to_send = None
+
+    # ✅ Priorité 1 : PDF
+    if "current" in user_pdf_vectors:
+        try:
+            pdf_search = user_pdf_vectors["current"].similarity_search_with_score(message, k=2)
+            chunks = [doc.page_content for doc, score in pdf_search if score < 0.5]
+            if chunks:
+                joined_chunks = "\n".join(chunks)
+                prompt_to_send = (
+                    f"Voici un extrait du fichier envoyé :\n{joined_chunks}\n\n"
+                    f"Question utilisateur : {message}\n\n"
+                    f"Réponds précisément, en 500 caractères max."
+                )
+        except Exception as e:
+            logging.warning(f"[User PDF Search Error] {e}")
+
+    # ✅ Priorité 2 : Intentions
+    if not prompt_to_send and intent_name and prompt_from_intent:
         prompt_to_send = prompt_from_intent
-    else:
+
+    # ✅ Priorité 3 : Fallback
+    if not prompt_to_send:
         prompt_to_send = generate_language_sensitive_prompt(message)
 
+    # ✅ Cas spécial : réponse statique
     if intent_name == "liste_etapes_programme":
         logging.info(f"[Réponse statique envoyée directement sans Ollama]")
-        await asyncio.sleep(1)  # Petit délai pour l'effet
-        if lang == "en":
-            return JSONResponse({
-                "reply": "Here are the 12 startup incubation steps:\n\n1. Identify a problem\n2. Design an innovative solution\n3. Test the hypothesis\n4. Build the founding team\n5. Create a minimum viable product (MVP)\n6. Collect feedback and iterate\n7. Expand user base\n8. Manage financial resources\n9. Develop an effective marketing strategy\n10. Establish strategic partnerships\n11. Improve user experience\n12. Prepare to scale and grow",
-                "language": lang,
-                "source": "static",
-                "intent": intent_name
-            })
-        else:
-            return JSONResponse({
-                "reply": prompt_to_send,
-                "language": lang,
-                "source": "static",
-                "intent": intent_name
-            })
+        await asyncio.sleep(1)
+        return JSONResponse({
+            "reply": prompt_to_send,
+            "language": lang,
+            "source": "static",
+            "intent": intent_name
+        })
 
     final_prompt = prompt_to_send + "\n\n(Réponds en 500 caractères maximum)"
     logging.info(f"[Prompt final envoyé à Ollama] {final_prompt}")
 
-    async def stream_generator():
-        MAX_RETRIES = 2
-        for attempt in range(MAX_RETRIES):
-            try:
-                async with httpx.AsyncClient(timeout=60.0) as client:
-                    response = await client.post(
-                        "http://127.0.0.1:11434/api/generate",
-                        json={
-                            "model": "llama3:8b",
-                            "prompt": final_prompt,
-                            "stream": True,
-                            "options": {"num_predict": 512}
-                        }
-                    )
-                    async for line in response.aiter_lines():
-                        if line.strip():
-                            try:
-                                data = json.loads(line)
-                                part = data.get("response", "")
-                                if part:
-                                    yield part.encode("utf-8")
-                                    await asyncio.sleep(0.01)  # Petit délai pour lisser le stream
-                            except Exception as e:
-                                logging.error(f"[Stream Parsing Error] {e}")
-                break  # Pas d'erreur, sortir
-            except Exception as e:
-                logging.error(f"[Tentative {attempt + 1}] ❌ Erreur Ollama : {type(e).__name__} - {e}")
+    return StreamingResponse(stream_generator(final_prompt), media_type="text/plain")
 
-        yield "\n\n[FIN]".encode("utf-8")
+async def stream_generator(final_prompt: str):
+    MAX_RETRIES = 2
+    for attempt in range(MAX_RETRIES):
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(
+                    "http://127.0.0.1:11434/api/generate",
+                    json={
+                        "model": "llama3:8b",
+                        "prompt": final_prompt,
+                        "stream": True,
+                        "options": {"num_predict": 512}
+                    }
+                )
+                async for line in response.aiter_lines():
+                    if line.strip():
+                        try:
+                            data = json.loads(line)
+                            part = data.get("response", "")
+                            if part:
+                                yield part.encode("utf-8")
+                                await asyncio.sleep(0.01)
+                        except Exception as e:
+                            logging.error(f"[Stream Parsing Error] {e}")
+            break  # sortie de boucle si tout va bien
+        except Exception as e:
+            logging.error(f"[Tentative {attempt + 1}] ❌ Erreur Ollama : {type(e).__name__} - {e}")
 
-    return StreamingResponse(stream_generator(), media_type="text/plain")
+    yield "\n\n[FIN]".encode("utf-8")
 
+
+    
 @app.post("/intentions/train")
-async def retrain_intentions():
+async def retrain_intentions(payload: dict = Body(...)):
     try:
+        training_text = payload.get("training_text", "").strip()
+
+        # 1. Si vide, on retourne une erreur
+        if not training_text:
+            return JSONResponse(status_code=400, content={"error": "Aucun texte fourni."})
+
+        # 2. Ajouter au fichier intentions.txt
+        with open("intentions/intentions.txt", "a", encoding="utf-8") as f:
+            f.write(f"\n{training_text}\n")
+
+        # 3. Recalculer les embeddings
         global intentions_db
         intentions_db = create_intentions_db()
-        logging.info("[Intentions] Base de vecteurs rechargée avec succès.")
+
+        logging.info("[Intentions] Intentions mises à jour avec succès.")
         return {"status": "success", "message": "Base des intentions mise à jour."}
+
     except Exception as e:
         logging.error(f"[Intentions Reload ERROR] {e}")
         return JSONResponse(status_code=500, content={"error": str(e)})

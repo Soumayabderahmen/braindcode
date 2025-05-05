@@ -18,6 +18,7 @@ use App\Http\Controllers\API\IntentionController;
 use App\Http\Controllers\Admin\IntentionAdminController;
 use App\Http\Controllers\Chatbot\ChatbotReactionController;
 use App\Http\Controllers\Admin\ChatbotReactionAdminController;
+use App\Http\Controllers\Admin\ChatbotSettingsController;
 // Route pour le tableau de bord, sans authentification
 Route::get('/', function () {
     return Inertia::render('Home');
@@ -64,13 +65,17 @@ Route::middleware('auth')->post('/chatbot/reaction', [ChatbotReactionController:
 Route::get('/faqs', [FaqController::class, 'index'])->name('faq');
 Route::get('/faqs/list', [FaqController::class, 'list']);
 
+Route::get('/api/public/chatbot/settings', function () {
+    return \App\Models\ChatbotSetting::first();
+});
 
 
 // Routes Admin 
 Route::prefix('admin')->middleware(['auth', 'verified', CheckAdmin::class])->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-    
+    Route::put('/support-messages/{id}/status', [SupportMessageAdminController::class, 'updateStatus'])->name('support.message.status');
     Route::get('/support-messages', [SupportMessageAdminController::class, 'index'])->name('support.messages');
+    Route::get('/support-messages/download/{id}', [SupportMessageAdminController::class, 'download'])->name('support.download');
     Route::get('/support-messages/{id}', [SupportMessageAdminController::class, 'show'])->name('support.message.view');
     Route::delete('/support-messages/{supportMessage}', [SupportMessageAdminController::class, 'destroy'])->name('support.messages.delete');
     Route::get('/faqs', [AdminFaqController::class, 'index'])->name('faqs.index');
@@ -79,8 +84,12 @@ Route::prefix('admin')->middleware(['auth', 'verified', CheckAdmin::class])->nam
     Route::delete('/faqs/{faq}', [AdminFaqController::class, 'destroy'])->name('faqs.destroy');
     Route::get('/chatbot', [ChatbotAdminController::class, 'index'])->name('chatbot.index');
     Route::get('/chatbot/messages', [ChatbotAdminController::class, 'messages']);
-    Route::get('/chatbot/reactions', [ChatbotReactionAdminController::class, 'index'])->name('chatbot.reactions');
+    Route::get('/chatbot/management', [ChatbotAdminController::class, 'management'])->name('chatbot.management');
+    Route::get('/chatbot/stats', [ChatbotAdminController::class, 'stats'])->name('chatbot.stats');
 
+    Route::get('/chatbot/reactions', [ChatbotReactionAdminController::class, 'index'])->name('chatbot.reactions');
+    Route::get('/chatbot/settings', [ChatbotSettingsController::class, 'getSettings']);
+    Route::post('/chatbot/settings', [ChatbotSettingsController::class, 'saveSettings']);
 
     // Route::get('/intentions', [IntentionAdminController::class, 'index'])->name('intentions');
     // Route::get('/intentions-list', [IntentionAdminController::class, 'list']);

@@ -58,3 +58,17 @@ Can I extend my deadline?
 Is it possible to delay submission?
 I didn’t finish yet
 I missed the deadline
+
+# prise_de_rdv
+Je veux prendre rendez-vous
+Puis-je planifier un appel ?
+Comment puis-je réserver une session ?
+I want to schedule a meeting
+Can I book a call?
+
+# besoin_aide_financement
+Je cherche du financement
+Est-ce que je peux avoir une aide financière ?
+Y a-t-il un programme d’investissement ?
+How can I get funding?
+Is there any investor program?

@@ -1,465 +1,608 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
-//import { usePage, Link, router } from '@inertiajs/vue3';
-import Main from '@/Layouts/Main.vue';
-import 'bootstrap';
-import '@popperjs/core';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { route } from 'ziggy-js';
 import axios from 'axios';
 
-import { route } from 'ziggy-js'
-
-
-// Notifications
-const notification = ref({
-  show: false,
-  message: '',
-  type: 'success'
+const props = defineProps({
+  messages: Object,
 });
 
-const showNotification = (message, type = 'success') => {
+const selectedMessage = ref(null);
+const localMessages = ref([...props.messages.data]);
+const showDeleteModal = ref(false);
+const showMarkAsModal = ref(false);
+const pendingStatus = ref('');
+const isLoading = ref(false);
+const notification = ref({ show: false, message: '', type: '' });
+const searchQuery = ref('');
+
+// Sélection d'un message
+const selectMessage = (message) => {
+  selectedMessage.value = message;
+  // Marquer automatiquement comme lu si c'est un nouveau message
+  if (message.status === 'new') {
+    markAs('read', false);
+  }
+};
+
+// Copier l'email avec notification
+const copyEmail = (email) => {
+  navigator.clipboard.writeText(email);
+  showNotification('Email copié avec succès', 'success');
+};
+
+// Afficher la modale de confirmation pour changer de statut
+const confirmMarkAs = (status) => {
+  pendingStatus.value = status;
+  showMarkAsModal.value = true;
+};
+
+// Fonction pour changer le statut d'un message
+const markAs = (status, showConfirmation = true) => {
+  if (!selectedMessage.value) return;
+  
+  if (showConfirmation && status !== 'read') {
+    confirmMarkAs(status);
+    return;
+  }
+  
+  isLoading.value = true;
+  
+  axios.put(route('admin.support.message.status', { id: selectedMessage.value.id }), {
+    status
+  })
+  .then(() => {
+    selectedMessage.value.status = status;
+
+    const index = localMessages.value.findIndex(
+      (msg) => msg.id === selectedMessage.value.id
+    );
+
+    if (index !== -1) {
+      localMessages.value[index].status = status;
+    }
+    
+    showNotification(`Message marqué comme "${statusLabel(status)}"`, 'success');
+    showMarkAsModal.value = false;
+  })
+  .catch((error) => {
+    console.error("Erreur lors du changement de statut", error);
+    showNotification("Erreur lors du changement de statut", 'error');
+  })
+  .finally(() => {
+    isLoading.value = false;
+  });
+};
+
+// Afficher la modale de confirmation pour la suppression
+const confirmDelete = () => {
+  showDeleteModal.value = true;
+};
+
+// Fonction de suppression
+const deleteMessage = () => {
+  if (!selectedMessage.value) return;
+
+  isLoading.value = true;
+  
+  axios
+    .delete(route('admin.support.messages.delete', { supportMessage: selectedMessage.value.id }))
+    .then(() => {
+      const index = localMessages.value.findIndex(
+        (msg) => msg.id === selectedMessage.value.id
+      );
+
+      if (index !== -1) {
+        localMessages.value.splice(index, 1);
+      }
+
+      selectedMessage.value = null;
+      showNotification('Message supprimé avec succès', 'success');
+      showDeleteModal.value = false;
+    })
+    .catch((error) => {
+      console.error('Erreur lors de la suppression', error);
+      showNotification('Erreur lors de la suppression', 'error');
+    })
+    .finally(() => {
+      isLoading.value = false;
+    });
+};
+
+// Formatage de la date
+const formatDate = (dateStr) => {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+// Vérifier si un message est sélectionné
+const isSelected = (message) => {
+  return selectedMessage.value && selectedMessage.value.id === message.id;
+};
+
+// Filtrage par statut
+const filterStatus = ref('all');
+const filteredMessages = computed(() => {
+  let filtered = localMessages.value;
+  
+  // Filtrer par statut
+  if (filterStatus.value !== 'all') {
+    filtered = filtered.filter(m => m.status === filterStatus.value);
+  }
+  
+  // Filtrer par recherche
+  if (searchQuery.value.trim() !== '') {
+    const query = searchQuery.value.toLowerCase();
+    filtered = filtered.filter(m => 
+      m.name.toLowerCase().includes(query) || 
+      m.email.toLowerCase().includes(query) ||
+      m.message.toLowerCase().includes(query) ||
+      m.category.toLowerCase().includes(query)
+    );
+  }
+  
+  return filtered;
+});
+
+// Classes pour les boutons de filtre
+const statusButtonClass = (status) => {
+  return [
+    "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+    filterStatus.value === status
+      ? "bg-blue-600 text-white shadow-md"
+      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+  ];
+};
+
+// Obtenir le label d'un statut
+const statusLabel = (status) => {
+  switch (status) {
+    case 'new': return 'Nouveau';
+    case 'read': return 'Lu';
+    case 'replied': return 'Répondu';
+    default: return status;
+  }
+};
+
+// Badge de statut avec couleur
+const getStatusBadgeClass = (status) => {
+  switch (status) {
+    case 'new': return 'bg-blue-100 text-blue-800';
+    case 'read': return 'bg-gray-100 text-gray-800';
+    case 'replied': return 'bg-green-100 text-green-800';
+    default: return 'bg-gray-100 text-gray-600';
+  }
+};
+
+// Afficher une notification
+const showNotification = (message, type = 'info') => {
   notification.value = {
     show: true,
     message,
     type
   };
+  
+  // Masquer automatiquement après 3 secondes
   setTimeout(() => {
     notification.value.show = false;
   }, 3000);
 };
 
-// Confirm Dialog
-const confirmDialog = ref({
-  show: false,
-  message: '',
-  onConfirm: null
+// Vérifier s'il y a des messages
+const hasMessages = computed(() => {
+  return filteredMessages.value.length > 0;
 });
 
-const showConfirmDialog = (message, onConfirm) => {
-  confirmDialog.value = {
-    show: true,
-    message,
-    onConfirm
+// Style pour la notification
+const notificationStyle = computed(() => {
+  return {
+    'bg-green-100 border-green-500 text-green-700': notification.value.type === 'success',
+    'bg-red-100 border-red-500 text-red-700': notification.value.type === 'error',
+    'bg-blue-100 border-blue-500 text-blue-700': notification.value.type === 'info'
   };
+});
+
+// Fonction pour fermer les modales
+const closeModals = () => {
+  showDeleteModal.value = false;
+  showMarkAsModal.value = false;
 };
 
-const cancelConfirmDialog = () => {
-  confirmDialog.value.show = false;
-};
-
-const confirmAction = () => {
-  if (confirmDialog.value.onConfirm) {
-    confirmDialog.value.onConfirm();
+// Classe d'icône pour le statut
+const getStatusIcon = (status) => {
+  switch (status) {
+    case 'new': return '🔵';
+    case 'read': return '👁️';
+    case 'replied': return '✅';
+    default: return '❓';
   }
-  confirmDialog.value.show = false;
 };
-
-const exportPDF = () => {
-  const doc = new jsPDF();
-
-  doc.text('Messages de Contact', 14, 16);
-
-  const rows = filteredMessages.value.map(msg => [
-    msg.name,
-    msg.email,
-    msg.category,
-    formatDate(msg.created_at)
-  ]);
-
-  doc.autoTable({
-    head: [['Nom', 'Email', 'Catégorie', 'Date']],
-    body: rows,
-    startY: 20,
-  });
-
-  doc.save('messages.pdf');
-};
-
-const props = defineProps({
-    messages: Object
-});
-
-const localMessages = ref([...props.messages.data]);
-
-const badgeClass = (category) => {
-  return [
-    'px-4 py-1 rounded-full text-white text-xs font-bold shadow-md',
-    {
-      'bg-gradient-to-r from-blue-400 to-blue-600': category === 'technical',
-      'bg-gradient-to-r from-gray-400 to-gray-600': category === 'general',
-      'bg-gradient-to-r from-pink-400 to-pink-600': category === 'Creative',
-      'bg-gradient-to-r from-blue-500 to-blue-700': category === 'Premium',
-      'bg-gradient-to-r from-green-400 to-green-600': category === 'Feature',
-      'bg-gradient-to-r from-yellow-400 to-yellow-600': category === 'Bug',
-    }
-  ];
-};
-
-// État pour la recherche et la pagination
-const searchQuery = ref('');
-const itemsPerPage = ref(5);
-const currentPage = ref(1);
-const sortBy = ref('created_at');
-const sortDesc = ref(true);
-
-// Messages filtrés et triés
-const filteredMessages = computed(() => {
-    if (!localMessages.value) return [];
-    
-    let result = [...localMessages.value];
-    
-    // Filtrer
-    if (searchQuery.value) {
-        const query = searchQuery.value.toLowerCase();
-        result = result.filter(message => 
-            message.name?.toLowerCase().includes(query) ||
-            message.email?.toLowerCase().includes(query) ||
-            message.category?.toLowerCase().includes(query)
-        );
-    }
-    
-    // Trier les résultats
-    result.sort((a, b) => {
-        let modifier = sortDesc.value ? -1 : 1;
-        if (a[sortBy.value] < b[sortBy.value]) return -1 * modifier;
-        if (a[sortBy.value] > b[sortBy.value]) return 1 * modifier;
-        return 0;
-    });
-    
-    return result;
-});
-
-// Pagination
-const paginatedMessages = computed(() => {
-    const start = (currentPage.value - 1) * itemsPerPage.value;
-    const end = start + itemsPerPage.value;
-    return filteredMessages.value.slice(start, end);
-});
-const user = ref(window.authUser);
-
-// Nombre total de pages
-const totalPages = computed(() => {
-    return Math.ceil(filteredMessages.value.length / itemsPerPage.value) || 1;
-});
-
-// Pages à afficher
-const displayPages = computed(() => {
-    let pages = [];
-    const maxPages = Math.min(totalPages.value, 5);
-    
-    // Calculer la plage de pages à afficher
-    let startPage = Math.max(1, currentPage.value - 2);
-    let endPage = startPage + maxPages - 1;
-    
-    if (endPage > totalPages.value) {
-        endPage = totalPages.value;
-        startPage = Math.max(1, endPage - maxPages + 1);
-    }
-    
-    for (let i = startPage; i <= endPage; i++) {
-        pages.push(i);
-    }
-    
-    return pages;
-});
-
-// Réinitialiser la page lorsque la recherche change
-watch(searchQuery, () => {
-    currentPage.value = 1;
-});
-
-// Changement de page
-const changePage = (page) => {
-    currentPage.value = page;
-};
-
-// Changement du tri
-const changeSort = (column) => {
-    if (sortBy.value === column) {
-        sortDesc.value = !sortDesc.value;
-    } else {
-        sortBy.value = column;
-        sortDesc.value = true;
-    }
-};
-
-// Supprimer un message
-const deleteMessage = (id) => {
-  showConfirmDialog('Êtes-vous sûr de vouloir supprimer ce message ?', () => {
-    axios.delete(route('admin.support.messages.delete', { supportMessage: id }))
-      .then(response => {
-        // Supprimer proprement dans le local
-        const index = localMessages.value.findIndex(m => m.id === id);
-        if (index !== -1) {
-          localMessages.value.splice(index, 1);
-        }
-        showNotification('Message supprimé avec succès', 'warning');
-      })
-      .catch(error => {
-        console.error('Erreur lors de la suppression', error);
-        showNotification('Erreur lors de la suppression', 'error');
-      });
-  });
-};
-
-
-
-
-
-
-
-// Formatage de date
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric'
-  });
-};
-
-
-const exportCSV = () => {
-  const headers = ["Nom", "Email", "Catégorie", "Date"];
-  const rows = filteredMessages.value.map(msg => [
-    msg.name,
-    msg.email,
-    msg.category,
-    formatDate(msg.created_at)
-  ]);
-
-  let csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].map(e => e.join(",")).join("\n");
-
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", "messages.csv");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
 </script>
 
 <template>
-  <!-- Notification -->
-<div
-  v-if="notification.show"
-  :class="[
-    'fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white transition-all duration-300 transform',
-    notification.type === 'success' ? 'bg-green-600' : notification.type === 'warning' ? 'bg-amber-600' : 'bg-red-600'
-  ]"
-  style="min-width: 300px"
->
-  <div class="flex items-center">
-    <span class="font-medium">{{ notification.message }}</span>
-  </div>
-</div>
-
-<!-- Confirm Dialog -->
-<div v-if="confirmDialog.show" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-  <div class="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
-    <div class="text-center p-6">
-      <h3 class="text-lg font-medium text-gray-900 mb-2">Confirmation</h3>
-      <p class="text-gray-600">{{ confirmDialog.message }}</p>
-    </div>
-    <div class="flex justify-end space-x-3 mt-6">
-      <button @click="cancelConfirmDialog" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition">
-        Annuler
-      </button>
-      <button @click="confirmAction" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
-        Confirmer
-      </button>
-    </div>
-  </div>
-</div>
-
-      <div class="p-6  min-h-screen flex justify-center">
-        <div class="bg-white shadow rounded-lg p-6 w-full max-w-7xl">
-          <!-- Header (Titre + Export) -->
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">📄 Messages de Contact</h1>
-  
-            <div class="flex gap-4">
-  <button @click="exportCSV"
-    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
-    📤 Exporter CSV
-  </button>
-
-  <button @click="exportPDF"
-    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-500 hover:bg-red-600">
-    🖨️ Exporter PDF
-  </button>
-</div>
-
-          </div>
-  
-          <!-- Top Controls (Recherche + Items per page) -->
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-            <div class="flex items-center gap-2">
-              <span class="text-sm text-gray-700">Afficher</span>
-              <select v-model="itemsPerPage"
-                class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2">
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-              </select>
-              <span class="text-sm text-gray-700">par page</span>
+ 
+    <!-- En-tête avec recherche et filtres -->
+   
+      <div class="container mx-auto">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <h1 class="text-xl font-bold text-blue-800"></h1>
+          
+          <!-- Recherche -->
+          <div class="relative flex-grow md:max-w-md">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
             </div>
-  
-            <div class="relative w-full md:w-64">
-              <input type="text" v-model="searchQuery" placeholder="Rechercher..."
-                class="block w-full p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-white focus:ring-blue-500 focus:border-blue-500" />
-              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-            </div>
+            <input 
+              v-model="searchQuery" 
+              type="search" 
+              class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Rechercher un message..."
+            >
           </div>
-  
-          <!-- Table -->
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th @click="changeSort('name')" class="sortable">Nom</th>
-                  <th @click="changeSort('email')" class="sortable">Email</th>
-                  <th @click="changeSort('category')" class="sortable">Catégorie</th>
-                  <th @click="changeSort('created_at')" class="sortable">Date</th>
-                  <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-for="message in paginatedMessages" :key="message.id"
-                  class="hover:scale-[1.02] transition-all duration-200 hover:bg-gray-50">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ message.name }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ message.email }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span :class="badgeClass(message.category)">
-                      {{ message.category }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ formatDate(message.created_at) }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-  <div class="flex gap-2">
-    <!-- Voir (équivalent à "edit" ici) -->
-    <a :href="route('admin.support.message.view', { id: message.id })"
-      class="btn btn-icon btn-sm btn-info-transparent rounded-pill">
-      <i class="ri-eye-line text-info"></i>
-  </a>
-
-    <!-- Supprimer -->
-    <button @click="deleteMessage(message.id)"
-      class="btn btn-icon btn-sm btn-danger-transparent rounded-pill">
-      <i class="ri-delete-bin-line text-danger"></i>
-    </button>
-  </div>
-</td>
-
-                </tr>
-  
-                <tr v-if="paginatedMessages.length === 0">
-                  <td colspan="5" class="text-center py-4 text-gray-500">Aucun message trouvé</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-  
-          <!-- Pagination -->
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between mt-6">
-            <div class="text-sm text-gray-600">
-              Affichage de
-              <span class="font-semibold">{{ (currentPage - 1) * itemsPerPage + 1 }}</span>
-              à
-              <span class="font-semibold">{{ Math.min(currentPage * itemsPerPage, filteredMessages.length) }}</span>
-              sur
-              <span class="font-semibold">{{ filteredMessages.length }}</span> résultats
-            </div>
-  
-            <div class="mt-4 md:mt-0">
-              <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1"
-                  class="pagination-btn rounded-l-md">Précédent</button>
-                <button v-for="page in displayPages" :key="page" @click="changePage(page)"
-                  :class="page === currentPage ? 'pagination-btn-active' : 'pagination-btn'">
-                  {{ page }}
-                </button>
-                <button @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages"
-                  class="pagination-btn rounded-r-md">Suivant</button>
-              </nav>
-            </div>
-          </div>
-  
+        </div>
+        
+        <!-- Filtres par statut -->
+        <div class="flex flex-wrap gap-2 mt-4">
+          <button @click="filterStatus = 'all'" :class="statusButtonClass('all')">
+            Tous
+          </button>
+          <button @click="filterStatus = 'new'" :class="statusButtonClass('new')">
+            <span class="inline-flex items-center">
+              <span class="w-2 h-2 rounded-full bg-blue-600 mr-2"></span>
+              Nouveaux
+            </span>
+          </button>
+          <button @click="filterStatus = 'read'" :class="statusButtonClass('read')">
+            <span class="inline-flex items-center">
+              <span class="w-2 h-2 rounded-full bg-gray-600 mr-2"></span>
+              Lus
+            </span>
+          </button>
+          <button @click="filterStatus = 'replied'" :class="statusButtonClass('replied')">
+            <span class="inline-flex items-center">
+              <span class="w-2 h-2 rounded-full bg-green-600 mr-2"></span>
+              Répondus
+            </span>
+          </button>
         </div>
       </div>
    
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <!-- Contenu principal -->
+    <div class="flex flex-1 overflow-hidden shadow-lg rounded-lg m-4 bg-white border">
+      <!-- Liste des messages -->
+      <div class="w-full md:w-1/3 border-r overflow-y-auto">
+        <div v-if="hasMessages" class="divide-y divide-gray-200">
+          <div
+            v-for="message in filteredMessages"
+            :key="message.id"
+            @click="selectMessage(message)"
+            class="p-4 cursor-pointer transition-all duration-150 border-l-4"
+            :class="[
+              isSelected(message) 
+                ? 'bg-blue-50 border-l-blue-600' 
+                : 'hover:bg-gray-50 border-l-transparent',
+              message.status === 'new' ? 'font-medium' : ''
+            ]"
+          >
+            <div class="flex justify-between items-start">
+              <h3 class="font-semibold">{{ message.name }}</h3>
+              <span :class="['text-xs px-2 py-1 rounded-full whitespace-nowrap', getStatusBadgeClass(message.status)]">
+                {{ getStatusIcon(message.status) }} {{ statusLabel(message.status) }}
+              </span>
+            </div>
+            <p class="text-xs text-blue-600 mt-1">{{ message.category }}</p>
+            <p class="text-sm text-gray-600 mt-1 line-clamp-2">{{ message.message }}</p>
+            <p class="text-xs text-gray-500 mt-2">{{ formatDate(message.created_at) }}</p>
+          </div>
+        </div>
+        <div v-else class="flex flex-col items-center justify-center h-64 text-gray-500">
+          <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+          <p class="text-center">Aucun message trouvé</p>
+        </div>
+      </div>
 
-  </template>
-  
-  
+      <!-- Détails du message -->
+      <div class="hidden md:flex md:flex-col md:w-2/3 p-6 overflow-y-auto">
+        <div v-if="selectedMessage" class="flex flex-col h-full">
+          <!-- En-tête du message -->
+          <div class="flex justify-between items-start pb-4 border-b">
+            <div>
+              <h2 class="text-xl font-semibold mb-1">{{ selectedMessage.category }}</h2>
+              <p class="text-sm">De : <span class="font-medium">{{ selectedMessage.name }}</span></p>
+              <p class="text-sm text-blue-600 hover:underline cursor-pointer" @click="copyEmail(selectedMessage.email)">
+                {{ selectedMessage.email }} <span class="text-xs">(cliquer pour copier)</span>
+              </p>
+              <p class="text-xs text-gray-500 mt-1">Reçu le {{ formatDate(selectedMessage.created_at) }}</p>
+            </div>
+            <div class="flex items-center">
+              <button 
+                @click="copyEmail(selectedMessage.email)" 
+                class="flex items-center text-sm bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+                </svg>
+                Copier l'email
+              </button>
+            </div>
+          </div>
+          
+          <!-- Corps du message -->
+          <div class="flex-grow mt-4 overflow-y-auto">
+            <div class="bg-gray-50 p-6 rounded-lg border">
+              <p class="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">{{ selectedMessage.message }}</p>
+            </div>
+            
+            <!-- Pièce jointe -->
+            <div v-if="selectedMessage.file_path" class="mt-4 bg-blue-50 p-4 rounded-lg border border-blue-100 flex items-center">
+              <svg class="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+              </svg>
+              <a :href="route('admin.support.download', selectedMessage.id)" class="text-blue-600 hover:text-blue-800 font-medium">
+  Télécharger la pièce jointe
+</a>
+            </div>
+          </div>
+          
+          <!-- Actions sur le message -->
+          <div class="mt-6 flex flex-wrap gap-3 pt-4 border-t">
+            <button 
+              @click="markAs('read')" 
+              class="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              :disabled="selectedMessage.status === 'read'">
+              <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              </svg>
+              Marquer comme Lu
+            </button>
+            <button 
+              @click="confirmMarkAs('replied')" 
+              class="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              :disabled="selectedMessage.status === 'replied'">
+              <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+              </svg>
+              Marquer comme Répondu
+            </button>
+            <button 
+              @click="confirmDelete" 
+              class="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors ml-auto">
+              <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+              Supprimer
+            </button>
+          </div>
+        </div>
+        
+        <!-- Aucun message sélectionné -->
+        <div v-else class="flex flex-col items-center justify-center h-full text-gray-500">
+          <svg class="w-24 h-24 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+          </svg>
+          <p class="text-lg font-medium">Sélectionnez un message</p>
+          <p class="text-sm text-center mt-2 max-w-md">
+            Choisissez un message dans la liste pour voir son contenu et effectuer des actions
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Notification -->
+    <div 
+      v-if="notification.show" 
+      class="fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg border-l-4 transition-all duration-300"
+      :class="notificationStyle">
+      <div class="flex items-center">
+        <p>{{ notification.message }}</p>
+        <button @click="notification.show = false" class="ml-4 text-gray-600 hover:text-gray-800">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Modal de suppression -->
+    <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 mx-4" @click.stop>
+        <div class="text-center mb-4">
+          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+            <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900">Confirmer la suppression</h3>
+          <p class="text-sm text-gray-500 mt-2">
+            Êtes-vous sûr de vouloir supprimer ce message ? Cette action ne peut pas être annulée.
+          </p>
+        </div>
+        <div class="flex justify-end gap-3 mt-5">
+          <button 
+            @click="closeModals" 
+            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all">
+            Annuler
+          </button>
+          <button 
+            @click="deleteMessage" 
+            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all"
+            :disabled="isLoading">
+            <span v-if="isLoading" class="flex items-center">
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Traitement...
+            </span>
+            <span v-else>Supprimer</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modal de changement de statut -->
+    <div v-if="showMarkAsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 mx-4" @click.stop>
+        <div class="text-center mb-4">
+          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
+            <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900">Changer le statut</h3>
+          <p class="text-sm text-gray-500 mt-2">
+            Voulez-vous vraiment marquer ce message comme "{{ statusLabel(pendingStatus) }}" ?
+          </p>
+        </div>
+        <div class="flex justify-end gap-3 mt-5">
+          <button 
+            @click="closeModals" 
+            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all">
+            Annuler
+          </button>
+          <button 
+            @click="markAs(pendingStatus, false)" 
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
+            :disabled="isLoading">
+            <span v-if="isLoading" class="flex items-center">
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Traitement...
+            </span>
+            <span v-else>Confirmer</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vue mobile pour le message sélectionné -->
+    <div 
+      v-if="selectedMessage" 
+      class="fixed inset-0 bg-white z-40 md:hidden overflow-y-auto">
+      <div class="flex flex-col h-full">
+        <!-- En-tête mobile -->
+        <div class="bg-white shadow-sm p-4 flex justify-between items-center border-b">
+          <button @click="selectedMessage = null" class="text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+          </button>
+          <h2 class="text-lg font-medium">Détails du message</h2>
+          <div></div>
+        </div>
+        
+        <!-- Contenu du message mobile -->
+        <div class="p-4 flex-grow overflow-y-auto">
+          <div>
+            <h2 class="text-xl font-semibold mb-1">{{ selectedMessage.category }}</h2>
+            <p class="text-sm">De : <span class="font-medium">{{ selectedMessage.name }}</span></p>
+            <p class="text-sm text-blue-600">{{ selectedMessage.email }}</p>
+            <p class="text-xs text-gray-500 mt-1">Reçu le {{ formatDate(selectedMessage.created_at) }}</p>
+          </div>
+          
+          <div class="mt-4 bg-gray-50 p-4 rounded-lg border">
+            <p class="whitespace-pre-wrap text-sm leading-relaxed">{{ selectedMessage.message }}</p>
+          </div>
+          
+          <div v-if="selectedMessage.file_path" class="mt-4 bg-blue-50 p-4 rounded-lg border border-blue-100 flex items-center">
+            <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+            </svg>
+            <a :href="'/storage/' + selectedMessage.file_path" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium">
+              Télécharger la pièce jointe
+            </a>
+          </div>
+          
+          <!-- Actions en mobile -->
+          <div class="mt-6 grid grid-cols-2 gap-3">
+            <button 
+              @click="copyEmail(selectedMessage.email)" 
+              class="flex items-center justify-center px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+              </svg>
+              Copier l'email
+            </button>
+            <button 
+              @click="markAs('read')" 
+              class="flex items-center justify-center px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              :disabled="selectedMessage.status === 'read'">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              </svg>
+              Marquer comme Lu
+            </button>
+            <button 
+              @click="confirmMarkAs('replied')" 
+              class="flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              :disabled="selectedMessage.status === 'replied'">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+              </svg>
+              Marquer comme Répondu
+            </button>
+            <button 
+              @click="confirmDelete" 
+              class="flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+              Supprimer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+ 
+</template>
 
 <style scoped>
-.btn-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 9999px;
-  transition: all 0.2s ease;
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.btn-sm {
-  font-size: 0.875rem;
+@keyframes slideIn {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
-.btn-info-transparent {
-  background-color: #e0f2ff;
+/* Animation des cartes de message */
+[v-for].divide-y > div {
+  animation: slideIn 0.2s ease-out;
 }
 
-.btn-danger-transparent {
-  background-color: #ffe4e6;
+/* Animation des notifications */
+[v-if="notification.show"] {
+  animation: fadeIn 0.3s ease-out;
 }
 
-.btn-success-transparent {
-  background-color: #dcfce7;
+/* Ligne tronquée */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
 }
 
-.btn:hover {
-  filter: brightness(0.95);
+/* Style pour les boutons désactivés */
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
-  .sortable {
-    cursor: pointer;
-    text-align: left;
-    padding: 12px 24px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: #6B7280;
-  }
-  .pagination-btn {
-    background: white;
-    border: 1px solid #d1d5db;
-    padding: 6px 12px;
-    font-size: 0.875rem;
-    color: #6B7280;
-  }
-  .pagination-btn:hover {
-    background: #f9fafb;
-  }
-  .pagination-btn-active {
-    background: #3b82f6;
-    color: white;
-    border: 1px solid #3b82f6;
-    padding: 6px 12px;
-    font-size: 0.875rem;
-  }
-  </style>
-  
+</style>

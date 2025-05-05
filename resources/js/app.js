@@ -8,6 +8,7 @@ import ViewMessage  from './Pages/Admin/ViewMessage.vue'
 import Chat from './Pages/Admin/ChatbotAdmin.vue'
 import Reaction from './Pages/Admin/ChatbotReactions.vue'
 import Chatbot from './Pages/Chatbot/Chatbot.vue';
+import ChatbotManagement from './Pages/Admin/ChatbotManagement.vue'
 import AvancementsDashbord from './Components/dashbord/avancements.vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
@@ -46,6 +47,7 @@ else if (appElement) {
     app.component('chatbotia', Chatbot)
     app.component('reaction', Reaction)
     app.component('chatbot', Chat)
+    app.component('chatbot-management', ChatbotManagement);
     app.component('view-message', ViewMessage)
     app.component('support', Support);
     app.component('faq', FaqAdmin);

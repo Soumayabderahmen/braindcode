@@ -9,6 +9,12 @@ const messages = ref([]);
 const isOpen = ref(false);
 const messageContainer = ref(null);
 const botStatus = ref("unknown");
+const botSettings = ref({
+  bot_name: 'ChatBot',           // valeur par défaut
+  welcome_message: "Bienvenue ! 🎉 Je suis là pour vous aider. Que puis-je faire pour vous aujourd’hui ?",
+  primary_color: "#2563eb"
+});
+
 // const user = computed(() => usePage().props.auth.user);
 // const isAuthenticated = computed(() => !!user.value);
 const props = defineProps({
@@ -23,6 +29,13 @@ const activeReactionIndex = ref(null);
 const resetChat = () => {
   messages.value = [];
   chatStarted.value = true;
+  scrollToBottom();
+};
+const handlePdfUpload = (fileName) => {
+  messages.value.push({
+    text: `📄 PDF analysé avec succès : "${fileName}"`,
+    sender: "user"
+  });
   scrollToBottom();
 };
 
@@ -44,21 +57,21 @@ const sendMessage = async (message) => {
   isLoading.value = true;
 
   try {
+    // 👇 Commence la mesure ici
+    const startTime = Date.now();
+
     const response = await fetch("http://127.0.0.1:5005/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message }),
     });
 
-    if (!response.body) {
-      throw new Error("Pas de réponse du serveur.");
-    }
+    if (!response.body) throw new Error("Pas de réponse du serveur.");
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let fullBotMessage = "";
 
-    // Ajouter un message vide
     const botMessageIndex = messages.value.length;
     messages.value.push({ text: "", animatedText: "", sender: "bot", reactable: true });
     scrollToBottom();
@@ -69,27 +82,24 @@ const sendMessage = async (message) => {
 
       const chunk = decoder.decode(value, { stream: true });
       fullBotMessage += chunk;
-
-      // ➡️ Mise à jour normale de text complet
       messages.value[botMessageIndex].text = fullBotMessage.trim();
-
-      // ➡️ Mise à jour de animatedText pour l'affichage progressif caractère par caractère
       const currentLength = messages.value[botMessageIndex].animatedText.length;
       messages.value[botMessageIndex].animatedText = messages.value[botMessageIndex].text.slice(0, currentLength + 1);
-
       await nextTick();
       scrollToBottom();
     }
 
-    // Nettoyer
+    // Nettoyage du texte
     messages.value[botMessageIndex].text = messages.value[botMessageIndex].text.replace("[FIN]", "").trim();
     messages.value[botMessageIndex].animatedText = messages.value[botMessageIndex].text;
 
+    // ✅ Envoie à Laravel avec le bon startTime
     if (isAuthenticated.value) {
       await axios.post("/api/chatbot/history/save", {
         userMessage: message,
         botMessage: messages.value[botMessageIndex].text,
         intent: null,
+        startTime: startTime, // ← OK ici maintenant !
       });
     }
 
@@ -100,6 +110,7 @@ const sendMessage = async (message) => {
     scrollToBottom();
   }
 };
+
 
 
 const checkBotStatus = async () => {
@@ -137,7 +148,7 @@ const toggleChatbot = async () => {
 
     if (!welcomeShown.value && messages.value.length === 0) {
   messages.value.push({
-    text: "Bienvenue ! 🎉 Je suis là pour vous aider. Que puis-je faire pour vous aujourd’hui ?",
+    text: botSettings.value.welcome_message,
     sender: "bot",
     reactable: false,
   });
@@ -176,11 +187,26 @@ const setReaction = (index, emoji) => {
 };
 
 onMounted(async () => {
+  try {
+    const res = await axios.get("/api/public/chatbot/settings");
+    if (res.data) {
+      botSettings.value = {
+        bot_name: res.data.bot_name || "ChatBot",
+        welcome_message: res.data.welcome_message || "Bienvenue !",
+        primary_color: res.data.primary_color || "#2563eb"
+      };
+    }
+  } catch (e) {
+    console.warn("Erreur récupération paramètres bot :", e);
+  }
+
   if (isAuthenticated.value) {
     await loadHistory();
   }
+
   await checkBotStatus();
 });
+
 </script>
 
 <template>
@@ -209,7 +235,7 @@ onMounted(async () => {
         <div class="chatbot-info">
           <img src="/images/bot-avatar.png" alt="bot avatar" class="chatbot-avatar" />
           <div class="chatbot-name-status">
-            <h4 class="chat-title">ChatBot</h4>
+            <h4 class="chat-title">{{ botSettings.bot_name }}</h4>
             <span class="active-status">{{ botStatus === 'online' ? '🟢 Active' : '🔴 Offline' }}</span>
           </div>
         </div>
@@ -267,7 +293,8 @@ onMounted(async () => {
       <transition name="fade">
   <ChatInput
     v-if="isAuthenticated || chatStarted"
-    @send-message="sendMessage"
+     @send-message="sendMessage"
+     @pdf-uploaded="handlePdfUpload"
   />
 </transition>
 <!-- Pour les non-connectés, bouton affiché uniquement si chat non encore démarré -->
@@ -471,13 +498,13 @@ onMounted(async () => {
 }
 
 /* 🤖 Message du bot */
-.chat-bubble.bot {
+/* .chat-bubble.bot {
   background: linear-gradient(to right, #00c6ff, #00c6ff);
   color: rgb(0, 0, 0);
   align-self: flex-start;
   border-bottom-left-radius: 0;
   margin-right: auto;
-}
+} */
 
 
 .message-block.user .chat-bubble {

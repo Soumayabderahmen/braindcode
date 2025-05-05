@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Models\ChatbotReaction;
+use Carbon\Carbon;
 
 use App\Models\ChatMessage; // Stocker les messages si utilisateur authentifié
 use Illuminate\Support\Facades\Auth;
@@ -20,28 +21,36 @@ class ChatbotController extends Controller
 public function saveHistory(Request $request)
 {
     $request->validate([
-        'userMessage' => 'required|string|max:1000',
-        'botMessage' => 'required|string|max:2000',
+        'userMessage' => 'required|string|max:3000',
+        'botMessage' => 'required|string|max:3000',
     ]);
 
     $user = Auth::user();
 
     if ($user) {
+        $responseTime = null;
+    
+        if ($request->has('startTime')) {
+            $responseTime = now()->diffInSeconds(Carbon::createFromTimestampMs($request->startTime));
+        }
+    
+        // Message de l'utilisateur
         ChatMessage::create([
             'user_id' => $user->id,
             'message' => $request->input('userMessage'),
             'sender' => 'user',
-            //'intent' => $request-> null
+            'response_time' => null // l'utilisateur ne génère pas de temps de réponse
         ]);
-
+    
+        // Message du bot
         ChatMessage::create([
             'user_id' => $user->id,
             'message' => $request->input('botMessage'),
             'sender' => 'bot',
             'intent' => $request->input('intent') ?? null,
+            //'response_time' => $responseTime, // temps de réponse du bot
         ]);
     }
-
     return response()->json(['status' => 'saved']);
 }
 

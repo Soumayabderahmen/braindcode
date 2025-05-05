@@ -54,6 +54,13 @@
                 <div data-i18n="Réactions Chatbot">Réactions Chatbot</div>
             </a>
         </li>
+        <li class="menu-item">
+    <a href="{{ route('admin.chatbot.management') }}" class="menu-link">
+        <i class="menu-icon bx bx-cog"></i>
+        <div data-i18n="Gestion Chatbot">Gestion Chatbot</div>
+    </a>
+</li>
+
     </ul>
     
     <!-- Profil utilisateur -->
