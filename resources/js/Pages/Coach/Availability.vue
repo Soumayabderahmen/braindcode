@@ -81,6 +81,8 @@ const resetEditForm = () => {
 };
 
 // 🔹 Ajout d’une disponibilité
+const showSuccessAlert = ref(false);
+
 const submitAvailability = async () => {
   form.value.day_of_week = getDayOfWeek(form.value.date);
 
@@ -92,9 +94,14 @@ const submitAvailability = async () => {
 
   try {
     await axios.post('/coach/availability', form.value);
-    alert("Disponibilité ajoutée !");
+   showSuccessAlert.value = true;
+    showModal.value = true;
     resetForm();
-    location.reload(); // optionnel : utiliser un événement ou props
+
+setTimeout(() => {
+  showSuccessAlert.value = false;
+  // recharger seulement après avoir montré l’alerte
+}, 3000);
   } catch (error) {
     if (error.response && error.response.data && error.response.data.errors) {
       console.error("Erreur de validation :", error.response.data.errors);
@@ -105,6 +112,7 @@ const submitAvailability = async () => {
     }
   }
 };
+const showstatutAlert = ref(false);
 
 // 🔹 Mise à jour du statut
 const updateStatus = async (id, newStatus) => {
@@ -115,20 +123,29 @@ const updateStatus = async (id, newStatus) => {
   try {
 
       const response = await axios.put(route("coach.availability.updateStatus",id), { statut: newStatus });
-    alert("Statut mis à jour !");
+      showstatutAlert.value = true;
+      setTimeout(() => {
+        showstatutAlert.value = false;
+        
+}, 3000);
   } catch (error) {
     console.error("Erreur mise à jour statut :", error);
     alert("Erreur lors de la mise à jour.");
   }
 };
+const showDangerAlert = ref(false);
 
 // 🔹 Suppression d’une disponibilité
 const deleteAvailability = async (id) => {
   if (confirm("Voulez-vous supprimer cette disponibilité ?")) {
     try {
       await axios.delete(route("coach.availability.destroy", id));
-      alert("Disponibilité supprimée.");
-      location.reload(); // ou filtre localement
+      showDangerAlert.value = true;
+      setTimeout(() => {
+        showDangerAlert.value = false;
+        location.reload();
+}, 3000);
+   
     } catch (error) {
       console.error("Erreur suppression :", error);
       alert("Erreur lors de la suppression.");
@@ -149,6 +166,7 @@ const editAvailability = (availability) => {
     nb_place: availability.nb_place,
   };
 };
+const showWarningAlert = ref(false);
 
 const updateTimes = async () => {
   editForm.value.day_of_week = getDayOfWeek(editForm.value.date);
@@ -166,9 +184,14 @@ const updateTimes = async () => {
 
   try {
     const response = await axios.put(route('coach.availability.updateTimes', editForm.value.id), payload);    if (response.status === 200) {
-      alert("Disponibilité modifiée !");
-      resetEditForm();
-      location.reload();
+      showWarningAlert.value = true;
+resetEditForm();
+
+setTimeout(() => {
+  showWarningAlert.value = false;
+ location.reload(); // recharger la page après 3 secondes
+  resetEditForm();
+}, 3000);
     }
   } catch (error) {
     console.error("Erreur modification :", error.response?.data || error);
@@ -178,12 +201,39 @@ const updateTimes = async () => {
 </script>
 
 <template>
-          <div class="card rounded"
->
-            <div class="card-body" >
-    <div class="d-flex justify-content-center align-items-center " >
-      <div class="card-body">
-        <h2 class="card-title text-center mb-4"></h2>
+   <div
+    v-if="showDangerAlert"
+    class="alert alert-danger text-center"
+    role="alert"
+    style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 50%;">
+     Disponibilité a étè supprimer avec success !
+  </div>
+    <div
+    v-if="showSuccessAlert"
+    class="alert alert-success text-center"
+    role="alert"
+    style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 50%;">
+    ✅ Disponibilité ajoutée avec succès !
+  </div>
+  <div
+    v-if="showWarningAlert"
+    class="alert alert-warning text-center"
+    role="alert"
+    style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 50%;">
+    ✅ Disponibilité  mis à jour  avec succès !
+  </div>
+  <div
+    v-if="showstatutAlert"
+    class="alert alert-warning text-center"
+    role="alert"
+    style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 50%;">
+    ✅ Statut  mis à jour  avec succès !
+  </div>
+        <div class="mt-3  formulaire">
+        <div class="col-12">
+            <div class="card card-1">
+                <div class="card-body px-lg-4 px-md-3 px-2">
+                    <div class="bs-stepper wizard-numbered shadow-none mt-2">
 
         <!-- Formulaire d'ajout -->
         <form v-if="!isEditing" @submit.prevent="submitAvailability">
@@ -223,6 +273,7 @@ const updateTimes = async () => {
           <div class="text-center">
             <button type="submit" class="btn btn-primary">Ajouter</button>
           </div>
+          
         </form>
 
         <!-- Formulaire de modification -->
@@ -264,46 +315,45 @@ const updateTimes = async () => {
       </div>
     </div>
 </div>
-</div>
+</div></div>
     <br />
    
     <br />
-    <div class="card rounded"
->
-            <div class="card-body" >
-    <div class="d-flex justify-content-center align-items-center " >
-      <div class="card-body">
-       
-
-        <table class="table-auto w-full border-collapse  " style="background-color: azure; margin-left: 44px;">
+    <div class="card card-1 cardDash">
+        <div class="card-header d-lg-flex d-md-flex d-sm-flex d-block">
+            <h5>Mes disponibilités   </h5>
+           
+        </div>
+        <div class="card-body">
+            <div class="col-12 table-responsive">
+                <table id="avancementsTable" class="table table-1 w-100">
           <thead>
-            <tr class="bg-gray-100" style="background-color: darkseagreen;">
-              <th class="border p-2"><center>Date</center></th>
-              <th class="border p-2"><center>Début</center></th>
-              <th class="border p-2"><center>Fin</center></th>
-              <th class="border p-2"><center>Jour de la semaine</center></th>
-              <th class="border p-2"><center>Nombre de Place</center></th>
+            <tr >
+              <th ><center>Date</center></th>
+              <th ><center>Début</center></th>
+              <th ><center>Fin</center></th>
+              <th><center>Jour de la semaine</center></th>
+              <th ><center>Nombre de Place</center></th>
 
-              <th class="border p-2"><center>Honoraire (€)</center></th>
+              <th ><center>Honoraire (€)</center></th>
 
-              <th class="border p-2"><center>Statut</center></th>
-              <th class="border p-3"><center>Actions</center></th>
+              <th ><center>Statut</center></th>
+              <th ><center>Actions</center></th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="availability in props.availabilities" :key="availability.id" class="border border-gray-300">
-              <td class="border border-gray-300 px-4 py-2">{{ availability.date }}</td>
-              <td class="border border-gray-300 px-4 py-2">{{ availability.start_time }}</td>
-              <td class="border border-gray-300 px-4 py-2">{{ availability.end_time }}</td>
-              <td class="border border-gray-300 px-4 py-2">{{ availability.day_of_week }}</td>
-              <td class="border border-gray-300 px-4 py-2">{{ availability.nb_place ?? '—' }}</td>
+            <tr v-for="availability in props.availabilities" :key="availability.id" >
+              <td ><span><center>{{ availability.date }}</center></span></td>
+              <td ><span><center>{{ availability.start_time }}</center></span></td>
+              <td ><span><center>{{ availability.end_time }}</center></span></td>
+              <td ><span><center>{{ availability.day_of_week }}</center></span></td>
+              <td ><span><center>{{ availability.nb_place ?? '—' }}</center></span></td>
 
-              <td class="border border-gray-300 px-4 py-2">{{ availability.honoraire ?? '—' }}</td>
+              <td ><span><center>{{ availability.honoraire ?? '—' }}</center></span></td>
 
               <!-- Affichage du jour -->
 
-              <td class="border border-gray-300 px-6 py-4">
-                <!-- Menu déroulant pour changer le statut -->
+              <td ><span><center>
                 <select v-model="availability.statut" @change="updateStatus(availability.id, availability.statut)"
                   class="form-select" required style="color: white;"
                   :class="availability.statut === 'available' ? 'badge bg-success' : 'badge bg-danger'">
@@ -312,16 +362,20 @@ const updateTimes = async () => {
                   <option :class="availability.statut === 'unavailable' ? 'badge bg-success' : 'badge bg-danger'"
                     value="unavailable">Indisponible</option>
                 </select>
+              </center></span>
+               
+                
 
               </td>
 
 
               <td>
-                <button class="btn btn-warning btn-lm me-1" @click="editAvailability(availability)">
-                  Modifier
-                </button>
-                <button class="btn btn-danger btn-sm" @click="deleteAvailability(availability.id)">
-                  Supprimer
+                <button class="btn btn-secondary btn-sm me-1" @click="editAvailability(availability)">
+                  ✍️           </button>
+                <button class="btn btn-secondary btn-sm me-1" @click="deleteAvailability(availability.id)">
+                  
+      ❌
+     
                 </button>
               </td>
             </tr>
@@ -330,5 +384,74 @@ const updateTimes = async () => {
       </div>
     </div>
 </div>
-</div>
+
+
 </template>
+<style>
+.modal-content {
+    -webkit-border-radius: 0;
+    -webkit-background-clip: padding-box;
+    -moz-border-radius: 0;
+    -moz-background-clip: padding;
+    border-radius: 6px;
+    background-clip: padding-box;
+    -webkit-box-shadow: 0 0 40px rgba(0,0,0,.5);
+    -moz-box-shadow: 0 0 40px rgba(0,0,0,.5);
+    box-shadow: 0 0 40px rgba(0,0,0,.5);
+    color: #000;
+    background-color: #fff;
+    border: rgba(0,0,0,0);
+}
+.modal-message .modal-dialog {
+    width: 300px;
+}
+.modal-message .modal-body, .modal-message .modal-footer, .modal-message .modal-header, .modal-message .modal-title {
+    background: 0 0;
+    border: none;
+    margin: 0;
+    padding: 0 20px;
+    text-align: center!important;
+}
+
+.modal-message .modal-title {
+    font-size: 17px;
+    color: #737373;
+    margin-bottom: 3px;
+}
+
+.modal-message .modal-body {
+    color: #737373;
+}
+
+.modal-message .modal-header {
+    color: #fff;
+    margin-bottom: 10px;
+    padding: 15px 0 8px;
+}
+.modal-message .modal-header .fa, 
+.modal-message .modal-header 
+.glyphicon, .modal-message 
+.modal-header .typcn, .modal-message .modal-header .wi {
+    font-size: 30px;
+}
+
+.modal-message .modal-footer {
+    margin: 25px 0 20px;
+    padding-bottom: 10px;
+}
+
+.modal-backdrop.in {
+    zoom: 1;
+    filter: alpha(opacity=75);
+    -webkit-opacity: .75;
+    -moz-opacity: .75;
+    opacity: .75;
+}
+.modal-backdrop {
+    background-color: #fff;
+}
+.modal-message.modal-success .modal-header {
+    color: #53a93f;
+    border-bottom: 3px solid #a0d468;
+}
+</style>

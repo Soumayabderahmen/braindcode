@@ -61,7 +61,7 @@
                 <i class="menu-icon">
                     <span class="iconify" data-icon="material-symbols:dashboard-outline-rounded" data-inline="false"></span>
                 </i>
-                <div data-i18n="Réservation">Réservation</div>
+                <div data-i18n="Liste des Réservations">Liste des Réservations</div>
             </a>
         </li>
         <li class="menu-item">
@@ -70,7 +70,7 @@
                 <i class="menu-icon">
                     <span class="iconify" data-icon="solar:calendar-line-duotone" data-inline="false"></span>
                 </i>
-                <div data-i18n="Disponibilité">Disponibilité</div>
+                <div data-i18n="Gestion de Disponibilité"> Gestion de Disponibilité</div>
             </a>
         </li>
        

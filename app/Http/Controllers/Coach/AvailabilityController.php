@@ -22,7 +22,10 @@ class AvailabilityController extends Controller
     {
         $coach = Auth::user()->coach;
 
-        $availabilities = Disponibilite::where('coach_id', $coach->id)->get();
+        $availabilities = Disponibilite::where('coach_id', $coach->id)
+        ->orderBy('created_at', 'desc')
+        ->orderBy('updated_at', 'desc')
+        ->get();
     
         return view('Disponibilite.index', [
             'availabilities' => $availabilities,

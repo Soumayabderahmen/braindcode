@@ -5,13 +5,15 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { router } from "@inertiajs/vue3";
+import bootstrap5Plugin from '@fullcalendar/bootstrap5'
 
 const props = defineProps({
     availabilities: Array,
 });
 
 const calendarOptions = ref({
-    plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+    plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin,bootstrap5Plugin],
+    themeSystem: 'bootstrap5',
     initialView: 'dayGridMonth',
     headerToolbar: {
         left: 'prev,next today',
@@ -42,13 +44,8 @@ const calendarOptions = ref({
 
     return {
         html: `
-            <div style="background-color:${backgroundColor}; color:white;padding:1px;margin-bottom:6px;margin-top:-11px; border-radius:5px; font-size:12px;">
-                <div><strong>${title}</strong></div>
-                <div>Début: ${start}</div>
-                <div>Fin: ${end}</div>
-                <div> NB Place: ${place}</div>
-                <div>Honoraires: ${honoraires} € </div>
-            </div>
+            
+            <div style="background:#3399ff;color:white;padding:4px 6px;border-radius:8px;font-size:12px;">${title}</div>
         `
     };
 },
@@ -125,57 +122,79 @@ function handleEventResize(resizeInfo) {
 <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid/main.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid/main.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction/main.css" rel="stylesheet"> -->
+<!-- FullCalendar CSS depuis le CDN officiel -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
 
-        <div class="card"
->
-            <div class="card-body" >
-                <div class="row">
-                    <div class="col-md-12">
-                        <div id="right">
-                            <div class="card-header">
-                                <h2 class="card-title text-center mb-4">Mon Calendrier de Disponibilités</h2>
-                            </div>
+       
+
+            
                             <div class="card-body">
                                 <FullCalendar :options="calendarOptions" />
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    
+           
+       
 
     
 </template>
 
 <style scoped>
-.calendar-container {
-    /* max-width: 900px; */
-    margin: auto;
-    padding: 20px;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+:deep(.fc) {
+  font-family: 'Inter', sans-serif;
+  background-color: #eef6fd;
+  padding: 1rem;
+  border-radius: 20px;
 }
 
 :deep(.fc-toolbar) {
-    background: #34495F;
-    color: white;
-    border-radius: 8px;
-    padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
 }
 
 :deep(.fc-button) {
-    background: #2980b9 !important;
-    border: none !important;
-    color: white !important;
+  background-color: #e3f0fc !important;
+  color: #0066cc !important;
+  border: none !important;
+  padding: 8px 20px;
+  border-radius: 25px !important;
+  font-weight: 500;
+  text-transform: none;
 }
 
-:deep(.fc-daygrid-day) {
-    border: 1px solid #ddd;
+:deep(.fc-button-active) {
+  background-color: #0066cc !important;
+  color: #fff !important;
+}
+
+:deep(.fc-daygrid-day-frame) {
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 0.5rem;
+  height: 100%;
+  transition: all 0.2s ease-in-out;
 }
 
 :deep(.fc-daygrid-day-number) {
-    color: #2c3e50;
-    font-weight: bold;
+  font-weight: bold;
+  color: #333;
+}
+
+:deep(.fc-daygrid-event) {
+  background-color: #3399ff !important;
+  color: white !important;
+  font-size: 12px;
+  border-radius: 8px;
+  padding: 3px 5px;
+  white-space: normal;
+  word-break: break-word;
+  margin-top: 3px;
+}
+.calendar-container {
+  border-radius: 25px;
+  padding: 20px;
+  background-color: #eef6fd;
 }
 </style>

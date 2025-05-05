@@ -57,7 +57,7 @@ Route::get('/activate-investisseur/{id}', [CoachController::class, 'activateInve
 Route::get('/coaches', [CoachController::class, 'index'])->name('coaches');
 Route::get('/dashboard', [CoachController::class, 'dashboard'])->name('dashboard');
 Route::get('/startups', [CoachController::class, 'startup'])->name('startups');
-Route::get('/investisseurs', [CoachController::class, 'investisseurs'])->name('investisseurs');
+Route::get('/investisseurs', [CoachController::class, 'investisseur'])->name('investisseurs');
 Route::get('/reservations', [ReservationController::class, 'indexAdmin'])->name('reservations');
 
 });

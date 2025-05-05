@@ -73,7 +73,7 @@ class ReservationController extends Controller
             $start->addMinutes(30); // Durée de chaque slot
         }
     
-        return Inertia::render('Startups/ReservationCoach', [
+        return view('reservations.AddReservation', [
             'coach' => $coach,
             'availability' => $availability,
             'slots' => $slots,
@@ -113,13 +113,18 @@ class ReservationController extends Controller
         'total'         => $validated['total'],
         'message'       => $validated['message'] ?? '',
         'statut'        => 'en attente', // valeur par défaut
+        'disponibilite_id' => $availability->id,
     ]);
     $coachUser = $reservation->coach->user ?? null;
     if ($coachUser) {
         $coachUser->notify(new ReservationRequestNotification($reservation));
     }
 
-    return redirect()->route('startup.reservation.message')->with('success', 'Réservation enregistrée avec succès.');
+    return response()->json([
+        'success' => true,
+        'message' => 'Réservation enregistrée avec succès.',
+        'redirect' => route('startup.reservation.message'),
+    ]);
 
     }
     public function respond(Request $request, Reservation $reservation)

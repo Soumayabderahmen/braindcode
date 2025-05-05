@@ -1,15 +1,13 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { router, useForm } from '@inertiajs/vue3';
-import Main from '../../Layouts/main.vue';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import axios from 'axios';
 
 const props = defineProps({
   coach: Object,
   availability: Object,
-  date: String,
-  slots: Array, 
+  slots: Array,
   honoraire: Number,
+  date: String,
   startup_id: Number,
 });
 
@@ -17,40 +15,32 @@ const form = ref({
   coach: props.coach?.user?.name || '',
   availability_id: props.availability.id,
   startup_id: props.startup_id,
-
   message: '',
   selected_time: '',
-  duration: 30, // durée par défaut
+  duration: 30,
   honoraire: props.honoraire,
-  total:0,
+  total: 0,
 });
 
-
-// Convertir HH:mm en minutes
 const timeToMinutes = (time) => {
   const [h, m] = time.split(':').map(Number);
   return h * 60 + m;
 };
 
-// Convertir les minutes en HH:mm
 const minutesToTime = (totalMinutes) => {
   const hours = Math.floor(totalMinutes / 60).toString().padStart(2, '0');
   const minutes = (totalMinutes % 60).toString().padStart(2, '0');
   return `${hours}:${minutes}`;
 };
 
-// Créneaux filtrés dynamiquement
 const filteredSlots = computed(() => {
   const duration = parseInt(form.value.duration);
   const times = props.slots;
-
   const result = [];
 
   for (let i = 0; i < times.length; i++) {
     const startMinutes = timeToMinutes(times[i]);
     const endTime = minutesToTime(startMinutes + duration);
-
-    // Vérifie que l'heure de fin existe dans les slots OU est inférieure au dernier slot
     if (timeToMinutes(endTime) <= timeToMinutes(times[times.length - 1]) + 30) {
       result.push({
         start: times[i],
@@ -62,47 +52,51 @@ const filteredSlots = computed(() => {
 
   return result;
 });
+
 watch(() => form.value.duration, (newDuration) => {
   const horaire = parseFloat(form.value.honoraire);
-  form.value.total = ((horaire * newDuration) / 60).toFixed(2); // .toFixed pour afficher 2 décimales
+  form.value.total = ((horaire * newDuration) / 60).toFixed(2);
 });
-const submitReservation = () => {
-  form.value.message = form.value.message?.trim() || '';
 
-  router.post('/startup/reservation/add', form.value, {
-    onSuccess: () => {
-      alert('✅ Réservation enregistrée avec succès.');
-    },
-    onError: (errors) => {
-      console.error('❌ Erreurs de validation :', errors);
-      alert('Une erreur est survenue lors de la réservation.');
-    },
-  });
+const submitReservation = async () => {
+  try {
+    await axios.post('/startup/reservation/add', form.value, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        'Accept': 'application/json',
+      },
+    });
+
+    alert('Réservation envoyée avec succès');
+  } catch (error) {
+    console.error('Erreur:', error);
+    alert("Erreur lors de l'envoi de la réservation");
+  }
 };
-
 </script>
 
-<template>
-  <Main :showSidebar="true">
 
-    <div  class ="p-6 bg-white shadow rounded-lg"style="
-    margin-right: -155px;
-    margin-left: 97px;
-    margin-top: 23px;
-">
-      <h1><center>📍Réservation avec {{ coach?.user?.name || 'Coach non spécifié' }} 📍</center> </h1>
+<template>
+ 
+
+ <div class="mt-3  formulaire">
+        <div class="col-12">
+            <div class="card card-1">
+                <div class="card-body px-lg-4 px-md-3 px-2">
+                    <div class="bs-stepper wizard-numbered shadow-none mt-2">
 
       <form @submit.prevent="submitReservation">
         <div class="form-group">
           <label>Nom du Coach</label>
           <input type="text" v-model="form.coach" class="form-control" disabled />
         </div>
-
+<br>
         <div class="form-group">
           <label>Durée de la réunion (minutes)</label>
           <input type="number" v-model="form.duration" class="form-control" min="15" step="15" />
         </div>
-
+        <br>
         <div class="form-group">
           <label>Choisir une heure</label>
           <select v-model="form.selected_time" class="form-control" required>
@@ -116,27 +110,29 @@ const submitReservation = () => {
             </option>
           </select>
         </div>
+        <br>
         <div class="form-group">
   <label>Honoraire par heure (€)</label>
   <input type="text" v-model="form.honoraire" class="form-control" disabled />
 </div>
-
+<br>
 <div class="form-group">
   <label>Total (€)</label>
   <input type="text" v-model="form.total" class="form-control" disabled />
 </div>
+<br>
         <div class="form-group">
           <label>Message</label>
           <textarea v-model="form.message" class="form-control" placeholder="Ajouter un message" />
         </div>
-
+        <br>
         <button type="submit" class="btn btn-primary mt-3" style="
     margin-left: 896px;
 ">Réserver</button>
       </form>
     </div>
     
-  </Main>
+  </div>   </div>   </div>   </div>   
 </template>
 
 <style scoped>

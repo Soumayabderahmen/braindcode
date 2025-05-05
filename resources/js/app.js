@@ -3,23 +3,12 @@ import './bootstrap';
 
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { createApp, h } from 'vue';
+import { createApp, h, defineAsyncComponent} from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { toast } from 'vue3-toastify'; 
 
 // Composants Vue utilisés dans les Blade classiques
-import TopCards from './Components/dashbord/top-cards.vue';
-import AvancementsDashbord from './Components/dashbord/avancements.vue';
-import topCard from './Components/dashboardAdmin/topCards.vue';
-import TableUser from './Components/dashboardAdmin/TableUser.vue';
-import ListeAgentsIA from './Components/agentsIA/liste.vue';
-import AddAgentIA from './Components/agentsIA/add.vue';
-import detailsAgentsIA from './Components/agentsIA/details.vue';
-import Calander from './Pages/Startups/Calander.vue';
-import ListReservations from './Pages/Admin/ListReservations.vue';
-import disponibilite from './Pages/Coach/Availability.vue';
-import CoachCalender from './Pages/Coach/Calandry.vue';
-import reservationsCoach from './Pages/Coach/ListeReservation.vue'
+
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 const appElement = document.getElementById('app');
@@ -46,20 +35,25 @@ if (appElement && appElement.hasAttribute('data-page')) {
 } else if (appElement) {
     // ➤ Page Blade classique avec Vue
     const app = createApp({});
-    
+
     // Enregistrement des composants utilisés dans Blade
-    app.component('top-cards-dashbord', TopCards);
-    app.component('avancements-dashbord', AvancementsDashbord);
-    app.component('top-card', topCard);
-    app.component('table-user', TableUser);
-    app.component('liste-agents-ia', ListeAgentsIA);
-    app.component('add-agent-ia', AddAgentIA);    
-    app.component('details-agent-ia', detailsAgentsIA);
-    app.component('calendrier', Calander);
-    app.component('list-reservations', ListReservations);
-    app.component('disponibilite', disponibilite);
-    app.component('coach-calender', CoachCalender);
-    app.component('reservations-coach', reservationsCoach);
+    app.component('top-cards-dashbord', defineAsyncComponent(() => import('./Components/dashbord/top-cards.vue')));
+    app.component('avancements-dashbord', defineAsyncComponent(() => import('./Components/dashbord/avancements.vue')));
+    app.component('top-card', defineAsyncComponent(() => import('./Components/dashboardAdmin/topCards.vue')));
+    app.component('table-user', defineAsyncComponent(() => import('./Components/dashboardAdmin/TableUser.vue')));
+    app.component('liste-agents-ia', defineAsyncComponent(() => import('./Components/agentsIA/liste.vue')));
+    app.component('add-agent-ia', defineAsyncComponent(() => import('./Components/agentsIA/add.vue')));    
+    app.component('details-agent-ia',defineAsyncComponent(() => import('./Components/agentsIA/details.vue')));
+    app.component('calendrier',defineAsyncComponent(() => import('./Pages/Startups/Calander.vue')));
+    app.component('list-reservations',defineAsyncComponent(() => import('./Pages/Admin/ListReservations.vue')));
+    app.component('disponibilite',defineAsyncComponent(() => import('./Pages/Coach/Availability.vue')));
+    app.component('coach-calender',defineAsyncComponent(() => import('./Pages/Coach/Calandry.vue')));
+    app.component('reservations-coach',defineAsyncComponent(() => import('./Pages/Coach/ListeReservation.vue')));
+    app.component('coachs',defineAsyncComponent(() => import('./Pages/Admin/ActivateCoach.vue')));
+    app.component('investisseur',defineAsyncComponent(() => import('./Pages/Admin/investisseur.vue')));
+    app.component('startups',defineAsyncComponent(() => import('./Pages/Admin/startup.vue')));
+    app.component('add-reservations',defineAsyncComponent(() => import('./Pages/Startups/ReservationCoach.vue')));
+    app.component('notification',defineAsyncComponent(() => import('./Components/Notifications.vue')));
 
 
     app.config.globalProperties.$toast = Object.assign(toast, {   
@@ -72,5 +66,6 @@ if (appElement && appElement.hasAttribute('data-page')) {
     app.mount('#app');
 
 
+    
 
 }
