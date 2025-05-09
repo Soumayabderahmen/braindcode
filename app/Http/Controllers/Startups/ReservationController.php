@@ -38,7 +38,7 @@ class ReservationController extends Controller
             $reservations = Reservation::where('startup_id', $startup->id)
             ->with(['startup.user', 'coach.user'])
             ->get();        
-            return Inertia::render('Startups/ListeReservation', [
+            return view('reservations.ReservationStartup', [
                 'reservations' => $reservations,
             ]);
         }

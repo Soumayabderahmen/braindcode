@@ -48,11 +48,7 @@ const activateStartup = (startupId) => {
 
 <template>
 
-<div class="card card-1 cardDash">
-    <div class="card-header d-lg-flex d-md-flex d-sm-flex d-block">
-      <h5>Liste des Investisseurs </h5>
-
-    </div>
+  
     <div class="px-6 pb-4 flex justify-between items-center">
       <div
         class="col-lg-8 col-md-8 col-sm-8 col-12 d-lg-flex d-md-flex d-sm-flex d-block justify-content-start align-items-center">
@@ -90,78 +86,118 @@ const activateStartup = (startupId) => {
       <span class="text-sm text-gray-500 ml-4">{{ filteredinvestisseurs.length }} résultat(s)</span>
     </div>
     <div class="card-body">
-      <div class="col-12 table-responsive">
-        <table id="avancementsTable" class="table table-1 w-100">
-          <thead>
-        <tr>
-          <th><center>Nom</center></th>
-          <th ><center>Email</center></th>
-          <th><center>Domaine</center></th>
-          <th><center>Statut</center></th>
-          <th ><center>Actions</center></th>
-        </tr>
-      </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
-        <tr v-if="paginatedinvestisseurs.length === 0" class="hover:bg-gray-50">
-              <td colspan="6" class="px-6 py-10 text-sm text-center text-gray-500">
-                <div class="flex flex-col items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mb-3" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span class="text-lg font-medium">Aucune startup trouvée</span>
-                </div>
-              </td>
-            </tr>
-        <tr v-for="startup in paginatedinvestisseurs":key="startup.id" class="hover:bg-gray-50">
-          <td><span><center>{{ startup.name }}</center></span></td>
-          <td><span><center>{{ startup.email }}</center></span></td>
-          <td><span><center>{{ startup.domain_name }}</center></span></td>
-          <td style="text-align: center;">
-                <span :class="[
-                  'px-7 py-1 inline-flex  rounded-full font-semibold',
-                  startup.statut === 'active'
-                    ? 'bg-green-100 text-green-800'
-                    : startup.statut === 'inactive'
-                      ? 'bg-red-100 text-red-800'
-
-                      : 'bg-yellow-100 text-yellow-800'
-                ]">
-
-                  <center> {{ startup.statut }}</center>
-                </span>
-
-              </td>
-          <td >
-            <center>
-            <button 
-              v-if="startup.statut !== 'active'"
-              @click="activateStartup(startup.id)"
-              class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-            >
-              Activer
-            </button>
-            <span v-else class="text-gray-500">Activé</span>
-          </center>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    </div>
-    <div v-if="totalPages > 1" class="flex justify-center items-center space-x-2 py-4">
-        <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300" :disabled="currentPage === 1"
-          @click="goToPage(currentPage - 1)">
-          Précédent
-        </button>
-
-        <span class="text-sm text-gray-600">Page {{ currentPage }} sur {{ totalPages }}</span>
-
-        <button class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-          :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)">
-          Suivant
-        </button>
-      </div>
+      <div class="flex flex-col gap-4 mt-4">
+  <!-- En-têtes -->
+  <div class="flex items-center px-6 py-3 font-semibold text-sm rounded-[12px]">
+    <div class="w-1/5 text-center text-[#005183]"><b>Nom</b></div>
+    <div class="w-1/5 text-center text-[#005183]"><b>Email</b></div>
+    <div class="w-1/5 text-center text-[#005183]"><b>Domaine</b></div>
+    <div class="w-1/5 text-center text-[#005183]"><b>Statut</b></div>
+    <div class="w-1/5 text-center text-[#005183]"><b>Action</b></div>
   </div>
+
+  <!-- Cartes -->
+  <div
+    v-for="startup in paginatedinvestisseurs"
+    :key="startup.id"
+    class="flex items-center justify-between bg-white rounded-[15px] px-6 py-6 shadow-[10px_8px_20px_rgba(0,81,131,0.25)] hover:shadow-md transition"
+  >
+    <!-- Nom -->
+    <div class="w-1/5 text-center text-[#0093EE] font-medium">
+      {{ startup.name }}
+    </div>
+
+    <!-- Email -->
+    <div class="w-1/5 text-center text-[#0093EE]">
+      {{ startup.email }}
+    </div>
+
+    <!-- Domaine -->
+    <div class="w-1/5 text-center text-[#0093EE]">
+      {{ startup.domain_name }}
+    </div>
+
+    <!-- Statut -->
+    <div class="w-1/5 text-center">
+      <span
+        class="px-4 py-1 rounded-full text-sm font-semibold"
+        :class="{
+          'bg-green-100 text-green-800': startup.statut === 'active',
+          'bg-red-100 text-red-800': startup.statut === 'inactive',
+          'bg-yellow-100 text-yellow-800': startup.statut !== 'active' && startup.statut !== 'inactive'
+        }"
+      >
+        {{ startup.statut }}
+      </span>
+    </div>
+
+    <!-- Action -->
+    <div class="w-1/5 text-center">
+      <button
+        v-if="startup.statut !== 'active'"
+        @click="activateStartup(startup.id)"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
+      >
+        Activer
+      </button>
+      <span v-else class="text-gray-500">Activé</span>
+    </div>
+  </div>
+
+  <!-- Aucun résultat -->
+  <div v-if="paginatedinvestisseurs.length === 0" class="bg-white rounded-xl p-6 text-center shadow">
+    <div class="flex flex-col items-center justify-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span class="text-lg font-medium">Aucune startup trouvée</span>
+    </div>
+  </div>
+</div>
+
+
+
+    
+<div v-if="totalPages > 1" class="flex justify-center items-center gap-4 mt-6"style="
+    margin-left: 992px;
+    margin-top: 43px;
+">
+  <!-- Précédent -->
+  <button
+  @click="goToPage(currentPage - 1)"
+  :disabled="currentPage === 1"
+  class="w-10 h-10 rounded-[10px] border-2 border-[#29B6F6] text-[#0288D1] flex items-center justify-center text-xl font-light shadow-md hover:shadow-lg transition disabled:opacity-40 disabled:cursor-not-allowed"
+>
+  &lt;
+</button>
+
+
+
+  <!-- Pages -->
+  <div class="flex items-center gap-3 text-sm">
+    <button
+      v-for="page in totalPages"
+      :key="page"
+      @click="goToPage(page)"
+      :class="[
+        'w-6 h-6 text-center',
+        page === currentPage ? 'text-[#0288D1] font-semibold' : 'text-gray-400'
+      ]"
+    >
+      {{ page }}
+    </button>
+  </div>
+
+  <!-- Suivant -->
+  <button
+    @click="goToPage(currentPage + 1)"
+    :disabled="currentPage === totalPages"
+    class="w-10 h-10 rounded-[10px] border-2 border-[#29B6F6]  text-[#0288D1] flex items-center justify-center text-xl font-light shadow-md hover:shadow-lg transition disabled:opacity-40 disabled:cursor-not-allowed"
+    >
+    &gt;
+  </button>
+</div>
+
   </div>
 </template>
