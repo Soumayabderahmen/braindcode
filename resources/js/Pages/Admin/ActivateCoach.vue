@@ -48,11 +48,7 @@ const activateCoach = (coachId) => {
 <template>
      
 
-     <div class="card card-1 cardDash">
-    <div class="card-header d-lg-flex d-md-flex d-sm-flex d-block">
-      <h5>Liste des Coaches </h5>
-
-    </div>
+    
     <div class="px-6 pb-4 flex justify-between items-center">
       <div
         class="col-lg-8 col-md-8 col-sm-8 col-12 d-lg-flex d-md-flex d-sm-flex d-block justify-content-start align-items-center">
@@ -90,76 +86,116 @@ const activateCoach = (coachId) => {
       <span class="text-sm text-gray-500 ml-4">{{ filteredinvestisseurs.length }} résultat(s)</span>
     </div>
     <div class="card-body">
-      <div class="col-12 table-responsive">
-        <table id="avancementsTable" class="table table-1 w-100">
-          <thead>
-          <tr>
-            <th><center>Nom</center></th>
-          <th ><center>Email</center></th>
-          <th><center>Specialité</center></th>
-            <th ><center>Statut</center></th>
-            <th ><center>Actions</center></th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-if="filteredinvestisseurs.length === 0">
-            <td colspan="4" class="text-center py-6 text-gray-500">Aucun coach trouvé</td>
-          </tr>
-          <tr v-for="coach in filteredinvestisseurs" :key="coach.id" >
-            <td ><center><span>{{ coach.name }}</span></center></td>
-            <td ><center><span>{{ coach.email }}</span></center></td>
-            <td ><center><span>{{ coach.specialty }}</span></center></td>
+      <div class="flex flex-col gap-4 mt-4">
+  <!-- En-têtes -->
+  <div class="flex items-center px-6 py-3 font-semibold text-sm rounded-[12px]">
+    <div class="w-1/5 text-center text-[#005183]"><b>Nom</b></div>
+    <div class="w-1/5 text-center text-[#005183]"><b>Email</b></div>
+    <div class="w-1/5 text-center text-[#005183]"><b>Visibilité</b></div>
+    <div class="w-1/5 text-center text-[#005183]"><b>Statut</b></div>
+    <div class="w-1/5 text-center text-[#005183]"><b>Action</b></div>
+  </div>
 
-            <td style="text-align: center;">
-                <span :class="[
-                  'px-7 py-1 inline-flex  rounded-full font-semibold',
-                  coach.statut === 'active'
-                    ? 'bg-green-100 text-green-800'
-                    : coach.statut === 'inactive'
-                      ? 'bg-red-100 text-red-800'
-
-                      : 'bg-yellow-100 text-yellow-800'
-                ]">
-
-                  <center> {{ coach.statut }}</center>
-                </span>
-
-              </td>
-            <td >
-              <center>
-              <button 
-                v-if="coach.statut !== 'active'" 
-                @click="activateCoach(coach.id)" 
-                class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-              >
-                Activer
-              </button>
-              <span v-else class="text-gray-500">Activé</span>
-            </center>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  <!-- Cartes -->
+  <div
+    v-for="coach in paginatedinvestisseurs"
+    :key="coach.id"
+    class="flex items-center justify-between bg-white rounded-[15px] px-6 py-6 shadow-[10px_8px_20px_rgba(0,81,131,0.25)] hover:shadow-md transition"
+  >
+    <!-- Nom -->
+    <div class="w-1/5 text-center text-[#0093EE] font-medium">
+      {{ coach.name }}
     </div>
 
-    <!-- Pagination -->
-    <div v-if="totalPages > 1" class="flex justify-center items-center space-x-2 py-4">
-      <button
-        class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-        :disabled="currentPage === 1"
-        @click="goToPage(currentPage - 1)"
+    <!-- Email -->
+    <div class="w-1/5 text-center text-[#0093EE]">
+      {{ coach.email }}
+    </div>
+
+    <!-- Domaine -->
+    <div class="w-1/5 text-center text-[#0093EE]">
+   {{ coach.specialty  }}
+      </div>
+
+    <!-- Statut -->
+    <div class="w-1/5 text-center">
+      <span
+        class="px-4 py-1 rounded-full text-sm font-semibold"
+        :class="{
+          'bg-green-100 text-green-800': coach.statut === 'active',
+          'bg-red-100 text-red-800': coach.statut === 'inactive',
+          'bg-yellow-100 text-yellow-800': coach.statut !== 'active' && coach.statut !== 'inactive'
+        }"
       >
-        Précédent
-      </button>
-      <span class="text-sm text-gray-600">Page {{ currentPage }} sur {{ totalPages }}</span>
+        {{ coach.statut }}
+      </span>
+    </div>
+
+    <!-- Action -->
+    <div class="w-1/5 text-center">
       <button
-        class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-        :disabled="currentPage === totalPages"
-        @click="goToPage(currentPage + 1)"
+        v-if="coach.statut !== 'active'"
+        @click="activateStartup(coach.id)"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
       >
-        Suivant
+        Activer
       </button>
+      <span v-else class="text-gray-500">Activé</span>
+    </div>
+  </div>
+
+  <!-- Aucun résultat -->
+  <div v-if="paginatedinvestisseurs.length === 0" class="bg-white rounded-xl p-6 text-center shadow">
+    <div class="flex flex-col items-center justify-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span class="text-lg font-medium">Aucune startup trouvée</span>
     </div>
   </div>
 </div>
+
+    <!-- Pagination -->
+    <div v-if="totalPages > 1" class="flex justify-center items-center gap-4 mt-6"style="
+    margin-left: 992px;
+    margin-top: 43px;
+">
+  <!-- Précédent -->
+  <button
+  @click="goToPage(currentPage - 1)"
+  :disabled="currentPage === 1"
+  class="w-10 h-10 rounded-[10px] border-2 border-[#29B6F6] text-[#0288D1] flex items-center justify-center text-xl font-light shadow-md hover:shadow-lg transition disabled:opacity-40 disabled:cursor-not-allowed"
+>
+  &lt;
+</button>
+
+
+
+  <!-- Pages -->
+  <div class="flex items-center gap-3 text-sm">
+    <button
+      v-for="page in totalPages"
+      :key="page"
+      @click="goToPage(page)"
+      :class="[
+        'w-6 h-6 text-center',
+        page === currentPage ? 'text-[#0288D1] font-semibold' : 'text-gray-400'
+      ]"
+    >
+      {{ page }}
+    </button>
+  </div>
+
+  <!-- Suivant -->
+  <button
+    @click="goToPage(currentPage + 1)"
+    :disabled="currentPage === totalPages"
+    class="w-10 h-10 rounded-[10px] border-2 border-[#29B6F6]  text-[#0288D1] flex items-center justify-center text-xl font-light shadow-md hover:shadow-lg transition disabled:opacity-40 disabled:cursor-not-allowed"
+    >
+    &gt;
+  </button>
+</div>
+  </div>
+
 </template>

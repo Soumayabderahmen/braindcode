@@ -96,8 +96,11 @@ const handleLogoStartupUpload = (event) => {
 </script>
 
 <template>
-    <div>
-        <h3 class="text-xl font-semibold">Complete your Profile</h3>
+    <div class="mt-3  formulaire">
+        <div class="col-12">
+            <div class="card card-1">
+                <div class="card-body px-lg-4 px-md-3 px-2">
+                    <div class="bs-stepper wizard-numbered shadow-none mt-2">
 
         <form @submit.prevent="saveProfile">
             <!-- Coach Fields -->
@@ -110,47 +113,47 @@ const handleLogoStartupUpload = (event) => {
         id="diploma" 
         accept="application/pdf" 
        @change="e => form.diploma = e.target.files[0]"
-        class="mt-1 block w-full" 
+        class="form-control " 
     />
     <InputError class="mt-2" :message="form.errors.diploma" />
                 <label for="competence">Competence</label>
-                <textarea id="competence" v-model="form.competence" class="mt-1 block w-full"></textarea>
+                <textarea id="competence" v-model="form.competence"  class="form-control " ></textarea>
 
                 <label for="description">Description</label>
-                <textarea id="description" v-model="form.description" class="mt-1 block w-full"></textarea>
+                <textarea id="description" v-model="form.description"  class="form-control " ></textarea>
 
                 <label for="profile_image">Cover Image</label>
-                <input type="file" id="cover_image" @change="handleCoverImageUpload" class="mt-1 block w-full" />
+                <input type="file" id="cover_image" @change="handleCoverImageUpload"  class="form-control "  />
                 <label for="profile_image">profil Image</label>
-                <input type="file" id="profile_image" @change="handleProfileImageUpload" class="mt-1 block w-full" />
+                <input type="file" id="profile_image" @change="handleProfileImageUpload"  class="form-control "  />
             </div>
             <div v-if="role === 'startup'">
                 <label for="logo_startup">Logo Startup</label>
-                <input type="file" id="logo_startup" @change="handleLogoStartupUpload" class="mt-1 block w-full" />
+                <input type="file" id="logo_startup" @change="handleLogoStartupUpload" class="form-control "  />
                 <label for="adresse">Adresse</label>
-                <textarea id="adresse" v-model="form.adresse" class="mt-1 block w-full"></textarea>
+                <textarea id="adresse" v-model="form.adresse"  class="form-control " ></textarea>
                 <label for="NameCo_fondateur">Nom du Co_Fondateur</label>
-                <input id="NameCo_fondateur" v-model="form.NameCo_fondateur" class="mt-1 block w-full"></input>
+                <input id="NameCo_fondateur" v-model="form.NameCo_fondateur"  class="form-control " ></input>
     
             </div>
             <!-- Investisseur Fields -->
             <div v-if="role === 'investisseur'">
                 <label for="video_presentation">Video Presentation</label>
-                <input type="file" id="video_presentation" @change="handleVideoUpload" class="mt-1 block w-full" />
+                <input type="file" id="video_presentation" @change="handleVideoUpload"  class="form-control "  />
 
                 <label for="description">Description</label>
-                <textarea id="description" v-model="form.description" class="mt-1 block w-full"></textarea>
+                <textarea id="description" v-model="form.description"  class="form-control " ></textarea>
 
                 <label for="website_link">Website Link</label>
-                <input type="url" id="website_link" v-model="form.website_link" class="mt-1 block w-full" />
+                <input type="url" id="website_link" v-model="form.website_link"  class="form-control "  />
 
                 <label for="social_links">Social Links (JSON)</label>
-                <textarea id="social_links" v-model="form.social_links" class="mt-1 block w-full"></textarea>
+                <textarea id="social_links" v-model="form.social_links"  class="form-control " ></textarea>
 
                 <label for="profile_image">Cover Image</label>
-                <input type="file" id="cover_image" @change="handleCoverImageUpload" class="mt-1 block w-full" />
+                <input type="file" id="cover_image" @change="handleCoverImageUpload"  class="form-control "  />
                 <label for="profile_image">profil Image</label>
-                <input type="file" id="profile_image" @change="handleProfileImageUpload" class="mt-1 block w-full" />
+                <input type="file" id="profile_image" @change="handleProfileImageUpload"  class="form-control " />
             </div>
 
             <div class="mt-4">
@@ -158,4 +161,5 @@ const handleLogoStartupUpload = (event) => {
             </div>
         </form>
     </div>
+    </div></div></div></div>
 </template>

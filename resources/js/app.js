@@ -54,7 +54,8 @@ if (appElement && appElement.hasAttribute('data-page')) {
     app.component('startups',defineAsyncComponent(() => import('./Pages/Admin/startup.vue')));
     app.component('add-reservations',defineAsyncComponent(() => import('./Pages/Startups/ReservationCoach.vue')));
     app.component('notification',defineAsyncComponent(() => import('./Components/Notifications.vue')));
-
+    app.component('reservations-startup',defineAsyncComponent(() => import('./Pages/Startups/ListeReservation.vue')));
+app.component('profile-edit',defineAsyncComponent(() => import('./Pages/Profile/Partials/EditCoachProfile.vue')));
 
     app.config.globalProperties.$toast = Object.assign(toast, {   
         success: (msg, opts) => toast(msg, { type: "success", ...opts }),   
