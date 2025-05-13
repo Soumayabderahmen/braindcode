@@ -528,7 +528,6 @@ onMounted(async () => {
           <ChatInput
             v-if="isAuthenticated || chatStarted"
             @send-message="sendMessage"
-            @pdf-uploaded="handlePdfUpload"
             :primary-color="botSettings.primary_color"
           />
         </transition>

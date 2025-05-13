@@ -355,95 +355,79 @@ async def chat(request: Request):
     return StreamingResponse(stream_generator(final_prompt), media_type="text/plain")
 
 
-
-
-
-
 def build_personalized_prompt(intent_name: str, user_message: str, lang: str, context_dialogue: str) -> str:
-    if lang == "fr":
-        base = "Tu es BrainBot, l’assistant IA du programme d’incubation BraindCode Startup Studio."
-    else:
-        base = "You are BrainBot, the AI assistant of the BrainCode startup program."
+    def get_base_prompt():
+        return (
+            "Tu es BrainBot, un mentor IA expert en incubation de startups. "
+            "Ta mission est d'accompagner les startups à travers les 12 étapes du programme BrainCode. "
+            "Raisonne étape par étape si nécessaire pour expliquer clairement."
+            if lang == "fr"
+            else
+            "You are BrainBot, an AI mentor expert in startup incubation. "
+            "Your mission is to guide founders through the 12 BrainCode steps. "
+            "Reason step-by-step when needed to explain clearly."
+        )
 
-    # Ajout de l'historique de conversation au prompt
+    def msg_line():
+        return f"\n\nMessage utilisateur : {user_message}" if lang == "fr" else f"\n\nUser message: {user_message}"
+
+    def response(fr: str, en: str):
+        return fr if lang == "fr" else en
+
+    base = get_base_prompt()
     if context_dialogue:
-        base += f"\n\nVoici l’historique de la conversation récente :\n{context_dialogue}"
+        base += f"\n\n{context_dialogue}"
+    message = msg_line()
 
-    if intent_name == "salutation":
-        return (
-            f"{base}\n\n"
-            f"Message utilisateur : {user_message}\n\n"
-            "Réponds par une salutation amicale et chaleureuse."
+    responses = {
+        "salutation": response(
+            f"{base}{message}\n\nRéponds par une salutation amicale.",
+            f"{base}{message}\n\nReply with a friendly greeting."
+        ),
+        "liste_etapes_programme": response(
+            f"{base}\n\nL'utilisateur souhaite connaître les 12 étapes du programme BrainCode. "
+            "Réponds avec une liste numérotée claire. Aucune intro ni conclusion.\n\n"
+            "Format attendu :\n1. ...\n2. ...\n...\n12. ...\n" + message,
+            f"{base}\n\nThe user wants to know the 12 steps of the BrainCode program. "
+            "Respond with a clean numbered list only. No intro or outro.\n\n"
+            "Format:\n1. ...\n2. ...\n...\n12. ...\n" + message
+        ),
+        "objectif_du_programme": response(
+            f"{base}{message}\n\nExplique, étape par étape si nécessaire, l’objectif général du programme BrainCode. Sois clair, motivant et pédagogique.",
+            f"{base}{message}\n\nClearly explain the main goal of the BrainCode incubation program. Be concise and motivating."
+        ),
+        "contact_mentor": response(
+            f"{base}{message}\n\nExplique comment contacter le coach via l’espace personnel. Fournis le lien : https://braincode.tn/dashboard/coach",
+            f"{base}{message}\n\nExplain how to contact the coach via the dashboard. Provide the link: https://braincode.tn/dashboard/coach"
+        ),
+        "livrable": response(
+            f"{base}{message}\n\nIndique qu’un livrable est présent à chaque étape, accessible depuis l’espace personnel.",
+            f"{base}{message}\n\nEach step includes a deliverable accessible from the personal dashboard."
+        ),
+        "retard": response(
+            f"{base}{message}\n\nRassure l’utilisateur sur le retard. Il peut demander un délai à son coach ou au support.",
+            f"{base}{message}\n\nReassure the user about the delay. They can request an extension from their coach or support."
+        ),
+        "prise_de_rdv": response(
+            f"{base}{message}\n\nExplique comment prendre un rendez-vous via la plateforme, et propose une action concrète.",
+            f"{base}{message}\n\nExplain how to book a meeting from the dashboard, and suggest a concrete action."
+        ),
+        "besoin_aide_financement": response(
+            f"{base}{message}\n\nPrésente les options de financement disponibles et suggère la section Investisseurs.",
+            f"{base}{message}\n\nPresent available funding options and suggest checking the Investors section."
         )
+    }
 
-    elif intent_name == "contact_mentor":
-        return (
-            f"{base}\n\n"
-            f"Message utilisateur : {user_message}\n\n"
-            "Pour contacter votre coach ou mentor, merci d'utiliser votre espace personnel sur la plateforme BrainCode.\n"
-            "👉 Cliquez ici : https://braincode.tn/dashboard/coach\n"
-            "Depuis cette section, vous pouvez envoyer une demande facilement.\n"
-            "Bonne chance dans votre parcours entrepreneurial 🚀"
-        )
-
-    elif intent_name == "liste_etapes_programme":
-        return (
-            f"{base}\n\n"
-            f"L’utilisateur souhaite connaître les 12 étapes du programme BrainCode.\n"
-            f"Réponds avec une liste numérotée très claire. Chaque étape doit contenir uniquement un titre explicite.\n\n"
-            f"Format attendu :\n"
-            f"1. Titre de l'étape 1\n"
-            f"2. Titre de l'étape 2\n"
-            f"...\n"
-            f"12. Titre de l'étape 12\n\n"
-            f"Exclusivement la liste. Pas d’introduction, pas de conclusion, pas de texte inutile.\n\n"
-            f"Message utilisateur : {user_message}"
-    )
+    return responses.get(intent_name, f"{base}{message}\n\n" + response(
+        "Réponds de manière bienveillante et structurée par étapes.",
+        "Reply in a kind and structured, step-by-step way."
+    ))
 
 
-    elif intent_name == "objectif_du_programme":
-        return (
-            f"{base}\n\n"
-            f"Message utilisateur : {user_message}\n\n"
-            "Explique l’objectif général du programme d’incubation BrainCode de manière concise et motivante."
-        )
 
-    elif intent_name == "livrable":
-        return (
-            f"{base}\n\n"
-            f"Message utilisateur : {user_message}\n\n"
-            "Indique que chaque étape a un livrable spécifique visible depuis l’espace personnel de l’utilisateur. "
-            "Propose de consulter la plateforme pour plus de détails."
-        )
 
-    elif intent_name == "retard":
-        return (
-            f"{base}\n\n"
-            f"Message utilisateur : {user_message}\n\n"
-            "Rassure l’utilisateur sur son retard. Explique qu’il peut contacter son coach ou le support pour demander un délai supplémentaire."
-        )
 
-    elif intent_name == "prise_de_rdv":
-        return (
-            f"{base}\n\n"
-            f"Message utilisateur : {user_message}\n\n"
-            "Explique comment planifier un rendez-vous ou un appel depuis l’espace personnel. Propose aussi une suggestion d’action simple."
-        )
-
-    elif intent_name == "besoin_aide_financement":
-        return (
-            f"{base}\n\n"
-            f"Message utilisateur : {user_message}\n\n"
-            "Présente brièvement les options de financement disponibles dans le programme, et encourage l’utilisateur à consulter la section ‘Investisseurs’."
-        )
-
-    else:
-        # Fallback si l’intention n’est pas personnalisée
-        return (
-            f"{base}\n\n"
-            f"Message utilisateur : {user_message}\n\n"
-            "Réponds de façon bienveillante et utile, avec un ton amical."
-        )
+        
 
 async def stream_generator(final_prompt: str):
     MAX_RETRIES = 2
