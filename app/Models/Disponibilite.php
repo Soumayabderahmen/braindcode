@@ -19,6 +19,8 @@ class Disponibilite extends Model
         'statut',
         'honoraire',
         'nb_place',
+        'titre',
+        'type_formation',
     ];
 
     /**

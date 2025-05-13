@@ -7,7 +7,6 @@ import { createApp, h, defineAsyncComponent} from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { toast } from 'vue3-toastify'; 
 
-// Composants Vue utilisés dans les Blade classiques
 
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -53,7 +52,6 @@ if (appElement && appElement.hasAttribute('data-page')) {
     app.component('investisseur',defineAsyncComponent(() => import('./Pages/Admin/investisseur.vue')));
     app.component('startups',defineAsyncComponent(() => import('./Pages/Admin/startup.vue')));
     app.component('add-reservations',defineAsyncComponent(() => import('./Pages/Startups/ReservationCoach.vue')));
-    app.component('notification',defineAsyncComponent(() => import('./Components/Notifications.vue')));
     app.component('reservations-startup',defineAsyncComponent(() => import('./Pages/Startups/ListeReservation.vue')));
 app.component('profile-edit',defineAsyncComponent(() => import('./Pages/Profile/Partials/EditCoachProfile.vue')));
 
@@ -67,6 +65,10 @@ app.component('profile-edit',defineAsyncComponent(() => import('./Pages/Profile/
     app.mount('#app');
 
 
-    
+//     const navbar = createApp({});
+// navbar.component('notifications', notificationsNavbar);
+
+
+// navbar.mount('#navbar-nav');
 
 }
