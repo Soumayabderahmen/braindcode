@@ -48,6 +48,7 @@ class ChatbotAdminController extends Controller
     public function stats()
     {
         $totalMessages = ChatMessage::count();
+        $guestCount =  ChatMessage::whereNull('user_id')->distinct('chat_session_id')->count('chat_session_id');
         $userCount = ChatMessage::distinct('user_id')->whereNotNull('user_id')->count('user_id');
         $average = $userCount > 0 ? round($totalMessages / $userCount, 2) : 0;
     
@@ -95,7 +96,8 @@ class ChatbotAdminController extends Controller
             ->pluck('message');
     
         // Répartition par rôle
-        $roles = User::pluck('role')->unique();
+        $roles = User::whereNotNull('role')->pluck('role')->unique();
+
         $roleDistribution = [];
         foreach ($roles as $role) {
             $roleDistribution[$role] = ChatMessage::whereHas('user', function ($q) use ($role) {
@@ -122,6 +124,7 @@ class ChatbotAdminController extends Controller
             'totalMessages' => $totalMessages,
             'dailyConversations' => $dailyConversations,
             'userCount' => $userCount,
+             'guestCount' => $guestCount,
             'averageMessagesPerUser' => $average,
             'positiveReactions' => $positive,
             'negativeReactions' => $negative,
@@ -143,22 +146,27 @@ class ChatbotAdminController extends Controller
      */
     public function messages()
     {
-        $messages = ChatMessage::with('user')->orderBy('created_at', 'asc')->get();
-
+        $messages = ChatMessage::orderBy('created_at', 'asc')->get();
+    
         $data = $messages->map(function ($msg) {
+            $user = $msg->user; // Peut être null
+            $sessionId = $msg->chat_session_id;
+    
             return [
-                'user_id' => $msg->user?->id,
-                'user_name' => $msg->user?->name ?? 'Invité',
-                'user_role' => $msg->user?->role ?? 'invité',
+                'user_id' => $user?->id ?? null,
+                'session_id' => $sessionId,
+                'user_name' => $user?->name ?? 'Invité #' . substr($sessionId ?? 'anonyme', 0, 6),
+                'user_role' => $user?->role ?? 'invité',
                 'message' => $msg->message,
                 'sender' => $msg->sender,
                 'intent' => $msg->intent,
                 'created_at' => $msg->created_at,
             ];
         });
-
+    
         return response()->json(['messages' => $data]);
     }
+    
 
 
 }

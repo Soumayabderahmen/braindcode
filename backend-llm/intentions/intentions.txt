@@ -1,4 +1,4 @@
-# salutation
+#INTENTION:salutation
 Bonjour, ça va ?
 Salut, tu peux m’aider ?
 Hello ! Je suis le chatbot BraindCode
@@ -7,7 +7,7 @@ Coucou, j’ai une question
 Is someone here?
 Can you help me please?
 
-# contact_mentor
+#INTENTION:contact_mentor
 J’ai besoin d’un mentor
 Je cherche un coach
 Peux-tu m’orienter vers un accompagnement ?
@@ -17,7 +17,7 @@ How can I reach my mentor ?
 Need to speak with my coach
 Can I get help from a mentor?
 
-# liste_etapes_programme
+#INTENTION:liste_etapes_programme
 Give me the 12 steps
 Give me the 12 steps of the incubation
 What are the 12 steps?
@@ -27,7 +27,7 @@ Could you list the 12 stages of incubation?
 Tell me the full list of the startup program steps
 
 
-# objectif_du_programme
+#INTENTION:objectif_du_programme
 Quel est l’objectif du programme ?
 Quel est le but de ce programme ?
 À quoi sert ce programme d’incubation ?
@@ -37,7 +37,7 @@ why this startup program exists ?
 explain the goal of the incubator
 what’s the purpose of this program?
 
-# livrable
+#INTENTION:livrable
 C’est quoi le livrable de l’étape 3 ?
 Je dois rendre quoi ?
 Qu’est-ce qu’on attend à l’étape 5 ?
@@ -47,7 +47,7 @@ I don’t know what to submit
 what do I have to deliver in this step?
 Can you tell me what is required at step 2?
 
-# retard
+#INTENTION:retard
 Je suis en retard
 Puis-je prolonger ?
 J’ai pas eu le temps
@@ -59,14 +59,14 @@ Is it possible to delay submission?
 I didn’t finish yet
 I missed the deadline
 
-# prise_de_rdv
+#INTENTION:prise_de_rdv
 Je veux prendre rendez-vous
 Puis-je planifier un appel ?
 Comment puis-je réserver une session ?
 I want to schedule a meeting
 Can I book a call?
 
-# besoin_aide_financement
+#INTENTION:besoin_aide_financement
 Je cherche du financement
 Est-ce que je peux avoir une aide financière ?
 Y a-t-il un programme d’investissement ?

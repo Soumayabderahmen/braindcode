@@ -9,7 +9,7 @@ class ChatMessage extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'message', 'sender','intent','response_time'];
+    protected $fillable = ['user_id','chat_session_id', 'message', 'sender','intent','response_time'];
     public $timestamps = true;
 
 
@@ -18,5 +18,9 @@ class ChatMessage extends Model
         return $this->belongsTo(User::class);
     }
  
-
+    public function session()
+    {
+        return $this->belongsTo(ChatSession::class, 'chat_session_id');
+    }
+    
 }

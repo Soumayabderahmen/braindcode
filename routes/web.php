@@ -54,11 +54,14 @@ Route::middleware('auth')->group(function () {
 
     // ✅ Ajout : enregistre la réaction à un message du bot
 });
+// 💡 Accessible à tous (connecté ou non)
+Route::get('/api/chatbot/history', [ChatbotController::class, 'getHistory']);
+Route::post('/api/chatbot/history/save', [ChatbotController::class, 'saveHistory']);
 
 // Route API pour envoyer un message au chatbot
 Route::post('/api/chatbot', [ChatbotController::class, 'sendMessage'])->name('chatbot.send');
-Route::middleware('auth')->get('/api/chatbot/history', [ChatbotController::class, 'getHistory']);
-Route::middleware('auth')->post('/api/chatbot/history/save', [ChatbotController::class, 'saveHistory']);
+// Route::middleware('auth')->get('/api/chatbot/history', [ChatbotController::class, 'getHistory']);
+// Route::middleware('auth')->post('/api/chatbot/history/save', [ChatbotController::class, 'saveHistory']);
 Route::middleware('auth')->post('/chatbot/reaction', [ChatbotReactionController::class, 'store']);
 
 // Route Faq
@@ -69,6 +72,7 @@ Route::get('/api/public/chatbot/settings', function () {
     return \App\Models\ChatbotSetting::first();
 });
 
+Route::get('/chatbot/history/anonymous', [ChatbotController::class, 'getAnonymousHistory']);
 
 // Routes Admin 
 Route::prefix('admin')->middleware(['auth', 'verified', CheckAdmin::class])->name('admin.')->group(function () {

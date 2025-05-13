@@ -11,8 +11,9 @@ const showWithoutIntentOnly = ref(false);
 const isLoading = ref(true);
 const searchTerm = ref('');
 const totalUsers = ref(0);
+const totalGuests = ref(0);
 const totalMessages = ref(0);
-
+const showOnlyGuests = ref(false);
 // Fetch des données
 const fetchMessages = async () => {
   isLoading.value = true;
@@ -21,13 +22,20 @@ const fetchMessages = async () => {
     allMessages.value = response.data.messages;
     
     // Statistiques
-    const uniqueUsers = new Set();
-    allMessages.value.forEach(msg => {
-      if (msg.user_id) uniqueUsers.add(msg.user_id);
-    });
-    
-    totalUsers.value = uniqueUsers.size;
-    totalMessages.value = allMessages.value.length;
+    const registeredUsers = new Set();
+const guestSessions = new Set();
+
+allMessages.value.forEach(msg => {
+  if (msg.user_id) {
+    registeredUsers.add(msg.user_id);
+  } else if (msg.session_id) {
+    guestSessions.add(msg.session_id);
+  }
+});
+
+totalUsers.value = registeredUsers.size;
+totalGuests.value = guestSessions.size;
+totalMessages.value = allMessages.value.length;
   } catch (error) {
     console.error('Erreur lors du chargement des messages:', error);
   } finally {
@@ -129,10 +137,12 @@ const getAvatarColor = (userId) => {
 };
 
 // Récupération du dernier message d'un utilisateur
-const getLastMessage = (userId) => {
-  const userMessages = allMessages.value.filter(msg => msg.user_id === userId);
-  if (userMessages.length === 0) return { message: '', date: '' };
-  
+const getLastMessage = (userIdOrSessionId) => {
+  const userMessages = allMessages.value.filter(
+    msg => msg.user_id === userIdOrSessionId || msg.session_id === userIdOrSessionId
+  );
+  if (userMessages.length === 0) return { message: '', date: '', isBot: false };
+
   const lastMsg = userMessages[userMessages.length - 1];
   return {
     message: lastMsg.message,
@@ -146,21 +156,22 @@ const groupedUsersByRole = computed(() => {
   const groups = {};
 
   allMessages.value.forEach((msg) => {
-    if (!msg.user_id) return;
+    const isGuest = !msg.user_id;
 
-    const role = msg.user_role || 'invité';
+    const role = msg.user_role || (isGuest ? 'invité' : 'inconnu');
 
-    // Ne pas inclure les admins
-    if (role.toLowerCase() === 'admin') return;
+    if (role.toLowerCase() === 'admin') return; // exclude admin
 
     if (!groups[role]) groups[role] = {};
 
-    if (!groups[role][msg.user_id]) {
-      groups[role][msg.user_id] = {
-        id: msg.user_id,
-        name: msg.user_name,
+    const uniqueId = msg.user_id ?? msg.session_id;
+
+    if (!groups[role][uniqueId]) {
+      groups[role][uniqueId] = {
+        id: uniqueId,
+        name: msg.user_name ?? `Invité #${msg.session_id.slice(0, 6)}`,
         role: role,
-        lastMessage: getLastMessage(msg.user_id)
+        lastMessage: getLastMessage(uniqueId)
       };
     }
   });
@@ -170,24 +181,26 @@ const groupedUsersByRole = computed(() => {
 
 // Utilisateurs filtrés par recherche
 const filteredUsersByRole = computed(() => {
-  if (!searchTerm.value) return groupedUsersByRole.value;
-  
+  const source = groupedUsersByRole.value;
   const filtered = {};
-  
-  Object.entries(groupedUsersByRole.value).forEach(([role, users]) => {
+
+  Object.entries(source).forEach(([role, users]) => {
+    if (showOnlyGuests.value && role.toLowerCase() !== 'invité') return;
+
     const filteredUsers = {};
-    
-    Object.entries(users).forEach(([userId, userData]) => {
+    Object.entries(users)
+  .sort(([, a], [, b]) => new Date(b.lastMessage.date) - new Date(a.lastMessage.date))
+  .forEach(([userId, userData]) => {
       if (userData.name.toLowerCase().includes(searchTerm.value.toLowerCase())) {
         filteredUsers[userId] = userData;
       }
     });
-    
+
     if (Object.keys(filteredUsers).length > 0) {
       filtered[role] = filteredUsers;
     }
   });
-  
+
   return filtered;
 });
 
@@ -237,11 +250,19 @@ onMounted(async () => {
         </h1>
         <div class="stats-container">
           <div class="stat-item">
-            <div class="stat-icon">👥</div>
-            <div class="stat-info">
-              <span class="stat-value">{{ totalUsers }}</span>
-              <span class="stat-label">Utilisateurs</span>
-            </div>
+  <div class="stat-icon">👤</div>
+  <div class="stat-info">
+    <span class="stat-value">{{ totalUsers }}</span>
+    <span class="stat-label">Utilisateurs connectés</span>
+  </div>
+</div>
+<div class="stat-item">
+  <div class="stat-icon">🕵️</div>
+  <div class="stat-info">
+    <span class="stat-value">{{ totalGuests }}</span>
+    <span class="stat-label">Invités</span>
+  </div>
+
           </div>
           <div class="stat-item">
             <div class="stat-icon">✉️</div>
@@ -337,6 +358,10 @@ onMounted(async () => {
                   <input type="checkbox" v-model="showWithoutIntentOnly">
                   <span class="toggle-label">Messages sans intention</span>
                 </label>
+                <label class="filter-toggle">
+  <input type="checkbox" v-model="showOnlyGuests">
+  <span class="toggle-label">Uniquement les invités</span>
+</label>
               </div>
             </div>
             

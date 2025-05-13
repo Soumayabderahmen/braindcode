@@ -320,7 +320,20 @@ const getIconForStat = (statKey) => {
               </div>
             </div>
           </div>
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 transition-all hover:shadow">
+  <div class="flex items-center">
+    <div class="flex-shrink-0 p-3 bg-pink-50 rounded-lg">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-pink-600">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.127a7.5 7.5 0 0115 0A17.933 17.933 0 0112 21.75a17.933 17.933 0 01-7.499-1.623z" />
+      </svg>
+    </div>
+    <div class="ml-4">
+      <h3 class="text-sm font-medium text-gray-500">Utilisateurs invités</h3>
+      <p class="text-2xl font-bold text-gray-800 mt-1">{{ stats.guestCount }}</p>
+    </div>
+  </div>
 
+        </div>
           <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 transition-all hover:shadow">
             <div class="flex items-center">
               <div class="flex-shrink-0 p-3 bg-purple-50 rounded-lg">
@@ -366,21 +379,8 @@ const getIconForStat = (statKey) => {
             </div>
           </div>
 
-          <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 transition-all hover:shadow">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 p-3 bg-sky-50 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-sky-600">
-                  <path stroke-linecap="round" stroke-linejoin="round" :d="getIconForStat('avgResponseTime')" />
-                </svg>
-              </div>
-              <div class="ml-4">
-                <h3 class="text-sm font-medium text-gray-500">Temps de réponse moyen</h3>
-                <p class="text-2xl font-bold text-gray-800 mt-1">{{ stats.avgResponseTime }}s</p>
-              </div>
-            </div>
-          </div>
+          
         </div>
-
         <!-- Charts -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
