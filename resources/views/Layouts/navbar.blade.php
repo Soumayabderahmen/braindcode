@@ -32,7 +32,7 @@
             <!-- / robot-->
 
             <!-- Notification -->
-            <notifications></notifications>
+            {{-- <notifications></notifications> --}}
             <!--/ Notification -->
 
           

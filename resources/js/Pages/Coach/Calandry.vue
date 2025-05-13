@@ -10,6 +10,9 @@ import bootstrap5Plugin from '@fullcalendar/bootstrap5'
 const props = defineProps({
     availabilities: Array,
 });
+onMounted(() => {
+  console.log("✅ Données des availabilities :", props.availabilities);
+});
 
 const calendarOptions = ref({
     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin,bootstrap5Plugin],
@@ -21,22 +24,22 @@ const calendarOptions = ref({
         right: 'dayGridMonth,timeGridWeek,timeGridDay'
     },
     events: props.availabilities.map(avail => ({
-        id: avail.id,
-        title: avail.statut === 'available' ? 'Disponible' : 'Indisponible',
-        start: `${avail.date}T${avail.start_time}`,
-        end: `${avail.date}T${avail.end_time}`,
-        color: avail.statut === 'available' ? '#28a745' : '#dc3545',
-        extendedProps: {
-            statut: avail.statut,
-            place: avail.nb_place,
-            honoraires: avail.honoraire,
-
-        }
-    })),
+  id: avail.id,
+  title: avail.title,
+  start: `${avail.date}T${avail.start_time}`,
+  end: `${avail.date}T${avail.end_time}`,
+  color: avail.statut === 'available' ? '#28a745' : '#dc3545',
+  extendedProps: {
+    statut: avail.statut,
+    place: avail.nb_place,
+    honoraires: avail.honoraire
+  }
+}))
+,
     eventContent: function(arg) {
     const statut = arg.event.extendedProps.statut;
     const backgroundColor = statut === 'available' ? '#28a745' : '#dc3545';
-    const title = arg.event.title;
+const title = arg.event.title ?? "Sans titre";
     const place = arg.event.extendedProps.place ?? "non défini";
     const honoraires = arg.event.extendedProps.honoraires ?? "non défini";
     const start = arg.event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -89,6 +92,8 @@ function handleDateSelect(selectInfo) {
 }
 
 function handleEventClick(clickInfo) {
+    console.log("Titres des disponibilités :", calendarOptions.value.events.map(e => e.title));
+
     if (confirm(`Voulez-vous supprimer cette disponibilité?`)) {
         router.delete(route('coach.availability.destroy', clickInfo.event.id), {
             onSuccess: () => {
@@ -170,16 +175,32 @@ function handleEventResize(resizeInfo) {
 
 :deep(.fc-daygrid-day-frame) {
   background-color: white;
-  border-radius: 15px;
+  border-radius: 30px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   padding: 0.5rem;
   height: 100%;
   transition: all 0.2s ease-in-out;
+  height: 100px;
+  width: 140px;
+}
+
+:deep(.fc .fc-daygrid-body tr) {
+  height: 110px !important;
+}
+
+:deep(.fc .fc-daygrid-day-frame) {
+  margin-top: 8px !important;
+  margin-bottom: 8px !important;
+}
+
+:deep(.fc .fc-daygrid-day) {
+  padding: 8px;
+  border-radius: 16px;
 }
 
 :deep(.fc-daygrid-day-number) {
   font-weight: bold;
-  color: #333;
+  color:#3399ff;
 }
 
 :deep(.fc-daygrid-event) {
@@ -192,9 +213,16 @@ function handleEventResize(resizeInfo) {
   word-break: break-word;
   margin-top: 3px;
 }
-.calendar-container {
-  border-radius: 25px;
-  padding: 20px;
-  background-color: #eef6fd;
+
+.tippy-box[data-theme~='light'] {
+  background-color: white;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 8px #3399ff;
+  border-radius: 12px;
+  padding: 0;
+  color: #3399ff;
+  width: 100px;
+  font-size: 13px;
 }
+
 </style>

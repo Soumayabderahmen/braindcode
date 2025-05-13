@@ -78,6 +78,7 @@ class ListStartupController extends Controller
                     'start_time' => $item->start_time,
                     'end_time' => $item->end_time,
                     'statut' => $item->statut,
+                    'title' => $item->titre,
                 ];
             });
         });

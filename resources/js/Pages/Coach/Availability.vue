@@ -23,6 +23,7 @@ const form = ref({
   day_of_week: "",
   honoraire: "",
   nb_place: "",
+  titre: "",
 });
 
 // 🔹 Formulaire d'édition
@@ -34,6 +35,7 @@ const editForm = ref({
   day_of_week: "",
   honoraire: "",
   nb_place: "",
+  titre: "",
 
 });
 
@@ -64,6 +66,7 @@ const resetForm = () => {
   form.value.day_of_week = "";
   form.value.honoraire = "";
   form.value.nb_place = "";
+  form.value.titre = "";
 };
 
 // 🔹 Réinitialiser le formulaire de modification
@@ -76,6 +79,7 @@ const resetEditForm = () => {
     day_of_week: "",
     honoraire: "",
     nb_place: "",
+    titre: "",
   };
   isEditing.value = false;
 };
@@ -100,6 +104,8 @@ const submitAvailability = async () => {
 
     setTimeout(() => {
       showSuccessAlert.value = false;
+              location.reload();
+
       // recharger seulement après avoir montré l’alerte
     }, 3000);
   } catch (error) {
@@ -164,6 +170,7 @@ const editAvailability = (availability) => {
     day_of_week: getDayOfWeek(availability.date),
     honoraire: availability.honoraire,
     nb_place: availability.nb_place,
+    titre: availability.titre,
   };
 };
 const showWarningAlert = ref(false);
@@ -180,6 +187,7 @@ const updateTimes = async () => {
     day_of_week: editForm.value.day_of_week,
     honoraire: editForm.value.honoraire,
     nb_place: editForm.value.nb_place,
+    titre: editForm.value.titre,
   };
 
   try {
@@ -226,6 +234,11 @@ const updateTimes = async () => {
             <!-- Formulaire d'ajout -->
             <form v-if="!isEditing" @submit.prevent="submitAvailability">
               <div class="row">
+                <div class="mb-3">
+                  <label class="form-label">Titre de Formation</label>
+                  <input type="text" step="0.01" v-model="form.titre" class="form-control"
+                    placeholder=" Coaching Stratégique" />
+                </div>
                 <div class="col-mb-12 mb-3">
                   <label class="form-label">Date</label>
                   <input type="date" v-model="form.date" class="form-control" required />
@@ -246,6 +259,7 @@ const updateTimes = async () => {
                   <input type="number" step="0.01" v-model="form.nb_place" class="form-control"
                     placeholder=" 20 personnes" />
                 </div>
+                
                 <div class="mb-3">
                   <label class="form-label">Honoraire (€)</label>
                   <input type="number" step="0.01" v-model="form.honoraire" class="form-control"
@@ -319,12 +333,12 @@ const updateTimes = async () => {
     <div class="flex flex-col gap-4 mt-4">
       <div class="flex items-center px-6 py-3 font-semibold text-sm" style=" border-radius: 12px;">
 
-        <div class="w-1/6 text-center" style="color: #005183;"><b>Date</b></div>
-        <div class="w-1/5 text-center" style="color: #005183;"><b>Début</b></div>
-        <div class="w-1/5 text-center" style="color: #005183;"><b>Fin</b></div>
+        <div class="w-1/6 text-center" style="color: #005183;"><b>Titre de Formation</b></div>
+        <div class="w-1/5 text-center" style="color: #005183;"><b>Date</b></div>
+        <div class="w-1/6 text-center" style="color: #005183;"><b>Début</b></div>
         <div class="w-1/6 text-center" style="color: #005183;"><b>Jour de la semaine</b></div>
         <div class="w-1/6 text-center" style="color: #005183;"><b>Nombre de Place</b></div>
-        <div class="w-1/5 text-center" style="color: #005183;"><b>Honoraire (€)</b></div>
+        <div class="w-1/6 text-center" style="color: #005183;"><b>Honoraire (€)</b></div>
 
         <div class="w-1/5 text-center" style="color: #005183;"><b>Statut</b></div>
         <div class="w-1/6 text-center" style="color: #005183;"><b>Actions</b></div>
@@ -337,27 +351,24 @@ const updateTimes = async () => {
     box-shadow: 10px 8px 20px 0px rgba(0, 81, 131, 0.25);
     border-radius: 15px;
 ">
+ <div class="w-28 text-center text-sm " style="
+    color: #0093EE;
+">
+              {{ availability.titre ?? '—' }}
+            </div>
             <div class="w-28 text-center text-sm " style="
     color: #0093EE;
 ">
               {{ availability.date }}
             </div>
-            <div class="w-28 text-center text-sm " style="
-    color: #0093EE;
-">
-              {{ availability.start_time }}
-            </div>
+           
 
             <div class="w-28 text-center text-sm " style="
     color: #0093EE;
 ">
               {{ availability.start_time }}
             </div>
-            <div class="w-28 text-center text-sm " style="
-    color: #0093EE;
-">
-              {{ availability.end_time }}
-            </div>
+            
             <div class="w-28 text-center text-sm " style="
     color: #0093EE;
 ">

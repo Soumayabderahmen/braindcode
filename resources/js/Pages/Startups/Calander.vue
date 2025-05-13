@@ -43,7 +43,7 @@ function loadDomainAvailabilities() {
 
     return {
       id: avail.id,
-      title: `Coaching Stratégique`,
+      title: avail.title,
       start: `${avail.date}T${avail.start_time}`,
       end: `${avail.date}T${avail.end_time}`,
       color: '#3399ff',

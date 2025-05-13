@@ -47,6 +47,8 @@ class AvailabilityController extends Controller
             'statut' => 'required|in:available,unavailable',
             'honoraire' => 'nullable|numeric', 
             'nb_place' => 'nullable|integer|min:1', 
+            'titre' => 'nullable|string|max:255',
+            'type_formation' => 'nullable|in:en_ligne',
         ]);
     
         $coach = Coach::findOrFail($request->coach_id); 
@@ -75,6 +77,7 @@ class AvailabilityController extends Controller
             'statut' => $request->statut,
             'honoraire' => $request->honoraire, 
             'nb_place' => $request->nb_place,
+            'titre' => $request->titre,
         ]);
     
         return back()->with('success', 'Disponibilité est ajoutée avec succès.');
@@ -194,7 +197,7 @@ public function updateStatus(Request $request, $id)
 {
     
     $availabilities = Auth::user()->coach->availabilities()
-        ->select('id', 'date', 'start_time', 'end_time', 'statut' , "nb_place", "honoraire")
+        ->select('id', 'date', 'start_time', 'end_time', 'statut' , "nb_place", "honoraire",'titre')
         ->get()
         ->map(function ($item) {
             return [
@@ -205,6 +208,8 @@ public function updateStatus(Request $request, $id)
                 'statut' => $item->statut,
                 'nb_place' => $item->nb_place,
                 'honoraire' => $item->honoraire,
+                'title' => $item->titre,
+
             ];
         });
 
@@ -217,18 +222,23 @@ public function updateStatus(Request $request, $id)
 public function calendarEvents(Request $request)
 {
     $events = Auth::user()->coach->availabilities()
-        ->select('id', 'date', 'start_time', 'end_time', 'statut')
+        ->select('id', 'date', 'start_time', 'end_time', 'statut' )
         ->get()
         ->map(function ($item) {
             return [
                 'id' => $item->id,
-                'title' => $item->statut === 'available' ? 'Disponible' : 'Indisponible',
+               
+                    
                 'start' => $item->date . 'T' . $item->start_time,
                 'end' => $item->date . 'T' . $item->end_time,
-                'color' => $item->statut === 'available' ? '#28a745' : '#dc3545'
+                'color' => $item->statut === 'available' ? '#28a745' : '#dc3545',
+                'statut' => $item->statut,
+               
             ];
         });
 
     return response()->json($events);
 }
+
+
 }
