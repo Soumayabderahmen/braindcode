@@ -8,18 +8,25 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { watch } from 'vue';
 
+const props = defineProps({
+  defaultRole: {
+    type: String,
+    default: 'startup', // fallback si rien n’est passé
+  }
+});
+
 const form = useForm({
-    name: '',  // Nom de Startup ou d'Investisseur
-    email: '',
-    password: '',
-    password_confirmation: '',
-    role: 'startup',  // Startup est le rôle par défaut
-    visibility: '',
-    image: null,
-    domain_name: '',  // Domaine de la Startup
-    specialty: '' ,
-    document: null,
-    statut: 'active', 
+  name: '',
+  email: '',
+  password: '',
+  password_confirmation: '',
+  role: props.defaultRole,
+  visibility: '',
+  image: null,
+  domain_name: '',
+  specialty: '',
+  document: null,
+  statut: props.defaultRole === 'coach' ? 'inactive' : 'active'
 });
 
 const onRoleChange = (role) => {
@@ -55,7 +62,7 @@ const submit = () => {
         <Head title="Register" />
        
         <form @submit.prevent="submit">
-            <div class="mt-4">
+           <!-- <div class="mt-4">
                 <InputLabel value="Choisissez votre rôle" />
                 <div class="flex space-x-4 mt-2">
                     <label class="radio-label">
@@ -87,7 +94,7 @@ const submit = () => {
                     </label>
                 </div>
                 <InputError class="mt-2" :message="form.errors.role" />
-            </div>
+            </div>-->
 
             <div class="mt-4">
 

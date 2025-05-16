@@ -19,10 +19,23 @@ use App\Http\Controllers\Admin\IntentionAdminController;
 use App\Http\Controllers\Chatbot\ChatbotReactionController;
 use App\Http\Controllers\Admin\ChatbotReactionAdminController;
 use App\Http\Controllers\Admin\ChatbotSettingsController;
-// Route pour le tableau de bord, sans authentification
+use App\Http\Controllers\HomeController;
+
 Route::get('/', function () {
-    return Inertia::render('Home');
-})->name('dashboard');
+    return view('Home.home_front');
+});
+///links Home Page 
+Route::get('/startup', [HomeController::class, 'startup'])->name('startup');
+Route::get('/coach', [HomeController::class, 'coach'])->name('coach');
+Route::get('/investisseur', [HomeController::class, 'investisseur'])->name('investisseur');
+Route::get('/forum', [HomeController::class, 'forum'])->name('forum');
+Route::get('/equipe', [HomeController::class, 'equipe'])->name('equipe');
+Route::get('/startinc', [HomeController::class, 'startinc'])->name('startinc');
+Route::get('/formation', [HomeController::class, 'formation'])->name('formation');
+Route::get('/resources', [HomeController::class, 'resources'])->name('resources');
+Route::get('/agentia', [HomeController::class, 'agentia'])->name('agentia');
+Route::get('/agentia2', [HomeController::class, 'agentia2'])->name('agentia2');
+
 
 
 //  Route pour les COACHS

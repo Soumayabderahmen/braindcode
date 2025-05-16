@@ -1,0 +1,76 @@
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Conteneur principal du header */
+  header {
+    background-color: #ffffff;
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  /* Logo + texte à gauche */
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .header-left img {
+    height: 35px;
+    width: 35px;
+  }
+  
+  /* Texte Braindcode */
+  .header-title {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+  
+  .header-title .brand {
+    font-size: 18px;
+    color: #007bff; /* Bleu clair */
+    font-weight: bold;
+  }
+  
+  .header-title .subtitle {
+    font-size: 11px;
+    color: #333;
+  }
+  
+  /* Navigation */
+  nav {
+    display: flex;
+    gap: 28px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  
+  nav a {
+    text-decoration: none;
+    color: #33aaff;
+    transition: color 0.2s ease;
+  }
+  
+  nav a:hover {
+    color: #007bff;
+  }
+  
+  /* Icône utilisateur */
+  .user-icon {
+    width: 18px;
+    height: 18px;
+    stroke: #33aaff;
+    vertical-align: middle;
+  }
+  
+  
+  

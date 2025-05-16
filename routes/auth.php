@@ -10,10 +10,24 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+
 
 Route::middleware('guest')->group(function () {
-    Route::get('register', [RegisteredUserController::class, 'create'])
-        ->name('register');
+   
+    // Étape 1 : page de sélection
+    Route::get('/select-role', fn () => Inertia::render('Auth/SelectRole'))->name('register.select');
+
+    // Étape 2 : pages de rôle dédiées
+    Route::get('/register/startup', [RegisteredUserController::class, 'createStartup'])->name('register.startup');
+    Route::get('/register/coach', [RegisteredUserController::class, 'createCoach'])->name('register.coach');
+    Route::get('/register/investisseur', [RegisteredUserController::class, 'createInvestisseur'])->name('register.investisseur');
+
+    // Fallback : page de register par défaut
+    Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
+
+    // Soumission universelle
+    Route::post('register', [RegisteredUserController::class, 'store']);
 
     Route::post('register', [RegisteredUserController::class, 'store']);
 

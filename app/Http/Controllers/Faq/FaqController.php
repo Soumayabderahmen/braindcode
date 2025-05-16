@@ -12,7 +12,7 @@ class FaqController extends Controller
     // Affichage de la page Vue (frontend)
     public function index()
     {
-        return Inertia::render('Faq/Faq');
+        return view('Home.faq');
     }
 
     // Appel API pour récupérer les données dynamiques

@@ -10,9 +10,11 @@ use Inertia\Inertia;
 
 class SupportMessageController extends Controller
 {
-    public function create() {
-        return Inertia::render('ContactUs/ContactUs');
-    }
+    public function create()
+{
+    return view('Home.contact'); 
+}
+
 
     public function store(Request $request) {
         $validated = $request->validate([

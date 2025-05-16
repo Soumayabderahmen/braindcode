@@ -7,7 +7,7 @@
         <div class="footer-left">
           <h2>BraindCode Startup Studio :</h2>
           <p>Des idées claires, des illustrations épurées</p>
-          <div class="social-icons"style="margin-top: 33%;">
+          <div class="social-icons" style="margin-top: 33%;">
             <i class="bx bxl-facebook-circle"></i>
             <i class="bx bxl-instagram"></i>
             <i class="bx bxl-twitter"></i>
@@ -17,7 +17,7 @@
   
         <!-- Bloc liens -->
         <div class="footer-links">
-          <h3>Liens utiles</h3>
+          <h3 style="color:#fff">Liens utiles</h3>
           <ul>
             <li><Link href="#">Startup</Link></li>
             <li><Link href="#">Investisseur</Link></li>

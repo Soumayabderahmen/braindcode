@@ -10,6 +10,21 @@ import Reaction from './Pages/Admin/ChatbotReactions.vue'
 import Chatbot from './Pages/Chatbot/Chatbot.vue';
 import ChatbotManagement from './Pages/Admin/ChatbotManagement.vue'
 import AvancementsDashbord from './Components/dashbord/avancements.vue';
+import Home from './Pages/Home.vue'
+import Faq from './Pages/Faq/Faq.vue'
+import Contact from './Pages/ContactUs/ContactUs.vue'
+import StartupPage from './Pages/Home/StartupPage.vue';
+import CoachPage from './Pages/Home/CoachPage.vue';
+import InvestorPage from './Pages/Home/InvestorPage.vue';
+import ForumPage from './Pages/Home/ForumPage.vue';
+import EquipePage from './Pages/Home/EquipePage.vue';
+import StartupIncubePage from './Pages/Home/StartupIncubePage.vue';
+import FormationPage from './Pages/Home/FormationPage.vue';
+import RessourcesPage from './Pages/Home/RessourcesPage.vue';
+import AgentAIPage from './Pages/Home/AgentAIPage.vue';
+import AgentDetailsPage from './Pages/Home/AgentDetailsPage.vue';
+
+
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
@@ -19,6 +34,7 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 const appElement = document.getElementById('app');
 
 if (appElement && appElement.hasAttribute('data-page')) {
+
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     resolve: (name) =>
@@ -53,5 +69,23 @@ else if (appElement) {
     app.component('faq', FaqAdmin);
     app.component('top-cards-dashbord', TopCards);
     app.component('avancements-dashbord', AvancementsDashbord);
+    app.component('home-view', Home);
+    app.component('faqs', Faq);
+    app.component('contact', Contact);
+    app.component('startup-page', StartupPage);
+    app.component('coach-page', CoachPage);
+    app.component('investor-page', InvestorPage);
+    app.component('forum-page', ForumPage);
+    app.component('equipe-page', EquipePage);
+    app.component('startup-incube-page', StartupIncubePage);
+    app.component('formation-page', FormationPage);
+    app.component('ressources-page', RessourcesPage);
+    app.component('agent-ai-page', AgentAIPage);
+    app.component('agent-details-page', AgentDetailsPage);
+
     app.mount('#app');
+
+
+
+    
 }
