@@ -135,14 +135,11 @@ const handleSuggestion = async (suggestion) => {
 const sendMessage = async (message) => {
   if (!message.trim()) return;
 
-  // 🧑 Ajouter le message utilisateur
   messages.value.push({ text: message, sender: "user" });
   scrollToBottom();
   isLoading.value = true;
-  const startTime = Date.now();
 
-  // 🧠 Ajouter la bulle "thinking" AVANT l'appel réseau
-  const botIndex = messages.value.length; // index de la réponse bot
+  const botIndex = messages.value.length;
   messages.value.push({
     sender: "bot",
     text: "",
@@ -150,50 +147,55 @@ const sendMessage = async (message) => {
     reactable: false,
     thinking: true
   });
-
-  await nextTick(); // ✅ Affiche immédiatement la bulle "thinking"
+  await nextTick();
   scrollToBottom();
 
   try {
     const history = messages.value
       .filter(m => m.sender === "user" || m.sender === "bot")
-      .slice(-10)
+      .slice(-2) // ⏱️ Historique court = plus rapide
       .map(m => ({ sender: m.sender, text: m.text }));
 
-    const response = await fetch("http://127.0.0.1:5005/chat", {
+    const response = await fetch("http://127.0.0.1:5005/chat-stream", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-Session-ID": getSessionId(),
       },
-      body: JSON.stringify({ message, history }),
+      body: JSON.stringify({ message, history })
     });
 
-    const data = await response.json();
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = "";
 
-    // Remplacer la bulle "thinking" par la réponse réelle
-    messages.value[botIndex] = {
-      sender: "bot",
-      text: data.response,
-      animatedText: data.response,
-      reactable: true,
-      thinking: false
-    };
+    while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
 
-    if (isAuthenticated.value) {
-      await axios.post("/api/chatbot/history/save", {
-        userMessage: message,
-        botMessage: data.response.trim(),
-        intent: null,
-        startTime: startTime,
-      }, {
-        headers: {
-          "X-Session-ID": getSessionId()
-        }
-      });
+  const chunk = decoder.decode(value, { stream: true }).trim();
+
+  // 💡 Certains chunks contiennent plusieurs lignes JSON, on les découpe proprement
+  const lines = chunk.split('\n').filter(line => line.trim() !== '');
+  for (const line of lines) {
+    try {
+      const parsed = JSON.parse(line);
+      const token = parsed.response || "";
+      fullText += token;
+      messages.value[botIndex].animatedText = fullText;
+      await nextTick();
+    } catch (e) {
+      console.warn("Erreur de parsing chunk JSON", line, e);
     }
+  }
+}
 
-  } catch (error) {
+
+    messages.value[botIndex].text = fullText;
+    messages.value[botIndex].reactable = true;
+    messages.value[botIndex].thinking = false;
+
+  } catch (e) {
     messages.value[botIndex] = {
       sender: "bot",
       text: "Erreur réseau ou bot hors ligne.",
@@ -206,7 +208,6 @@ const sendMessage = async (message) => {
     scrollToBottom();
   }
 };
-
 
 // === RÉACTIONS (like/dislike) ===
 const toggleReaction = (index) => {

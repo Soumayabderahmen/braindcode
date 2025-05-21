@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()  
 
 OLLAMA_API = os.getenv("OLLAMA_API", "http://127.0.0.1:11434")
-MODEL_NAME = os.getenv("LLM_MODEL", "llama2:7b")
+MODEL_NAME = os.getenv("LLM_MODEL", "mistral")
 
 async def stream_generator(prompt: str):
     for attempt in range(2):  # ✅ Retry une fois

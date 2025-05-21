@@ -1,4 +1,4 @@
-#INTENTION:salutation
+salutation
 Bonjour, ça va ?
 Salut, tu peux m’aider ?
 Hello ! Je suis le chatbot BraindCode
@@ -8,7 +8,7 @@ Is someone here?
 Can you help me please?
 Bonsoir 
 
-#INTENTION:contact_mentor
+contact_mentor
 J’ai besoin d’un mentor
 Je cherche un coach
 Peux-tu m’orienter vers un accompagnement ?
@@ -18,7 +18,7 @@ How can I reach my mentor ?
 Need to speak with my coach
 Can I get help from a mentor?
 
-#INTENTION:liste_etapes_programme
+liste_etapes_programme
 Quelles sont les 12 étapes du programme ?
 Donne-moi les étapes de l’incubation
 Quelles sont les étapes du parcours BrainCode ?
@@ -29,7 +29,7 @@ Show me the startup incubation steps
 
 
 
-#INTENTION:objectif_du_programme
+objectif_du_programme
 Quel est l’objectif du programme ?
 Quel est le but de ce programme ?
 À quoi sert ce programme d’incubation ?
@@ -39,7 +39,7 @@ why this startup program exists ?
 explain the goal of the incubator
 what’s the purpose of this program?
 
-#INTENTION:livrable
+livrable
 C’est quoi le livrable de l’étape 3 ?
 Je dois rendre quoi ?
 Qu’est-ce qu’on attend à l’étape 5 ?
@@ -49,7 +49,7 @@ I don’t know what to submit
 what do I have to deliver in this step?
 Can you tell me what is required at step 2?
 
-#INTENTION:retard
+retard
 Je suis en retard
 Puis-je prolonger ?
 J’ai pas eu le temps
@@ -61,21 +61,21 @@ Is it possible to delay submission?
 I didn’t finish yet
 I missed the deadline
 
-#INTENTION:prise_de_rdv
+prise_de_rdv
 Je veux prendre rendez-vous
 Puis-je planifier un appel ?
 Comment puis-je réserver une session ?
 I want to schedule a meeting
 Can I book a call?
 
-#INTENTION:besoin_aide_financement
+besoin_aide_financement
 Je cherche du financement
 Est-ce que je peux avoir une aide financière ?
 Y a-t-il un programme d’investissement ?
 How can I get funding?
 Is there any investor program?
 
-#INTENTION:validation_etape
+validation_etape
 Comment valider une étape ?
 Je viens de terminer l’étape 4, que faire ?
 Quand est-ce qu’une étape est considérée comme validée ?
@@ -85,7 +85,7 @@ What happens after I submit a deliverable?
 How can I complete a step?
 I finished step 5, what now?
 
-#INTENTION:trouver_coach
+trouver_coach
 Comment trouver mon coach ?
 Où est le profil de mon coach ?
 Qui m’accompagne dans le programme ?
