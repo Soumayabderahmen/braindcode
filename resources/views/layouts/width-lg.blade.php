@@ -14,7 +14,8 @@
   <meta name="csrf-token" content="{{ csrf_token() }}" />
   <meta name="description" content="@yield('page_description')" />
   <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="{{asset('assets/img/dash/logo.png')}}" />
+      <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon/favicon.png') }}" />
+
   <link rel="apple-touch-icon" href="{{asset('assets/img/dash/logo.png')}}">
   <link rel="manifest" href="{{ asset('/manifest.json') }}">
 

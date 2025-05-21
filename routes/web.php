@@ -35,7 +35,13 @@ Route::get('/formation', [HomeController::class, 'formation'])->name('formation'
 Route::get('/resources', [HomeController::class, 'resources'])->name('resources');
 Route::get('/agentia', [HomeController::class, 'agentia'])->name('agentia');
 Route::get('/agentia2', [HomeController::class, 'agentia2'])->name('agentia2');
-
+Route::get('/tuto1', [HomeController::class, 'tuto1'])->name('tuto1');
+Route::get('/tuto2', [HomeController::class, 'tuto2'])->name('tuto2');
+Route::get('/tuto3', [HomeController::class, 'tuto3'])->name('tuto3');
+Route::get('/contact', [SupportMessageController::class, 'create'])->name('contactus');
+Route::post('/contact/store', [SupportMessageController::class, 'store'])->name('contact.store');
+Route::get('/faqs', [FaqController::class, 'index'])->name('faq');
+Route::get('/faqs/list', [FaqController::class, 'list']);
 
 
 //  Route pour les COACHS
@@ -56,9 +62,7 @@ Route::get('/dashboard/investisseur', function () {
 
 Route::get('/intentions', [IntentionController::class, 'index']);
 
-// Page ContactUs (visible par tous)
-Route::get('/contact', [SupportMessageController::class, 'create'])->name('contactus');
-Route::post('/contact/store', [SupportMessageController::class, 'store'])->name('contact.store');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

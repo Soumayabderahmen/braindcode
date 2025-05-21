@@ -10,8 +10,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <meta name="description" content="@yield('page_description')" />
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="" />
-    <link rel="apple-touch-icon" href="">
+     <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon/favicon.png') }}" />
+
+    <link rel="apple-touch-icon" href="{{ asset('assets/img/dash/logo.png') }}">
     <!--bbotstrap-->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">

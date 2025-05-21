@@ -1,11 +1,12 @@
-
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { Head } from "@inertiajs/vue3";
 
-
 // Theme state with improved persistence (keeping from original code)
 const isDarkMode = ref(false);
+
+// État pour contrôler l'animation de l'image entrepreneur
+const imageLoaded = ref(false);
 
 // Enhanced theme detection and persistence (keeping from original code)
 onMounted(() => {
@@ -18,6 +19,11 @@ onMounted(() => {
     : prefersDarkMode;
 
   document.documentElement.classList.toggle('dark', isDarkMode.value);
+  
+  // Animation pour l'image entrepreneur avec délai
+  setTimeout(() => {
+    imageLoaded.value = true;
+  }, 300);
   
   // Animation setup for testimonials
   setTimeout(() => {
@@ -57,8 +63,9 @@ const testimonials = ref([
     visible: false
   }
 ]);
+
 const onImgError = (event) => {
-  event.target.src = 'asset/img/abs.png'; // ou '/assets/img/abs.png' si tu veux l’ancienne
+  event.target.src = 'asset/img/abs.png';
 };
 
 // Fonction pour générer les étoiles de rating
@@ -133,54 +140,74 @@ const beneficiaries = [
   }
 ];
 </script>
-<template>
- <section class="py-16 md:py-24" style="background: linear-gradient(to bottom, #F1F9FF)">
-      <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center">
-        <div class="md:w-1/2 mb-10 md:mb-0">
-          <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
-            <span class="text-custom-blue ">Lancez, développez et</span> <br>
-            <span class="text-custom-blue ">financez votre startup avec</span><br>
-            <span class="text-blue-500">BraindCode</span>
-          </h1>
-          <p class="text-lg mb-8 ">
-            Transformez votre idée en entreprise prospère grâce à notre programme d'accompagnement complet.
-            </p>
 
-          <a href="#" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg transform transition hover:scale-105">
-            Découvrir la plateforme
-          </a>
-        </div>
-        <div class="md:w-1/2">
+<template>
+  <!-- Section héro avec background animé -->
+  <section class="py-16 md:py-24 relative overflow-hidden animated-background">
+    <!-- Éléments de background animés -->
+    <div class="absolute inset-0 overflow-hidden">
+      <div class="moving-shape shape-1"></div>
+      <div class="moving-shape shape-2"></div>
+      <div class="moving-shape shape-3"></div>
+      <div class="moving-shape shape-4"></div>
+    </div>
+    
+    <!-- Contenu principal -->
+    <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center relative z-10">
+      <div class="md:w-1/2 mb-10 md:mb-0">
+        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
+          <span class="text-custom-blue">Lancez, développez et</span> <br>
+          <span class="text-custom-blue">financez votre startup avec</span><br>
+          <span class="text-blue-500">BraindCode</span>
+        </h1>
+        <p class="text-lg mb-8">
+          Transformez votre idée en entreprise prospère grâce à notre programme d'accompagnement complet.
+        </p>
+
+        <a href="#" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg transform transition hover:scale-105">
+          Découvrir la plateforme
+        </a>
+      </div>
+      
+      <!-- Image entrepreneur avec animation de glisse -->
+      <div class="md:w-1/2 relative">
+        <div 
+          class="entrepreneur-image-container"
+          :class="{ 'loaded': imageLoaded }"
+        >
           <img 
             src="/image/startup/entrepreneur.png" 
             alt="Entrepreneur illustration" 
-            class="max-w-full h-auto"
+            class="max-w-full h-auto entrepreneur-image"
           />
         </div>
       </div>
-    </section>
-  <section class="py-16 bg-white ">
-      <div class="max-w-5xl mx-auto px-6 text-center">
-        <div class="flex items-center justify-center mb-4">
-          <h2 class="text-3xl font-bold text-gray-900 text-custom-blue">
-            Qu'est-ce que Braincode Startup Studio
-          </h2>
-          <img 
-            src="/image/startup/rocket-icon.png" 
-            alt="Rocket icon" 
-            class="w-10 h-10 ml-3"
-          />
-        </div>
-        
-        <p class="text-lg text-gray-700  max-w-3xl mx-auto mb-8">
-          BrainCode Startup Studio est un programme d'accélération innovant qui accompagne les entrepreneurs à chaque étape du développement de leur startup, de l'idéation au financement. Notre écosystème unique réunit mentors, investisseurs et experts pour maximiser vos chances de succès.
-        </p>
-        
-        <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition hover:shadow-lg">
-          Découvrir l'équipe
-        </button>
+    </div>
+  </section>
+
+  <section class="py-16 bg-white">
+    <div class="max-w-5xl mx-auto px-6 text-center">
+      <div class="flex items-center justify-center mb-4">
+        <h2 class="text-3xl font-bold text-gray-900 text-custom-blue">
+          Qu'est-ce que Braincode Startup Studio
+        </h2>
+        <img 
+          src="/image/startup/rocket-icon.png" 
+          alt="Rocket icon" 
+          class="w-10 h-10 ml-3"
+        />
       </div>
-    </section>
+      
+      <p class="text-lg text-gray-700 max-w-3xl mx-auto mb-8">
+        BrainCode Startup Studio est un programme d'accélération innovant qui accompagne les entrepreneurs à chaque étape du développement de leur startup, de l'idéation au financement. Notre écosystème unique réunit mentors, investisseurs et experts pour maximiser vos chances de succès.
+      </p>
+      
+      <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition hover:shadow-lg">
+        Découvrir l'équipe
+      </button>
+    </div>
+  </section>
+
   <section class="py-16 bg-gray-50" style="background: linear-gradient(to bottom, #F1F9FF)">
     <div class="max-w-6xl mx-auto px-6">
       <h2 class="text-3xl font-bold text-center mb-12 text-gray-900 text-custom-blue">
@@ -191,7 +218,7 @@ const beneficiaries = [
         <div 
           v-for="(service, index) in services" 
           :key="index"
-          class="bg-white  rounded-lg shadow-md p-6 transition hover:shadow-lg hover:transform hover:scale-105"
+          class="bg-white rounded-lg shadow-md p-6 transition hover:shadow-lg hover:transform hover:scale-105"
         >
           <div class="flex justify-center mb-4">
             <img :src="service.icon" :alt="service.title" class="w-16 h-16" />
@@ -199,14 +226,15 @@ const beneficiaries = [
           <h3 class="text-lg font-semibold text-center mb-2 text-gray-900 text-custom-blue">
             {{ service.title }}
           </h3>
-          <p class="text-gray-600  text-center">
+          <p class="text-gray-600 text-center">
             {{ service.description }}
           </p>
         </div>
       </div>
     </div>
   </section>   
-   <section class="py-16 bg-white ">
+
+  <section class="py-16 bg-white">
     <div class="max-w-6xl mx-auto px-6">
       <h2 class="text-3xl font-bold text-center mb-12 text-gray-900 text-custom-blue">
         Qui peut bénéficier de BrainCode Startup Studio
@@ -216,14 +244,14 @@ const beneficiaries = [
         <div 
           v-for="(item, index) in beneficiaries" 
           :key="index"
-          class="bg-white  rounded-lg shadow-md overflow-hidden transition hover:shadow-xl"
+          class="bg-white rounded-lg shadow-md overflow-hidden transition hover:shadow-xl"
         >
           <img :src="item.image" :alt="item.title" class="w-full h-48 object-cover" />
           <div class="p-6">
             <h3 class="text-xl font-bold mb-3 text-center text-gray-900 text-custom-blue">
               {{ item.title }}
             </h3>
-            <p class="text-gray-600  mb-6 text-center">
+            <p class="text-gray-600 mb-6 text-center">
               {{ item.description }}
             </p>
             <div class="text-center">
@@ -236,7 +264,8 @@ const beneficiaries = [
       </div>
     </div>
   </section>
-<section class="py-16 bg-gray-50" style="background: linear-gradient(to bottom, #F1F9FF 50%, white 100%)">
+
+  <section class="py-16 bg-gray-50" style="background: linear-gradient(to bottom, #F1F9FF 50%, white 100%)">
     <div class="max-w-6xl mx-auto px-6">
       <div class="text-center mb-12">
         <h2 class="text-3xl font-bold text-custom-blue mb-4">Ce que disent nos startups</h2>
@@ -269,12 +298,10 @@ const beneficiaries = [
             <!-- En-tête de carte -->
             <div class="flex items-center mb-4">
               <div class="bg-blue-50 p-3 rounded-full mr-4">
-<img 
-  :src="testimonial.logo" 
-  @error="onImgError"
-/>
-
-               
+                <img 
+                  :src="testimonial.logo" 
+                  @error="onImgError"
+                />
               </div>
               <div>
                 <h3 class="font-bold text-xl text-custom-blue">{{ testimonial.company }}</h3>
@@ -335,29 +362,118 @@ const beneficiaries = [
   </section>
 </template>
 
-
-
 <style scoped>
 .text-custom-blue {
   color: #003E64;
 }
 
-.bg-noise {
-  background-image: 
-    linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
-  background-size: 30px 30px;
+/* Animation de fond avec formes mobiles */
+.animated-background {
+  background: linear-gradient(135deg, #F1F9FF 0%, #E3F2FD 50%, #F1F9FF 100%);
+  background-size: 400% 400%;
+  animation: gradientMove 15s ease infinite;
 }
 
-@keyframes float {
+@keyframes gradientMove {
   0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Formes animées en arrière-plan */
+.moving-shape {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.1;
+  animation: moveShape 20s infinite linear;
+}
+
+.shape-1 {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(45deg, #3B82F6, #1E40AF);
+  top: 10%;
+  left: 10%;
+  animation-duration: 25s;
+}
+
+.shape-2 {
+  width: 150px;
+  height: 150px;
+  background: linear-gradient(45deg, #60A5FA, #3B82F6);
+  top: 60%;
+  right: 10%;
+  animation-duration: 30s;
+  animation-direction: reverse;
+}
+
+.shape-3 {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(45deg, #93C5FD, #60A5FA);
+  top: 30%;
+  left: 60%;
+  animation-duration: 35s;
+}
+
+.shape-4 {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(45deg, #DBEAFE, #93C5FD);
+  bottom: 20%;
+  left: 20%;
+  animation-duration: 40s;
+  animation-direction: reverse;
+}
+
+@keyframes moveShape {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(100px, -50px) rotate(90deg);
+  }
+  50% {
+    transform: translate(200px, 50px) rotate(180deg);
+  }
+  75% {
+    transform: translate(-50px, 100px) rotate(270deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(360deg);
+  }
+}
+
+/* Animation de l'image entrepreneur */
+.entrepreneur-image-container {
+  transform: translateX(100px);
+  opacity: 0;
+  transition: all 1s ease-out;
+}
+
+.entrepreneur-image-container.loaded {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.entrepreneur-image {
+  animation: float 6s ease-in-out infinite;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.1));
+}
+
+/* Animations existantes */
+@keyframes float {
+  0%, 100% {
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-5px);
-  }
-  100% {
-    transform: translateY(0px);
+    transform: translateY(-10px);
   }
 }
 
@@ -376,5 +492,25 @@ const beneficiaries = [
 
 .animate-pulse-slow {
   animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Animation pour les hover effects */
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .entrepreneur-image-container {
+    transform: translateY(50px);
+  }
+  
+  .entrepreneur-image-container.loaded {
+    transform: translateY(0);
+  }
+  
+  .moving-shape {
+    display: none; /* Cache les formes sur mobile pour de meilleures performances */
+  }
 }
 </style>

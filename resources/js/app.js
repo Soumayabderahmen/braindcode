@@ -23,6 +23,7 @@ import FormationPage from './Pages/Home/FormationPage.vue';
 import RessourcesPage from './Pages/Home/RessourcesPage.vue';
 import AgentAIPage from './Pages/Home/AgentAIPage.vue';
 import AgentDetailsPage from './Pages/Home/AgentDetailsPage.vue';
+import Tuto1Page from './Pages/Home/Tuto1.vue'
 
 
 import { createInertiaApp } from '@inertiajs/vue3';
@@ -82,6 +83,7 @@ else if (appElement) {
     app.component('ressources-page', RessourcesPage);
     app.component('agent-ai-page', AgentAIPage);
     app.component('agent-details-page', AgentDetailsPage);
+    app.component('tuto1-page', Tuto1Page)
 
     app.mount('#app');
 

@@ -11,7 +11,7 @@ import { Link } from '@inertiajs/vue3'
       <div class="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20" style="padding: 3rem;">
         <!-- Logo centré avec animation hover -->
         <div class="flex justify-center mb-8 transform hover:scale-105 transition-transform duration-300">
-          <Link href="/">
+          <Link href="#">
             <img src="/image/logos/BraindCode.png" alt="Logo BraindCode" class="h-24 w-auto" style="height: 4rem;"/>
           </Link>
         </div>

@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  fastapi:
+    build:
+      context: ./backend-llm  # 👈 Dossier où se trouve le Dockerfile
+    container_name: fastapi-llm
+    ports:
+      - "5005:5005"  # 👈 Accès externe à l'API FastAPI
+    environment:
+      - OLLAMA_API=http://ollama:11434  # 👈 Nom du conteneur Ollama
+      - LLM_MODEL=llama3
+    depends_on:
+      - ollama
+    networks:
+      - backend
+
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"  #  Accès externe si tu veux le tester en dehors du réseau Docker
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge

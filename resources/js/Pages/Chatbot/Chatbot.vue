@@ -1,25 +1,33 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from "vue";
-//import { usePage } from "@inertiajs/vue3";
 import axios from "axios";
 import ChatInput from "./ChatInput.vue";
 import { marked } from "marked";
 
+// === ÉTAT ===
 const welcomeShown = ref(false);
 const messages = ref([]);
 const isOpen = ref(false);
 const messageContainer = ref(null);
 const botStatus = ref("unknown");
+const isLoading = ref(false);
+const chatStarted = ref(false);
+const activeReactionIndex = ref(null);
 
-const markdownToHtml = (text) => {
-  return marked.parse(text);
-};
+const props = defineProps({
+  user: Object,
+});
+const isAuthenticated = computed(() => !!props.user);
 
 const botSettings = ref({
-  bot_name: 'ChatBot',           // valeur par défaut
+  bot_name: 'ChatBot',
   welcome_message: "Bienvenue ! 🎉 Je suis là pour vous aider. Que puis-je faire pour vous aujourd’hui ?",
   primary_color: "#2563eb"
 });
+
+// === UTILS ===
+const markdownToHtml = (text) => marked.parse(text);
+
 const getSessionId = () => {
   let id = localStorage.getItem("chatbot_session_id");
   if (!id) {
@@ -28,44 +36,6 @@ const getSessionId = () => {
   }
   return id;
 };
-
-// const user = computed(() => usePage().props.auth.user);
-// const isAuthenticated = computed(() => !!user.value);
-const props = defineProps({
-  user: Object,
-});
-const isAuthenticated = computed(() => !!props.user);
-
-const isLoading = ref(false);
-const chatStarted = ref(false);
-const activeReactionIndex = ref(null);
-const resetChat = async () => {
-  messages.value = [];
-  chatStarted.value = true;
-
-  // Charger l'historique si l'utilisateur n'est PAS connecté
-  if (!isAuthenticated.value) {
-    await loadHistory();
-
-    // S'il n'y a aucun message => afficher le message de bienvenue
-    if (messages.value.length === 0 && !welcomeShown.value) {
-      messages.value.push({
-  sender: "bot",
-  text: botSettings.value.welcome_message,
-  animatedText: botSettings.value.welcome_message,
-  reactable: false,
-  isWelcome: true // ✅ ici OK
-});
-
-  welcomeShown.value = true;
-}
-
-
-
-    scrollToBottom();
-  }
-};
-
 
 const formatDate = (dateStr) => {
   const date = new Date(dateStr);
@@ -80,34 +50,16 @@ const scrollToBottom = async () => {
   }, 50);
 };
 
+// === SUGGESTIONS ===
 const suggestions = [
-  { 
-    label: "📋 Les étapes du programme", 
-    intent: "liste_etapes_programme",
-    description: "Découvrez les étapes clés du parcours" 
-  },
-  { 
-    label: "🎯 Objectif du programme", 
-    intent: "objectif_du_programme",
-    description: "Comprendre les buts à atteindre" 
-  },
-  { 
-    label: "📅 Prendre rendez-vous", 
-    intent: "prise_de_rdv",
-    description: "Planifier une session avec un expert" 
-  },
-  { 
-    label: "📨 Contacter un coach", 
-    intent: "contact_mentor",
-    description: "Obtenir de l'aide personnalisée" 
-  },
-  { 
-    label: "💰 Besoin d'un financement", 
-    intent: "besoin_aide_financement",
-    description: "Explorer les options de financement disponibles" 
-  },
+  { label: "📋 Les étapes du programme", intent: "liste_etapes_programme", description: "Découvrez les étapes clés du parcours" },
+  { label: "🎯 Objectif du programme", intent: "objectif_du_programme", description: "Comprendre les buts à atteindre" },
+  { label: "📅 Prendre rendez-vous", intent: "prise_de_rdv", description: "Planifier une session avec un expert" },
+  { label: "📨 Contacter un coach", intent: "contact_mentor", description: "Obtenir de l'aide personnalisée" },
+  { label: "💰 Besoin d'un financement", intent: "besoin_aide_financement", description: "Explorer les options de financement disponibles" },
 ];
 
+// === ENVOI D'UNE SUGGESTION ===
 const handleSuggestion = async (suggestion) => {
   chatStarted.value = true;
   messages.value.push({ text: suggestion.label, sender: "user" });
@@ -116,6 +68,11 @@ const handleSuggestion = async (suggestion) => {
   isLoading.value = true;
 
   const botIndex = messages.value.length;
+  const history = messages.value
+    .filter(m => m.sender === "user" || m.sender === "bot")
+    .slice(-10)
+    .map(m => ({ sender: m.sender, text: m.text }));
+
   messages.value.push({
     sender: "bot",
     text: "",
@@ -123,6 +80,7 @@ const handleSuggestion = async (suggestion) => {
     reactable: false,
     thinking: true
   });
+  await nextTick();
   scrollToBottom();
 
   try {
@@ -135,45 +93,31 @@ const handleSuggestion = async (suggestion) => {
       body: JSON.stringify({
         message: suggestion.label,
         intent_override: suggestion.intent,
-        history: [],
+        history
       }),
     });
 
-    const reader = response.body?.getReader();
-    const decoder = new TextDecoder();
-    let fullBotMessage = "";
+    const data = await response.json();
 
-    if (reader) {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+    messages.value[botIndex] = {
+      sender: "bot",
+      text: data.response,
+      animatedText: data.response,
+      reactable: true,
+      
+    };
 
-        const chunk = decoder.decode(value, { stream: true });
-        if (chunk) {
-          messages.value[botIndex].animatedText += chunk;
-          fullBotMessage += chunk;
-          await nextTick();
-          scrollToBottom();
-        }
-      }
-
-      messages.value[botIndex].thinking = false;
-      messages.value[botIndex].reactable = true;
-
-      // (Facultatif) enregistrer l'historique si connecté
-      if (isAuthenticated.value) {
-        await axios.post("/api/chatbot/history/save", {
-          userMessage: suggestion.label,
-          botMessage: fullBotMessage.trim(),
-          intent: suggestion.intent,
-          startTime: Date.now()
-        }, {
-          headers: {
-            "X-Session-ID": getSessionId()
-          }
-        });
-      }
+    if (isAuthenticated.value) {
+      await axios.post("/api/chatbot/history/save", {
+        userMessage: suggestion.label,
+        botMessage: data.response.trim(),
+        intent: suggestion.intent,
+        startTime: Date.now()
+      }, {
+        headers: { "X-Session-ID": getSessionId() }
+      });
     }
+
   } catch (err) {
     messages.value[botIndex] = {
       sender: "bot",
@@ -188,15 +132,27 @@ const handleSuggestion = async (suggestion) => {
   }
 };
 
-
 const sendMessage = async (message) => {
   if (!message.trim()) return;
 
+  // 🧑 Ajouter le message utilisateur
   messages.value.push({ text: message, sender: "user" });
   scrollToBottom();
   isLoading.value = true;
-
   const startTime = Date.now();
+
+  // 🧠 Ajouter la bulle "thinking" AVANT l'appel réseau
+  const botIndex = messages.value.length; // index de la réponse bot
+  messages.value.push({
+    sender: "bot",
+    text: "",
+    animatedText: "",
+    reactable: false,
+    thinking: true
+  });
+
+  await nextTick(); // ✅ Affiche immédiatement la bulle "thinking"
+  scrollToBottom();
 
   try {
     const history = messages.value
@@ -213,42 +169,21 @@ const sendMessage = async (message) => {
       body: JSON.stringify({ message, history }),
     });
 
-    if (!response.body) throw new Error("Pas de réponse du serveur.");
+    const data = await response.json();
 
-    const botIndex = messages.value.length;
-    messages.value.push({
+    // Remplacer la bulle "thinking" par la réponse réelle
+    messages.value[botIndex] = {
       sender: "bot",
-      text: "",
-      animatedText: "",
-      reactable: false,
-      thinking: true
-    });
-    scrollToBottom();
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullBotMessage = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value, { stream: true });
-
-      if (chunk) {
-        messages.value[botIndex].animatedText += chunk;
-        fullBotMessage += chunk;
-        await nextTick();
-        scrollToBottom();
-      }
-    }
-
-    messages.value[botIndex].thinking = false;
-    messages.value[botIndex].reactable = true;
+      text: data.response,
+      animatedText: data.response,
+      reactable: true,
+      thinking: false
+    };
 
     if (isAuthenticated.value) {
       await axios.post("/api/chatbot/history/save", {
         userMessage: message,
-        botMessage: fullBotMessage.trim(),
+        botMessage: data.response.trim(),
         intent: null,
         startTime: startTime,
       }, {
@@ -259,12 +194,13 @@ const sendMessage = async (message) => {
     }
 
   } catch (error) {
-    messages.value.push({
+    messages.value[botIndex] = {
       sender: "bot",
       text: "Erreur réseau ou bot hors ligne.",
       animatedText: "Erreur réseau ou bot hors ligne.",
       reactable: false,
-    });
+      thinking: false
+    };
   } finally {
     isLoading.value = false;
     scrollToBottom();
@@ -272,23 +208,36 @@ const sendMessage = async (message) => {
 };
 
 
+// === RÉACTIONS (like/dislike) ===
+const toggleReaction = (index) => {
+  activeReactionIndex.value = activeReactionIndex.value === index ? null : index;
+};
 
+const setReaction = (index, emoji) => {
+  if (!messages.value[index].reactable) return;
+  messages.value[index].reaction = messages.value[index].reaction === emoji ? null : emoji;
+  activeReactionIndex.value = null;
 
-
-const checkBotStatus = async () => {
-  try {
-    const response = await axios.get("http://127.0.0.1:5005/ping");
-    botStatus.value = response.status === 200 ? "online" : "offline";
-  } catch (error) {
-    botStatus.value = "offline";
+  if (isAuthenticated.value) {
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    axios.post("/chatbot/reaction", {
+      message: messages.value[index].text,
+      reaction: messages.value[index].reaction,
+    }, {
+      headers: {
+        'X-CSRF-TOKEN': token,
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
   }
 };
 
+// === CHARGER HISTORIQUE (si user connecté)
 const loadHistory = async () => {
   try {
     const response = await axios.get("/api/chatbot/history", {
       headers: {
-        "X-Session-ID": getSessionId() // 🔥 toujours envoyer le header, même si connecté
+        "X-Session-ID": getSessionId()
       }
     });
 
@@ -306,62 +255,58 @@ const loadHistory = async () => {
   }
 };
 
-
+// === ACTIVER LE CHATBOT
 const toggleChatbot = async () => {
   isOpen.value = !isOpen.value;
-
   if (isOpen.value) {
     if (isAuthenticated.value) {
       await loadHistory();
     } else {
-      // Invité : pas besoin de loadHistory, on attend un resetChat()
+      if (messages.value.length === 0 && !welcomeShown.value) {
+        messages.value.push({
+          text: botSettings.value.welcome_message,
+          sender: "bot",
+          reactable: false,
+          isWelcome: true
+        });
+        welcomeShown.value = true;
+      }
     }
-
-    if (messages.value.length === 0 && !welcomeShown.value) {
-  messages.value.push({
-    text: botSettings.value.welcome_message,
-    sender: "bot",
-    reactable: false,
-    isWelcome: true  //  obligatoire pour afficher les suggestions !
-  });
-  welcomeShown.value = true;
-}
-
-
     scrollToBottom();
   }
 };
 
-
-
-const toggleReaction = (index) => {
-  activeReactionIndex.value = activeReactionIndex.value === index ? null : index;
-};
-
-const setReaction = (index, emoji) => {
-  if (!messages.value[index].reactable) return;
-
-  if (messages.value[index].reaction === emoji) {
-    messages.value[index].reaction = null;
-  } else {
-    messages.value[index].reaction = emoji;
-  }
-  activeReactionIndex.value = null;
-
-  if (isAuthenticated.value) {
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    axios.post("/chatbot/reaction", {
-      message: messages.value[index].text,
-      reaction: messages.value[index].reaction,
-    }, {
-      headers: {
-        'X-CSRF-TOKEN': token,
-        'X-Requested-With': 'XMLHttpRequest'
-      }
-    });
+// === RESET CHAT (si user invité)
+const resetChat = async () => {
+  messages.value = [];
+  chatStarted.value = true;
+  if (!isAuthenticated.value) {
+    await loadHistory();
+    if (messages.value.length === 0 && !welcomeShown.value) {
+      messages.value.push({
+        sender: "bot",
+        text: botSettings.value.welcome_message,
+        animatedText: botSettings.value.welcome_message,
+        reactable: false,
+        isWelcome: true
+      });
+      welcomeShown.value = true;
+    }
+    scrollToBottom();
   }
 };
 
+// === PING STATUS BOT
+const checkBotStatus = async () => {
+  try {
+    const response = await axios.get("http://127.0.0.1:5005/ping");
+    botStatus.value = response.status === 200 ? "online" : "offline";
+  } catch (error) {
+    botStatus.value = "offline";
+  }
+};
+
+// === INIT
 onMounted(async () => {
   try {
     const res = await axios.get("/api/public/chatbot/settings");
@@ -377,10 +322,8 @@ onMounted(async () => {
   }
   await checkBotStatus();
 });
-
-
-
 </script>
+
 
 <template>
   <div>
@@ -952,7 +895,7 @@ onMounted(async () => {
 
 /* Chat bubbles */
 .chat-bubble {
-  padding: 14px 18px;
+  padding: 16px 7px;
   border-radius: 18px;
   font-size: 14px;
   line-height: 1.5;
@@ -1302,6 +1245,32 @@ onMounted(async () => {
   margin-top: 6px;
   font-style: italic;
 }
+/* Style markdown dans les bulles bot */
+.chat-bubble.bot span p {
+  margin: 0 0 0.5rem;
+  line-height: 1.5;
+}
+
+.chat-bubble.bot span a {
+  color: #2563eb;
+  text-decoration: underline;
+  word-break: break-word;
+}
+
+.chat-bubble.bot span strong {
+  font-weight: bold;
+}
+
+.chat-bubble.bot span ul {
+  padding-left: 1.2rem;
+  margin-top: 0.5rem;
+}
+
+.chat-bubble.bot span li {
+  margin-bottom: 0.4rem;
+  list-style: disc;
+}
+
 </style>
 
 <script>

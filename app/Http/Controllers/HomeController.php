@@ -59,18 +59,19 @@ public function startup()
     return view('Home.agentia2');
     }
 
-    // public function registrco()
-    // {
-    //     return view('registrco');
-    // }
-    // public function registrinv()
-    // {
-    //     return view('registrinv');
-    // }
-    // public function registrsta()
-    // {
-    //     return view('registrsta');
-    // }
+        public function tuto1()
+    {
+        return view('Home.tuto1');
+    }
+    public function tuto2()
+    {
+        return view('Home.tuto2');
+    }
+    public function tuto3()
+    {
+        return view('Home.tuto3');
+    }
+  
     // public function startupentrepreneuriat()
     // {
     //     return view('startupentrepreneuriat');
@@ -96,37 +97,8 @@ public function startup()
     //     return view('evenementsopportunites');
     // }
     
-   
-    // public function startinc2()
-    // {
-    //     return view('startinc2');
-    // }
+  
     
-    // public function resources2()
-    // {
-    //     return view('resources2');
-    // }
-    // public function resources3()
-    // {
-    //     return view('resources3');
-    // }
-    // public function formation2()
-    // {
-    //     return view('formation2');
-    // }
-
-    // public function tuto1()
-    // {
-    //     return view('tuto1');
-    // }
-    // public function tuto2()
-    // {
-    //     return view('tuto2');
-    // }
-    // public function tuto3()
-    // {
-    //     return view('tuto3');
-    // }
     // public function startupentrepreneuriat2()
     // {
     //     return view('startupentrepreneuriat2');

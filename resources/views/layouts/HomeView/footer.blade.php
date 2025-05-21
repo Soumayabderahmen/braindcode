@@ -34,7 +34,7 @@
                 <ul>
                     <li><a href="{{ route('faq') }}">FAQ</a></li>
                     <li><a href="{{ route('contactus') }}">Contact</a></li>
-                    <li><a href="#">Termes et conditions</a></li>
+                    <li><a href="{{ route('tuto1') }}">Guide</a></li>
                     <li><a href="#">Politique de confidentialité</a></li>
                 </ul>
             </div>
@@ -43,7 +43,7 @@
             <div class="footer-contact">
                 <h3 style="color: #ffffff;">Contactez-nous</h3>
                 <ul>
-                    <li><a href="tel:+21699532366"><i class="bx bx-phone"></i> +216 99 532 366</a></li>
+                    <li><a href="tel:06.14.18.92.25"><i class="bx bx-phone"></i> 06.14.18.92.25</a></li>
                     <li><a href="mailto:braindcode@gmail.com"><i class="bx bx-envelope"></i> braindcode@gmail.com</a></li>
                     <li><a href="https://braind-code.com" target="_blank"><i class="bx bx-globe"></i> braind-code.com</a></li>
                     <li><i class="bx bx-map"></i> France</li>

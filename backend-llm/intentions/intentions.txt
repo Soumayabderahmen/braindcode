@@ -6,6 +6,7 @@ Hi there, how can I talk to you?
 Coucou, j’ai une question
 Is someone here?
 Can you help me please?
+Bonsoir 
 
 #INTENTION:contact_mentor
 J’ai besoin d’un mentor
@@ -18,13 +19,14 @@ Need to speak with my coach
 Can I get help from a mentor?
 
 #INTENTION:liste_etapes_programme
-Give me the 12 steps
-Give me the 12 steps of the incubation
-What are the 12 steps?
-What are the steps of the incubation program?
-I want the 12 steps please
-Could you list the 12 stages of incubation?
-Tell me the full list of the startup program steps
+Quelles sont les 12 étapes du programme ?
+Donne-moi les étapes de l’incubation
+Quelles sont les étapes du parcours BrainCode ?
+Les étapes du programme de startup ?
+Startup steps please
+What are the 12 startup stages?
+Show me the startup incubation steps
+
 
 
 #INTENTION:objectif_du_programme
@@ -72,3 +74,22 @@ Est-ce que je peux avoir une aide financière ?
 Y a-t-il un programme d’investissement ?
 How can I get funding?
 Is there any investor program?
+
+#INTENTION:validation_etape
+Comment valider une étape ?
+Je viens de terminer l’étape 4, que faire ?
+Quand est-ce qu’une étape est considérée comme validée ?
+J’ai fini une étape, elle est validée automatiquement ?
+Is my step validated automatically?
+What happens after I submit a deliverable?
+How can I complete a step?
+I finished step 5, what now?
+
+#INTENTION:trouver_coach
+Comment trouver mon coach ?
+Où est le profil de mon coach ?
+Qui m’accompagne dans le programme ?
+I want to know who my coach is
+Where can I find my mentor info?
+How do I contact my assigned coach?
+
