@@ -1,0 +1,127 @@
+{
+  "intents": [
+    {
+      "name": "salutation",
+      "examples": [
+        "Bonjour, ça va ?",
+        "Salut, tu peux m’aider ?",
+        "Hello ! Je suis le chatbot BraindCode",
+        "Hi there, how can I talk to you?",
+        "Coucou, j’ai une question",
+        "Is someone here?",
+        "Can you help me please?",
+        "Bonsoir"
+      ]
+    },
+    {
+      "name": "contact_mentor",
+      "examples": [
+        "J’ai besoin d’un mentor",
+        "Je cherche un coach",
+        "Peux-tu m’orienter vers un accompagnement ?",
+        "Comment puis-je contacter mon coach ?",
+        "I want to talk to my coach",
+        "How can I reach my mentor ?",
+        "Need to speak with my coach",
+        "Can I get help from a mentor?"
+      ]
+    },
+    {
+      "name": "liste_etapes_programme",
+      "examples": [
+        "Quelles sont les 12 étapes du programme ?",
+        "Donne-moi les étapes de l’incubation",
+        "Quelles sont les étapes du parcours BrainCode ?",
+        "Les étapes du programme de startup ?",
+        "Startup steps please",
+        "What are the 12 startup stages?",
+        "Show me the startup incubation steps"
+      ]
+    },
+    {
+      "name": "objectif_du_programme",
+      "examples": [
+        "Quel est l’objectif du programme ?",
+        "Quel est le but de ce programme ?",
+        "À quoi sert ce programme d’incubation ?",
+        "what is the program goal ?",
+        "what’s the objective of the incubation program?",
+        "why this startup program exists ?",
+        "explain the goal of the incubator",
+        "what’s the purpose of this program?"
+      ]
+    },
+    {
+      "name": "livrable",
+      "examples": [
+        "C’est quoi le livrable de l’étape 3 ?",
+        "Je dois rendre quoi ?",
+        "Qu’est-ce qu’on attend à l’étape 5 ?",
+        "Quel livrable je dois soumettre ?",
+        "What is the deliverable at step 4?",
+        "I don’t know what to submit",
+        "what do I have to deliver in this step?",
+        "Can you tell me what is required at step 2?"
+      ]
+    },
+    {
+      "name": "retard",
+      "examples": [
+        "Je suis en retard",
+        "Puis-je prolonger ?",
+        "J’ai pas eu le temps",
+        "Je n’ai pas fini à temps",
+        "Est-ce que je peux avoir plus de temps ?",
+        "I'm late",
+        "Can I extend my deadline?",
+        "Is it possible to delay submission?",
+        "I didn’t finish yet",
+        "I missed the deadline"
+      ]
+    },
+    {
+      "name": "prise_de_rdv",
+      "examples": [
+        "Je veux prendre rendez-vous",
+        "Puis-je planifier un appel ?",
+        "Comment puis-je réserver une session ?",
+        "I want to schedule a meeting",
+        "Can I book a call?"
+      ]
+    },
+    {
+      "name": "besoin_aide_financement",
+      "examples": [
+        "Je cherche du financement",
+        "Est-ce que je peux avoir une aide financière ?",
+        "Y a-t-il un programme d’investissement ?",
+        "How can I get funding?",
+        "Is there any investor program?"
+      ]
+    },
+    {
+      "name": "validation_etape",
+      "examples": [
+        "Comment valider une étape ?",
+        "Je viens de terminer l’étape 4, que faire ?",
+        "Quand est-ce qu’une étape est considérée comme validée ?",
+        "J’ai fini une étape, elle est validée automatiquement ?",
+        "Is my step validated automatically?",
+        "What happens after I submit a deliverable?",
+        "How can I complete a step?",
+        "I finished step 5, what now?"
+      ]
+    },
+    {
+      "name": "trouver_coach",
+      "examples": [
+        "Comment trouver mon coach ?",
+        "Où est le profil de mon coach ?",
+        "Qui m’accompagne dans le programme ?",
+        "I want to know who my coach is",
+        "Where can I find my mentor info?",
+        "How do I contact my assigned coach?"
+      ]
+    }
+  ]
+}

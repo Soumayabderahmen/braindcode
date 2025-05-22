@@ -13,6 +13,7 @@ const botStatus = ref("unknown");
 const isLoading = ref(false);
 const chatStarted = ref(false);
 const activeReactionIndex = ref(null);
+const startTime = Date.now(); 
 
 const props = defineProps({
   user: Object,
@@ -84,7 +85,7 @@ const handleSuggestion = async (suggestion) => {
   scrollToBottom();
 
   try {
-    const response = await fetch("http://127.0.0.1:5005/chat", {
+    const response = await fetch("http://127.0.0.1:5005/chat-stream", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -107,16 +108,23 @@ const handleSuggestion = async (suggestion) => {
       
     };
 
-    if (isAuthenticated.value) {
-      await axios.post("/api/chatbot/history/save", {
-        userMessage: suggestion.label,
-        botMessage: data.response.trim(),
-        intent: suggestion.intent,
-        startTime: Date.now()
-      }, {
-        headers: { "X-Session-ID": getSessionId() }
-      });
+   if (isAuthenticated.value) {
+  const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+  await axios.post("/api/chatbot/history/save", {
+    userMessage: suggestion.label,
+    botMessage: data.response.trim(),
+    intent: suggestion.intent,
+    startTime: startTime
+  }, {
+    headers: {
+      "X-Session-ID": getSessionId(),
+      "X-CSRF-TOKEN": token,
+      "X-Requested-With": "XMLHttpRequest"
     }
+  });
+}
+
 
   } catch (err) {
     messages.value[botIndex] = {
@@ -157,33 +165,37 @@ const sendMessage = async (message) => {
       .map(m => ({ sender: m.sender, text: m.text }));
 
     const response = await fetch("http://127.0.0.1:5005/chat-stream", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Session-ID": getSessionId(),
-      },
-      body: JSON.stringify({ message, history })
-    });
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-Session-ID": getSessionId(),
+  },
+  body: JSON.stringify({ message, history })
+});
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullText = "";
+const reader = response.body.getReader();
+const decoder = new TextDecoder();
+let fullText = "";
 
-    while (true) {
+while (true) {
   const { done, value } = await reader.read();
   if (done) break;
 
   const chunk = decoder.decode(value, { stream: true }).trim();
 
-  // 💡 Certains chunks contiennent plusieurs lignes JSON, on les découpe proprement
   const lines = chunk.split('\n').filter(line => line.trim() !== '');
   for (const line of lines) {
     try {
       const parsed = JSON.parse(line);
       const token = parsed.response || "";
+
+      // ✅ Effet mot par mot
       fullText += token;
       messages.value[botIndex].animatedText = fullText;
       await nextTick();
+      await new Promise(resolve => setTimeout(resolve, 10)); // animation rapide mot par mot
+
+
     } catch (e) {
       console.warn("Erreur de parsing chunk JSON", line, e);
     }
@@ -194,6 +206,16 @@ const sendMessage = async (message) => {
     messages.value[botIndex].text = fullText;
     messages.value[botIndex].reactable = true;
     messages.value[botIndex].thinking = false;
+if (isAuthenticated.value) {
+      await axios.post("/api/chatbot/history/save", {
+        userMessage: message,
+        botMessage: fullText.trim(),
+        intent: null,
+        startTime: startTime,
+      }, {
+        headers: { "X-Session-ID": getSessionId() }
+      });
+    }
 
   } catch (e) {
     messages.value[botIndex] = {
