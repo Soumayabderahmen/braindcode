@@ -24,6 +24,7 @@ import RessourcesPage from './Pages/Home/RessourcesPage.vue';
 import AgentAIPage from './Pages/Home/AgentAIPage.vue';
 import AgentDetailsPage from './Pages/Home/AgentDetailsPage.vue';
 import Tuto1Page from './Pages/Home/Tuto1.vue'
+import TutorialPage from './Pages/Admin/TutorialsAdmin.vue'
 
 
 import { createInertiaApp } from '@inertiajs/vue3';
@@ -84,6 +85,7 @@ else if (appElement) {
     app.component('agent-ai-page', AgentAIPage);
     app.component('agent-details-page', AgentDetailsPage);
     app.component('tuto1-page', Tuto1Page)
+    app.component('tutorial-page', TutorialPage)
 
     app.mount('#app');
 

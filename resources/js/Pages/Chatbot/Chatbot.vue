@@ -94,37 +94,56 @@ const handleSuggestion = async (suggestion) => {
       body: JSON.stringify({
         message: suggestion.label,
         intent_override: suggestion.intent,
-        history
+        history: [],
       }),
     });
 
-    const data = await response.json();
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = "";
 
-    messages.value[botIndex] = {
-      sender: "bot",
-      text: data.response,
-      animatedText: data.response,
-      reactable: true,
-      
-    };
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-   if (isAuthenticated.value) {
-  const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      const chunk = decoder.decode(value, { stream: true }).trim();
+      const lines = chunk.split("\n").filter(line => line.trim() !== "");
 
-  await axios.post("/api/chatbot/history/save", {
-    userMessage: suggestion.label,
-    botMessage: data.response.trim(),
-    intent: suggestion.intent,
-    startTime: startTime
-  }, {
-    headers: {
-      "X-Session-ID": getSessionId(),
-      "X-CSRF-TOKEN": token,
-      "X-Requested-With": "XMLHttpRequest"
+      for (const line of lines) {
+        try {
+          const parsed = JSON.parse(line);
+          const token = parsed.response || "";
+
+          fullText += token;
+          messages.value[botIndex].animatedText = fullText;
+          await nextTick();
+          await new Promise(resolve => setTimeout(resolve, 10));
+        } catch (e) {
+          console.warn("Erreur de parsing JSON (stream)", line, e);
+        }
+      }
     }
-  });
-}
 
+    messages.value[botIndex].text = fullText;
+    messages.value[botIndex].reactable = true;
+    messages.value[botIndex].thinking = false;
+
+    if (isAuthenticated.value) {
+      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+      await axios.post("/api/chatbot/history/save", {
+        userMessage: suggestion.label,
+        botMessage: fullText.trim(),
+        intent: suggestion.intent,
+        startTime: startTime
+      }, {
+        headers: {
+          "X-Session-ID": getSessionId(),
+          "X-CSRF-TOKEN": token,
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      });
+    }
 
   } catch (err) {
     messages.value[botIndex] = {

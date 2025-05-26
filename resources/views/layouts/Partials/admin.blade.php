@@ -148,6 +148,12 @@
                         <div data-i18n="FAQs">FAQs</div>
                     </a>
                 </li>
+                <li class="menu-item">
+            <a href="{{ route('admin.tutorials.index') }}" class="menu-link">
+                <i class="menu-icon menu-sub-icon bx bx-circle"></i>
+                <div data-i18n="Tutoriels Vidéo">Tutoriels Vidéo</div>
+            </a>
+        </li>
             </ul>
         </li>
     </ul>

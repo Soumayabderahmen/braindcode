@@ -4,13 +4,19 @@ import axios from 'axios'
 
 const selected = ref(null)
 const faqs = ref([])
-const tutorials = ref([
-  { title: "Créer une formation", url: "/videos/creer-formation.mp4" },
-  { title: "Contacter un mentor", url: "/videos/contacter-mentor.mp4" },
-  { title: "Utiliser le tableau de bord", url: "/videos/utiliser-dashboard.mp4" },
-])
+const tutorials = ref([])
+
 const searchQuery = ref('')
 const isLoading = ref(true)
+const playingIndex = ref(null)
+
+const playVideo = (index) => {
+  const video = document.querySelectorAll('video')[index]
+  if (video) {
+    playingIndex.value = index
+    video.play()
+  }
+}
 
 // Filtrer les FAQs basées sur la recherche
 const filteredFaqs = computed(() => {
@@ -30,14 +36,24 @@ const toggleFaq = (index) => {
 // Charger depuis backend
 onMounted(async () => {
   try {
-    const response = await axios.get('/faqs/list') 
-    faqs.value = response.data
+    const [faqResponse, tutorialsResponse] = await Promise.all([
+      axios.get('/faqs/list'),
+      axios.get('/tutorials/public')
+    ])
+    
+    faqs.value = faqResponse.data
+    tutorials.value = tutorialsResponse.data.map(tuto => ({
+      title: tuto.title,
+      url: tuto.video_url
+    }))
+    
     isLoading.value = false
   } catch (error) {
-    console.error('Erreur lors du chargement des FAQs', error)
+    console.error('Erreur lors du chargement', error)
     isLoading.value = false
   }
 })
+
 </script>
 
 <template>
@@ -109,28 +125,35 @@ onMounted(async () => {
     <div class="tutorials-section">
       <h3 class="tutorials-title">Tutoriels Vidéo</h3>
       <div class="tutorials-list">
-        <div 
-          v-for="(video, idx) in tutorials" 
-          :key="video.title" 
-          class="tutorial-card"
-          :style="{ animationDelay: `${idx * 0.2}s` }"
-        >
-          <div class="video-container">
-            <video controls>
-              <source :src="video.url" type="video/mp4" />
-            </video>
-            <div class="play-overlay">
-              <div class="play-icon">▶</div>
-            </div>
-          </div>
-          <p class="tutorial-title">{{ video.title }}</p>
-        </div>
+       <div 
+  v-for="(video, idx) in tutorials" 
+  :key="video.title" 
+  class="tutorial-card"
+  :style="{ animationDelay: `${idx * 0.2}s` }"
+>
+  <div class="video-container" @click="playVideo(idx)">
+    <video controls :class="{ 'pointer-events-none': playingIndex !== idx }">
+      <source :src="video.url" type="video/mp4" />
+    </video>
+    <div 
+      class="play-overlay" 
+      v-if="playingIndex !== idx"
+    >
+      <div class="play-icon">▶</div>
+    </div>
+  </div>
+  <p class="tutorial-title">{{ video.title }}</p>
+</div>
+
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.pointer-events-none {
+  pointer-events: none;
+}
 
 .faq-page {
   margin: auto;
