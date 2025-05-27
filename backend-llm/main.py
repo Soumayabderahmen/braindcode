@@ -8,10 +8,10 @@ import os
 import logging
 import traceback
 import json
+import asyncio
 
 # === CONFIGURATION ===
-# ... imports (inchangés)
-# CONFIGURATION
+OLLAMA_MODEL = os.getenv("LLM_MODEL", "llama3:8b")
 OLLAMA_BASE = os.getenv("OLLAMA_API", "http://127.0.0.1:11434")
 OLLAMA_URL = f"{OLLAMA_BASE}/api/generate"
 
@@ -27,52 +27,172 @@ app.add_middleware(
 logging.basicConfig(level=logging.INFO)
 print(f"OLLAMA_URL = {OLLAMA_URL}")
 
-# === PROMPT BUILDER PAR DÉFAUT ===
-def build_prompt(message: str, lang: str, history: list = None, intent: str = None) -> str:
+# === PROMPT BUILDER OPTIMISÉ ===
+def build_prompt_optimized(message: str, lang: str, history: list = None, intent: str = None) -> str:
     lower_msg = message.lower()
 
-    # 🔍 Salutations simples → réponse brève
+    # 🔍 Salutations simples → réponse brève et directe
     salutations = ["bonjour", "salut", "coucou", "hello", "bonsoir", "hey"]
     if lower_msg in salutations:
         return {
             "fr": (
-                "Tu es BrainBot, l’assistant de BrainCode. Si l’utilisateur dit juste bonjour, réponds brièvement et poliment.\n\n"
-                f"Utilisateur : {message}\nChatbot : Bonjour 👋 Comment puis-je vous aider aujourd’hui ?"
+                "Tu es BrainBot. Réponds en UNE SEULE PHRASE courte et accueillante.\n\n"
+                f"Utilisateur : {message}\nChatbot :"
             ),
             "en": (
-                "You are BrainBot, the BrainCode assistant. If the user only says hello, respond briefly and politely.\n\n"
-                f"User: {message}\nChatbot: Hello 👋 How can I assist you today?"
+                "You are BrainBot. Respond in ONE SHORT welcoming sentence.\n\n"
+                f"User: {message}\nChatbot:"
             )
-        }.get(lang, f"Utilisateur : {message}\nChatbot : Bonjour 👋 Comment puis-je vous aider aujourd’hui ?")
+        }.get(lang, f"Utilisateur : {message}\nChatbot :")
 
-    # 🎯 Sinon : instructions normales
+    # 🎯 Instructions optimisées pour réponses courtes
     instruction = {
         "fr": (
-            "Tu es BrainBot, l’assistant officiel de la plateforme BrainCode Startup Studio. "
-            "Réponds en français, très brièvement (1 à 2 phrases max), de façon claire et directe, "
-            "sur les sujets liés à BrainCode : programme, étapes, livrables, coachs, mentors, ou dashboard. "
-            "Ne réponds que si la question est en rapport avec la plateforme."
+            "Tu es BrainBot, assistant BrainCode. RÉPONDS EN MAXIMUM 2 PHRASES COURTES ET PRÉCISES. "
+            "Sois direct, utile et concis sur les sujets BrainCode uniquement : programme, étapes, livrables, coachs, mentors, dashboard."
         ),
         "en": (
-            "You are BrainBot, the official assistant of the BrainCode Startup Studio platform. "
-            "Reply in English, very briefly (1 to 2 sentences max), clearly and directly, only about BrainCode-related topics: "
-            "program, steps, deliverables, coaches, mentors, or dashboard. Only answer if the question is relevant to the platform."
+            "You are BrainBot, BrainCode assistant. RESPOND IN MAXIMUM 2 SHORT AND PRECISE SENTENCES. "
+            "Be direct, helpful and concise about BrainCode topics only: program, steps, deliverables, coaches, mentors, dashboard."
         )
-    }.get(lang, "Tu es BrainBot. Sois bref, utile et concentre-toi uniquement sur les sujets liés à BrainCode.")
+    }.get(lang, "Tu es BrainBot. Sois très bref et précis.")
 
     prompt = f"{instruction}\n\n"
 
+    # Limiter l'historique pour réduire la taille du prompt
     if history:
-        for h in history[-2:]:
+        for h in history[-1:]:  # Seulement le dernier échange au lieu de 2
             role = "Utilisateur" if h["sender"] == "user" else "Chatbot"
-            prompt += f"{role} : {h['text'].strip()}\n"
+            prompt += f"{role} : {h['text'].strip()[:100]}\n"  # Tronquer à 100 chars
 
     prompt += f"Utilisateur : {message.strip()}\nChatbot :"
     return prompt
 
+# === STREAMING OPTIMISÉ AVEC DÉLAIS RÉDUITS ===
+async def stream_response_optimized(payload):
+    """Version optimisée du streaming avec délais réduits"""
+    try:
+        start = asyncio.get_event_loop().time()
+        async with httpx.AsyncClient(timeout=120) as client:
+            async with client.stream("POST", OLLAMA_URL, json=payload) as response:
+                buffer = ""
+                first_chunk_sent = False
+                word_count = 0
 
+                async for chunk in response.aiter_text():
+                    chunk = chunk.strip()
+                    if not chunk:
+                        continue
 
-# === ENDPOINT ===
+                    for line in chunk.split("\n"):
+                        try:
+                            parsed = json.loads(line)
+                            text = parsed.get("response", "")
+                            if not text:
+                                continue
+
+                            buffer += text
+
+                            # ✅ Premier chunk immédiat (pas de délai)
+                            if not first_chunk_sent and buffer:
+                                yield json.dumps({"response": buffer}) + "\n"
+                                buffer = ""
+                                first_chunk_sent = True
+                                continue  # Pas de sleep pour le premier chunk
+
+                            # ✅ Streaming mot par mot avec délais réduits
+                            while " " in buffer:
+                                word, buffer = buffer.split(" ", 1)
+                                word_count += 1
+                                yield json.dumps({"response": word + " "}) + "\n"
+                                
+                                # Délai adaptatif : plus rapide au début, plus lent pour les mots longs
+                                if word_count <= 5:
+                                    await asyncio.sleep(0.005)  # 5ms pour les premiers mots
+                                else:
+                                    delay = min(0.025, max(0.005, len(word) * 0.002))  
+                                    await asyncio.sleep(delay)
+
+                        except json.JSONDecodeError:
+                            logging.warning(f"⛔ Chunk JSON mal formé ignoré : {line}")
+
+        # Envoyer le buffer restant
+        if buffer.strip():
+            yield json.dumps({"response": buffer.strip() + " "}) + "\n"
+            
+        duration = asyncio.get_event_loop().time() - start
+        logging.info(f"⏱️ Streaming terminé en {duration:.2f} secondes")
+
+    except Exception as e:
+        logging.error(f"❌ Erreur dans le streaming Ollama : {e}")
+        yield json.dumps({
+            "response": "Je suis désolé, je ne peux pas répondre pour le moment.",
+            "error": str(e)
+        }) + "\n"
+
+# === ALTERNATIVE : STREAMING PAR CHUNKS PLUS GROS ===
+async def stream_response_chunked(payload):
+    """Alternative avec streaming par chunks de caractères"""
+    try:
+        start = asyncio.get_event_loop().time()
+        async with httpx.AsyncClient(timeout=120) as client:
+            async with client.stream("POST", OLLAMA_URL, json=payload) as response:
+                accumulated_text = ""
+                char_count = 0
+                
+                async for chunk in response.aiter_text():
+                    chunk = chunk.strip()
+                    if not chunk:
+                        continue
+
+                    for line in chunk.split("\n"):
+                        try:
+                            parsed = json.loads(line)
+                            text = parsed.get("response", "")
+                            if text:
+                                accumulated_text += text
+                                char_count += len(text)
+                                
+                                # Envoyer par chunks de 3-5 caractères
+                                if char_count >= 4:
+                                    yield json.dumps({"response": text}) + "\n"
+                                    char_count = 0
+                                    await asyncio.sleep(0.008)  # 8ms entre les chunks
+
+                        except json.JSONDecodeError:
+                            continue
+
+        duration = asyncio.get_event_loop().time() - start
+        logging.info(f"⏱️ Streaming chunked terminé en {duration:.2f} secondes")
+
+    except Exception as e:
+        logging.error(f"❌ Erreur streaming chunked : {e}")
+        yield json.dumps({"response": "Erreur de streaming"}) + "\n"
+
+@app.on_event("startup")
+async def warmup_ollama():
+    """Warmup optimisé avec prompt court"""
+    logging.info("🚀 Démarrage du backend... Warmup Ollama lancé.")
+    try:
+        payload = {
+            "model": OLLAMA_MODEL,
+            "prompt": "Salut",  # Prompt encore plus court
+            "stream": False,
+            "options": {
+                "max_tokens": 50,  # Limiter la réponse de warmup
+                "temperature": 0.7
+            }
+        }
+        async with httpx.AsyncClient(timeout=30) as client:  # Timeout réduit
+            response = await client.post(OLLAMA_URL, json=payload)
+            if response.status_code == 200:
+                logging.info("✅ Ollama prêt (warmup réussi)")
+            else:
+                logging.warning(f"⚠️ Warmup échoué - status code : {response.status_code}")
+    except Exception as e:
+        logging.error(f"❌ Warmup Ollama échoué : {e}")
+
+# === ENDPOINT PRINCIPAL OPTIMISÉ ===
 @app.post("/chat-stream")
 async def chat_stream(request: Request):
     try:
@@ -81,37 +201,37 @@ async def chat_stream(request: Request):
         history = data.get("history", [])
         lang = detect(message)
         intent = data.get("intent_override") or detect_intent(message)
+        
+        # Choix du mode de streaming
+        streaming_mode = data.get("streaming_mode", "optimized")  # "optimized" ou "chunked"
 
-        logging.info(f"Intent détectée : {intent}")
+        logging.info(f"Intent détectée : {intent} | Mode: {streaming_mode}")
 
+        # === PROMPTS SPÉCIALISÉS OPTIMISÉS ===
         if intent == "liste_etapes_programme":
             prompt = (
-                "Tu es BrainBot. Réponds en français, sans introduction, en listant précisément les 12 étapes du programme BrainCode.\n\n"
-                "Utilisateur : Quelles sont les étapes du programme ?\n"
-                "Chatbot : Voici les 12 étapes de l'incubation d'une startup :\n"
-                "1. Idée & validation\n2. Comité de pilotage\n3. Étude de marché\n4. Business model\n"
-                "5. Plan stratégique\n6. Pitch deck\n7. Prototype\n8. Processus opérationnels\n"
-                "9. Recrutement\n10. MVP\n11. Feedback\n12. Scaling\n\n"
-                f"Utilisateur : {message}\nChatbot :"
+                "Tu es BrainBot. Liste brièvement les 12 étapes en une phrase par étape.\n\n"
+                f"Utilisateur : {message}\n"
+                "Chatbot : Les 12 étapes BrainCode : 1.Idée/validation 2.Comité 3.Marché 4.Business model "
+                "5.Plan stratégique 6.Pitch deck 7.Prototype 8.Processus 9.Recrutement 10.MVP 11.Feedback 12.Scaling.\n"
+                "Chatbot :"
             )
 
         elif intent == "objectif_du_programme":
             prompt = (
-                "Tu es BrainBot. Réponds en 2 phrases claires.\n\n"
+                "Tu es BrainBot. Réponds en 1 phrase claire.\n\n"
                 f"Utilisateur : {message}\n"
-                "Chatbot : Le programme BrainCode aide les startups à structurer leur idée et tester leur marché. "
-                "Il propose un parcours guidé, des outils concrets et un accompagnement IA + coachs.\n"
+                "Chatbot : BrainCode structure votre startup avec 12 étapes guidées, outils IA et accompagnement coach.\n"
                 "Chatbot :"
             )
 
         elif intent == "prise_de_rdv":
             prompt = (
-                "Tu es BrainBot. Réponds en une phrase directe.\n\n"
+                "Tu es BrainBot. Une instruction directe.\n\n"
                 f"Utilisateur : {message}\n"
-                "Chatbot : Allez dans votre tableau de bord > section Coach > cliquez sur 'Prendre rendez-vous'.\n"
+                "Chatbot : Tableau de bord > Coach > 'Prendre rendez-vous'.\n"
                 "Chatbot :"
             )
-
         elif intent == "contact_mentor":
             prompt = (
                 "Tu es BrainBot. Donne 3 étapes pour contacter un mentor.\n\n"
@@ -158,37 +278,36 @@ async def chat_stream(request: Request):
                 f"Utilisateur : {message}\nChatbot :"
             )
 
-        else:
-            logging.info("🟡 Aucune intention détectée ou inconnue → génération du prompt dynamique.")
-            prompt = build_prompt(message, lang, history, intent)
 
-        # Envoi à Ollama
+
+        else:
+            # Utiliser le prompt builder optimisé
+            prompt = build_prompt_optimized(message, lang, history, intent)
+
+        # === PAYLOAD OLLAMA OPTIMISÉ ===
         payload = {
-            "model": "mistral",  
+            "model": OLLAMA_MODEL,
             "prompt": prompt,
-            "stream": True
+            "stream": True,
+            "keep_alive": 1,
+            "options": {
+                "temperature": 0.7,
+                "top_p": 0.9,
+                "repeat_penalty": 1.1
+            }
         }
 
-        async def stream_response():
-            try:
-                async with httpx.AsyncClient(timeout=120) as client:
-                    async with client.stream("POST", OLLAMA_URL, json=payload) as response:
-                        async for chunk in response.aiter_text():
-                            chunk = chunk.strip()
-                            if chunk:
-                                for line in chunk.split("\n"):
-                                    try:
-                                        parsed = json.loads(line)
-                                        text = parsed.get("response", "")
-                                        if text:
-                                            yield json.dumps({"response": text}) + "\n"
-                                    except json.JSONDecodeError:
-                                        logging.warning(f"⛔ Chunk ignoré : {line}")
-            except Exception as e:
-                logging.error(f"❌ Stream erreur fallback : {e}")
-                yield json.dumps({"response": "Je suis désolé, je ne peux pas répondre pour le moment.", "error": str(e)}) + "\n"
-
-        return StreamingResponse(stream_response(), media_type="text/plain")
+        # Choisir le mode de streaming
+        if streaming_mode == "chunked":
+            return StreamingResponse(
+                stream_response_chunked(payload), 
+                media_type="text/event-stream"
+            )
+        else:
+            return StreamingResponse(
+                stream_response_optimized(payload), 
+                media_type="text/event-stream"
+            )
 
     except Exception as e:
         logging.error(f"🔥 Erreur globale dans /chat-stream : {e}")
@@ -197,7 +316,7 @@ async def chat_stream(request: Request):
             "message": "Le chatbot a rencontré un problème. Réessaie dans un moment."
         })
 
-# === PING BOT ===
+# === ENDPOINTS UTILITAIRES ===
 @app.get("/ping")
 async def ping():
     try:
@@ -207,22 +326,21 @@ async def ping():
     except:
         return {"status": "ok", "ollama": "offline"}
 
-# === DEBUG PROMPT (dev uniquement) ===
 @app.get("/debug-prompt")
 def debug_prompt():
-    prompt = build_prompt("Comment rejoindre une étape ?", "fr", [])
+    prompt = build_prompt_optimized("Comment rejoindre une étape ?", "fr", [])
     return {"prompt": prompt}
 
-# === TEST SYNCHRONE (sans stream) ===
 @app.get("/test-ollama")
 async def test_ollama():
     try:
         payload = {
-            "model": "mistral",
-            "prompt": "Bonjour",
-            "stream": False
+            "model": OLLAMA_MODEL,
+            "prompt": "Test rapide",
+            "stream": False,
+            "options": {"max_tokens": 30}
         }
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=20) as client:
             response = await client.post(OLLAMA_URL, json=payload)
             return {
                 "status_code": response.status_code,
@@ -233,3 +351,28 @@ async def test_ollama():
             "error": str(e),
             "trace": traceback.format_exc()
         }
+
+# === NOUVEAU : ENDPOINT POUR TESTER LES MODES DE STREAMING ===
+@app.post("/test-streaming")
+async def test_streaming(request: Request):
+    """Endpoint pour tester différents modes de streaming"""
+    data = await request.json()
+    mode = data.get("mode", "optimized")  # "optimized" ou "chunked"
+    
+    payload = {
+        "model": OLLAMA_MODEL,
+        "prompt": "Tu es BrainBot. Réponds en 2 phrases courtes sur BrainCode.\n\nUtilisateur : Bonjour\nChatbot :",
+        "stream": True,
+        "options": {"max_tokens": 50}
+    }
+    
+    if mode == "chunked":
+        return StreamingResponse(
+            stream_response_chunked(payload), 
+            media_type="text/event-stream"
+        )
+    else:
+        return StreamingResponse(
+            stream_response_optimized(payload), 
+            media_type="text/event-stream"
+        )

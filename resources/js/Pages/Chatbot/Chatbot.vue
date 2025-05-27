@@ -1,10 +1,10 @@
+
 <script setup>
 import { ref, computed, onMounted, nextTick } from "vue";
 import axios from "axios";
 import ChatInput from "./ChatInput.vue";
 import { marked } from "marked";
 
-// === ÉTAT ===
 const welcomeShown = ref(false);
 const messages = ref([]);
 const isOpen = ref(false);
@@ -13,20 +13,17 @@ const botStatus = ref("unknown");
 const isLoading = ref(false);
 const chatStarted = ref(false);
 const activeReactionIndex = ref(null);
-const startTime = Date.now(); 
+const startTime = Date.now();
 
-const props = defineProps({
-  user: Object,
-});
+const props = defineProps({ user: Object });
 const isAuthenticated = computed(() => !!props.user);
 
 const botSettings = ref({
   bot_name: 'ChatBot',
-  welcome_message: "Bienvenue ! 🎉 Je suis là pour vous aider. Que puis-je faire pour vous aujourd’hui ?",
+  welcome_message: "Bienvenue ! 🎉 Je suis là pour vous aider. Que puis-je faire pour vous aujourd'hui ?",
   primary_color: "#2563eb"
 });
 
-// === UTILS ===
 const markdownToHtml = (text) => marked.parse(text);
 
 const getSessionId = () => {
@@ -38,17 +35,24 @@ const getSessionId = () => {
   return id;
 };
 
-const formatDate = (dateStr) => {
-  const date = new Date(dateStr);
-  return date.toLocaleString();
-};
+const formatDate = (dateStr) => new Date(dateStr).toLocaleString();
 
+// ✅ OPTIMISATION: Scroll avec debounce pour éviter les reflows multiples
+let scrollTimeout;
 const scrollToBottom = async () => {
-  await nextTick();
-  setTimeout(() => {
+  if (scrollTimeout) clearTimeout(scrollTimeout);
+  
+  scrollTimeout = setTimeout(async () => {
+    await nextTick();
     const el = messageContainer.value;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, 50);
+    if (el) {
+      // Utiliser scrollTo au lieu de scrollTop pour de meilleures performances
+      el.scrollTo({
+        top: el.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, 10); // Délai très court mais évite les appels multiples
 };
 
 // === SUGGESTIONS ===
@@ -60,31 +64,92 @@ const suggestions = [
   { label: "💰 Besoin d'un financement", intent: "besoin_aide_financement", description: "Explorer les options de financement disponibles" },
 ];
 
-// === ENVOI D'UNE SUGGESTION ===
+// ✅ OPTIMISATION: Streaming optimisé avec batch processing
+const handleStreaming = async (reader, botIndex) => {
+  const decoder = new TextDecoder();
+  let fullText = "";
+  let batchBuffer = "";
+  let updateCounter = 0;
+  
+  const updateUI = () => {
+    if (messages.value[botIndex]) {
+      messages.value[botIndex].animatedText = fullText;
+    }
+  };
+
+  // ✅ Batch les mises à jour pour éviter trop de reflows
+  const batchUpdate = () => {
+    updateCounter++;
+    if (updateCounter % 3 === 0) { // Mise à jour tous les 3 tokens au lieu de chaque token
+      updateUI();
+    }
+  };
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      const chunk = decoder.decode(value, { stream: true }).trim();
+      if (!chunk) continue;
+      
+      const lines = chunk.split("\n").filter(line => line.trim() !== "");
+      
+      for (const line of lines) {
+        try {
+          const parsed = JSON.parse(line);
+          const token = parsed.response || "";
+          
+          if (token) {
+            fullText += token;
+            batchBuffer += token;
+            
+            // ✅ Mise à jour par batch de mots complets plutôt que par caractère
+            if (batchBuffer.includes(' ') || batchBuffer.length > 10) {
+              batchUpdate();
+              batchBuffer = "";
+            }
+          }
+        } catch (e) {
+          console.warn("Erreur parsing JSON:", line.substring(0, 50));
+        }
+      }
+    }
+    
+    // Mise à jour finale
+    updateUI();
+    
+  } catch (error) {
+    console.error("Erreur streaming:", error);
+    if (messages.value[botIndex]) {
+      messages.value[botIndex].animatedText = "Erreur de connexion";
+    }
+  }
+  
+  return fullText;
+};
+
 const handleSuggestion = async (suggestion) => {
   chatStarted.value = true;
   messages.value.push({ text: suggestion.label, sender: "user" });
   scrollToBottom();
-
   isLoading.value = true;
-
+  
   const botIndex = messages.value.length;
-  const history = messages.value
-    .filter(m => m.sender === "user" || m.sender === "bot")
-    .slice(-10)
-    .map(m => ({ sender: m.sender, text: m.text }));
-
-  messages.value.push({
-    sender: "bot",
-    text: "",
-    animatedText: "",
-    reactable: false,
-    thinking: true
+  messages.value.push({ 
+    sender: "bot", 
+    text: "", 
+    animatedText: "", 
+    reactable: false, 
+    thinking: true 
   });
+  
   await nextTick();
   scrollToBottom();
 
   try {
+    const responseStart = performance.now(); // ✅ Utiliser performance.now() pour plus de précision
+    
     const response = await fetch("http://127.0.0.1:5005/chat-stream", {
       method: "POST",
       headers: {
@@ -95,64 +160,43 @@ const handleSuggestion = async (suggestion) => {
         message: suggestion.label,
         intent_override: suggestion.intent,
         history: [],
+        streaming_mode: "optimized" // ✅ Forcer le mode optimisé
       }),
     });
 
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
     const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullText = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value, { stream: true }).trim();
-      const lines = chunk.split("\n").filter(line => line.trim() !== "");
-
-      for (const line of lines) {
-        try {
-          const parsed = JSON.parse(line);
-          const token = parsed.response || "";
-
-          fullText += token;
-          messages.value[botIndex].animatedText = fullText;
-          await nextTick();
-          await new Promise(resolve => setTimeout(resolve, 10));
-        } catch (e) {
-          console.warn("Erreur de parsing JSON (stream)", line, e);
-        }
-      }
+    const fullText = await handleStreaming(reader, botIndex);
+    
+    const duration = performance.now() - responseStart;
+    console.log(`⏱️ [Suggestion] Réponse générée en ${Math.round(duration)}ms`);
+    
+    // ✅ Mise à jour finale optimisée
+    if (messages.value[botIndex]) {
+      messages.value[botIndex].text = fullText;
+      messages.value[botIndex].reactable = true;
+      messages.value[botIndex].thinking = false;
     }
 
-    messages.value[botIndex].text = fullText;
-    messages.value[botIndex].reactable = true;
-    messages.value[botIndex].thinking = false;
-
+    // ✅ Sauvegarde asynchrone pour ne pas bloquer l'UI
     if (isAuthenticated.value) {
-      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-      await axios.post("/api/chatbot/history/save", {
-        userMessage: suggestion.label,
-        botMessage: fullText.trim(),
-        intent: suggestion.intent,
-        startTime: startTime
-      }, {
-        headers: {
-          "X-Session-ID": getSessionId(),
-          "X-CSRF-TOKEN": token,
-          "X-Requested-With": "XMLHttpRequest"
-        }
-      });
+      saveToHistory(suggestion.label, fullText.trim(), suggestion.intent);
     }
-
+    
   } catch (err) {
-    messages.value[botIndex] = {
-      sender: "bot",
-      text: "Erreur réseau ou bot hors ligne.",
-      animatedText: "Erreur réseau ou bot hors ligne.",
-      reactable: false,
-      thinking: false
-    };
+    console.error("Erreur suggestion:", err);
+    if (messages.value[botIndex]) {
+      messages.value[botIndex] = {
+        sender: "bot",
+        text: "Désolé, je rencontre des difficultés. Réessayez dans un moment.",
+        animatedText: "Désolé, je rencontre des difficultés. Réessayez dans un moment.",
+        reactable: false,
+        thinking: false
+      };
+    }
   } finally {
     isLoading.value = false;
     scrollToBottom();
@@ -161,92 +205,125 @@ const handleSuggestion = async (suggestion) => {
 
 const sendMessage = async (message) => {
   if (!message.trim()) return;
-
+  
   messages.value.push({ text: message, sender: "user" });
   scrollToBottom();
   isLoading.value = true;
-
+  
   const botIndex = messages.value.length;
-  messages.value.push({
-    sender: "bot",
-    text: "",
-    animatedText: "",
-    reactable: false,
-    thinking: true
+  messages.value.push({ 
+    sender: "bot", 
+    text: "", 
+    animatedText: "", 
+    reactable: false, 
+    thinking: true 
   });
+  
   await nextTick();
   scrollToBottom();
 
   try {
+    // ✅ Limiter l'historique pour améliorer les performances
     const history = messages.value
       .filter(m => m.sender === "user" || m.sender === "bot")
-      .slice(-2) // ⏱️ Historique court = plus rapide
-      .map(m => ({ sender: m.sender, text: m.text }));
+      .slice(-4) // Seulement les 4 derniers au lieu de tous
+      .map(m => ({ sender: m.sender, text: m.text.substring(0, 200) })); // Limiter la taille
 
+    const responseStart = performance.now();
+    
     const response = await fetch("http://127.0.0.1:5005/chat-stream", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "X-Session-ID": getSessionId(),
-  },
-  body: JSON.stringify({ message, history })
-});
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Session-ID": getSessionId(),
+      },
+      body: JSON.stringify({ 
+        message, 
+        history,
+        streaming_mode: "optimized" // ✅ Forcer le mode optimisé
+      })
+    });
 
-const reader = response.body.getReader();
-const decoder = new TextDecoder();
-let fullText = "";
-
-while (true) {
-  const { done, value } = await reader.read();
-  if (done) break;
-
-  const chunk = decoder.decode(value, { stream: true }).trim();
-
-  const lines = chunk.split('\n').filter(line => line.trim() !== '');
-  for (const line of lines) {
-    try {
-      const parsed = JSON.parse(line);
-      const token = parsed.response || "";
-
-      // ✅ Effet mot par mot
-      fullText += token;
-      messages.value[botIndex].animatedText = fullText;
-      await nextTick();
-      await new Promise(resolve => setTimeout(resolve, 10)); // animation rapide mot par mot
-
-
-    } catch (e) {
-      console.warn("Erreur de parsing chunk JSON", line, e);
-    }
-  }
-}
-
-
-    messages.value[botIndex].text = fullText;
-    messages.value[botIndex].reactable = true;
-    messages.value[botIndex].thinking = false;
-if (isAuthenticated.value) {
-      await axios.post("/api/chatbot/history/save", {
-        userMessage: message,
-        botMessage: fullText.trim(),
-        intent: null,
-        startTime: startTime,
-      }, {
-        headers: { "X-Session-ID": getSessionId() }
-      });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
     }
 
+    const reader = response.body.getReader();
+    const fullText = await handleStreaming(reader, botIndex);
+    
+    const duration = performance.now() - responseStart;
+    console.log(`⏱️ [Message user] Réponse générée en ${Math.round(duration)}ms`);
+
+    // ✅ Mise à jour finale
+    if (messages.value[botIndex]) {
+      messages.value[botIndex].text = fullText;
+      messages.value[botIndex].reactable = true;
+      messages.value[botIndex].thinking = false;
+    }
+
+    // ✅ Sauvegarde asynchrone
+    if (isAuthenticated.value) {
+      saveToHistory(message, fullText.trim(), null);
+    }
+    
   } catch (e) {
-    messages.value[botIndex] = {
-      sender: "bot",
-      text: "Erreur réseau ou bot hors ligne.",
-      animatedText: "Erreur réseau ou bot hors ligne.",
-      reactable: false,
-      thinking: false
-    };
+    console.error("Erreur message:", e);
+    if (messages.value[botIndex]) {
+      messages.value[botIndex] = {
+        sender: "bot",
+        text: "Erreur réseau ou bot hors ligne.",
+        animatedText: "Erreur réseau ou bot hors ligne.",
+        reactable: false,
+        thinking: false
+      };
+    }
   } finally {
     isLoading.value = false;
     scrollToBottom();
+  }
+};
+
+// ✅ OPTIMISATION: Fonction de sauvegarde asynchrone séparée
+const saveToHistory = async (userMessage, botMessage, intent) => {
+  try {
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    await axios.post("/api/chatbot/history/save", {
+      userMessage,
+      botMessage,
+      intent,
+      startTime: startTime
+    }, {
+      headers: {
+        "X-Session-ID": getSessionId(),
+        "X-CSRF-TOKEN": token,
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    });
+  } catch (error) {
+    console.error("Erreur sauvegarde historique:", error);
+  }
+};
+
+// === CHARGER HISTORIQUE (si user connecté)
+const loadHistory = async () => {
+  try {
+    const response = await axios.get("/api/chatbot/history", {
+      headers: {
+        "X-Session-ID": getSessionId()
+      }
+    });
+
+    messages.value = response.data.history.map((m) => ({
+      text: m.message,
+      sender: m.sender,
+      date: m.created_at,
+      reaction: m.reaction || null,
+      reactable: m.sender === 'bot' && m.message !== botSettings.value.welcome_message,
+    }));
+
+    scrollToBottom();
+  } catch (error) {
+    console.error("Erreur chargement historique", error);
   }
 };
 
@@ -271,29 +348,6 @@ const setReaction = (index, emoji) => {
         'X-Requested-With': 'XMLHttpRequest'
       }
     });
-  }
-};
-
-// === CHARGER HISTORIQUE (si user connecté)
-const loadHistory = async () => {
-  try {
-    const response = await axios.get("/api/chatbot/history", {
-      headers: {
-        "X-Session-ID": getSessionId()
-      }
-    });
-
-    messages.value = response.data.history.map((m) => ({
-      text: m.message,
-      sender: m.sender,
-      date: m.created_at,
-      reaction: m.reaction || null,
-      reactable: m.sender === 'bot' && m.message !== botSettings.value.welcome_message,
-    }));
-
-    scrollToBottom();
-  } catch (error) {
-    console.error("Erreur chargement historique", error);
   }
 };
 
@@ -341,7 +395,7 @@ const resetChat = async () => {
 // === PING STATUS BOT
 const checkBotStatus = async () => {
   try {
-    const response = await axios.get("http://127.0.0.1:5005/ping");
+    const response = await axios.get("http://127.0.0.1:5005/ping", { timeout: 3000 });
     botStatus.value = response.status === 200 ? "online" : "offline";
   } catch (error) {
     botStatus.value = "offline";
@@ -366,7 +420,6 @@ onMounted(async () => {
 });
 </script>
 
-
 <template>
   <div>
     <!-- BACKDROP flouté -->
@@ -387,11 +440,10 @@ onMounted(async () => {
       <img src="/images/chat-icon.png" alt="chatbot icon" class="chat-icon" />
       <div class="chat-tooltip">Besoin d'aide ?</div>
     </div>
+    
     <transition name="chatbot-popup">
       <div v-if="isOpen" class="chatbot-container">
-      <div class="chatbot-header">
-
-        <!-- <div class="chatbot-header" :style="{ background: `linear-gradient(to right, ${botSettings.primary_color}, ${adjustColor(botSettings.primary_color, -20)})` }"> -->
+        <div class="chatbot-header">
           <div class="chatbot-info">
             <div class="chatbot-avatar-container">
               <img src="/images/bot-avatar.png" alt="bot avatar" class="chatbot-avatar" />
@@ -412,7 +464,7 @@ onMounted(async () => {
         <div class="chatbot-messages" ref="messageContainer">
           <div
             v-for="(msg, index) in messages"
-            :key="index"
+            :key="`msg-${index}-${msg.sender}`"
             class="message-block"
             :class="[
               msg.sender === 'user' ? 'user' : 'bot',
@@ -424,66 +476,59 @@ onMounted(async () => {
                 <div class="bot-icon">
                   <img src="/images/bot-avatar.png" alt="bot icon" class="bot-avatar-small" />
                 </div>
-              <!-- Bulle normale -->
-<div
-  v-if="!(msg.thinking && index === messages.length - 1)"
-  class="chat-bubble bot"
-  :style="{ borderColor: `${botSettings.primary_color}20` }"
->
-  <span v-html="markdownToHtml(msg.animatedText || msg.text)"></span>
-</div>
+                
+                <!-- ✅ Condition optimisée pour éviter les reflows -->
+                <div
+                  v-if="!msg.thinking"
+                  class="chat-bubble bot"
+                  :style="{ borderColor: `${botSettings.primary_color}20` }"
+                >
+                  <span v-html="markdownToHtml(msg.animatedText || msg.text)"></span>
+                </div>
 
-<!-- Bulle thinking uniquement pendant le stream -->
-<div
-  v-else
-  class="chat-bubble bot thinking"
->
-  <span class="dot" :style="{ backgroundColor: botSettings.primary_color }"></span>
-  <span class="dot" :style="{ backgroundColor: botSettings.primary_color }"></span>
-  <span class="dot" :style="{ backgroundColor: botSettings.primary_color }"></span>
-</div>
-
-
-
-
+                <!-- Bulle thinking optimisée -->
+                <div
+                  v-else
+                  class="chat-bubble bot thinking"
+                >
+                  <span class="dot" :style="{ backgroundColor: botSettings.primary_color }"></span>
+                  <span class="dot" :style="{ backgroundColor: botSettings.primary_color }"></span>
+                  <span class="dot" :style="{ backgroundColor: botSettings.primary_color }"></span>
+                </div>
               </div>
               
-              <!-- Suggestions en dehors de la bulle mais toujours dans le wrapper -->
-             <div v-if="msg.isWelcome" class="suggestions-container">
-    
-    <!-- Version grille des suggestions - style cartes modernes -->
-    <div class="suggestions-grid">
-      <button
-        v-for="(s, i) in suggestions"
-        :key="i"
-        class="suggestion-card"
-        :style="{ '--accent-color': botSettings.primary_color }"
-        @click="handleSuggestion(s)"
-      >
-        <div class="suggestion-top">
-          <div class="suggestion-icon" :style="{ background: `${botSettings.primary_color}15`, color: botSettings.primary_color }">
-            {{ s.label.split(' ')[0] }}
-          </div>
-          <div class="suggestion-indicator" :style="{ background: botSettings.primary_color }"></div>
-        </div>
-        <div class="suggestion-content">
-          <h4 class="suggestion-title">{{ s.label.split(' ').slice(1).join(' ') }}</h4>
-          <p class="suggestion-description">{{ s.description }}</p>
-        </div>
-        <div class="suggestion-footer">
-          <div class="suggestion-arrow" :style="{ background: botSettings.primary_color }">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5 12h14M12 5l7 7-7 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-        </div>
-      </button>
-    </div>
-    
-   
-  </div>
+              <!-- Suggestions en dehors de la bulle -->
+              <div v-if="msg.isWelcome" class="suggestions-container">
+                <div class="suggestions-grid">
+                  <button
+                    v-for="(s, i) in suggestions"
+                    :key="`suggestion-${i}`"
+                    class="suggestion-card"
+                    :style="{ '--accent-color': botSettings.primary_color }"
+                    @click="handleSuggestion(s)"
+                  >
+                    <div class="suggestion-top">
+                      <div class="suggestion-icon" :style="{ background: `${botSettings.primary_color}15`, color: botSettings.primary_color }">
+                        {{ s.label.split(' ')[0] }}
+                      </div>
+                      <div class="suggestion-indicator" :style="{ background: botSettings.primary_color }"></div>
+                    </div>
+                    <div class="suggestion-content">
+                      <h4 class="suggestion-title">{{ s.label.split(' ').slice(1).join(' ') }}</h4>
+                      <p class="suggestion-description">{{ s.description }}</p>
+                    </div>
+                    <div class="suggestion-footer">
+                      <div class="suggestion-arrow" :style="{ background: botSettings.primary_color }">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M5 12h14M12 5l7 7-7 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              </div>
 
-              <!-- Réactions visibles pour tous les messages bots reactables -->
+              <!-- Réactions -->
               <div class="reaction-fixed" v-if="msg.reactable">
                 <button class="reaction-trigger" @click="toggleReaction(index)" 
                        :style="{ borderColor: botSettings.primary_color }">
@@ -492,7 +537,6 @@ onMounted(async () => {
                 <div v-if="activeReactionIndex === index" class="emoji-picker">
                   <span @click="setReaction(index, '👍')">👍</span>
                   <span @click="setReaction(index, '👎')">👎</span>
-                  
                 </div>
               </div>
             </div>
@@ -503,9 +547,6 @@ onMounted(async () => {
 
             <small class="msg-date" v-if="msg.date">🕒 {{ formatDate(msg.date) }}</small>
           </div>
-
-
-
         </div>
 
         <!-- Input visible si utilisateur connecté OU si le non-connecté a cliqué sur "commencer" -->
@@ -519,9 +560,7 @@ onMounted(async () => {
         
         <!-- Pour les non-connectés, bouton affiché uniquement si chat non encore démarré -->
         <div v-if="!isAuthenticated && !chatStarted" class="chat-reset-container">
-          <button class="chat-reset-btn" @click="resetChat" >
-                    <!--<button class="chat-reset-btn" @click="resetChat" :style="{ backgroundColor: botSettings.primary_color }">-->
-
+          <button class="chat-reset-btn" @click="resetChat">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chat-icon-svg">
               <path d="M5 12h14M12 5l7 7-7 7"></path>
             </svg>
