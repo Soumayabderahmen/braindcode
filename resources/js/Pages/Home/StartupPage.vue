@@ -16,23 +16,23 @@
     </section>
 
     <!-- Bloc 2 : 12 étapes -->
-    <section class="text-center my-5 bg-white">
-      <h3 class="section-title">Un accompagnement structuré en <span class="highlight">12 étapes</span></h3>
-      <img src="/asset/img/startup2.png" alt="Étapes du programme" class="img-fluid mt-4 mb-3" style="
-    margin-left: 2%;
-">
-      <p class="section-description" style="
-    margin-left: 25%;
-">
-        Le programme d'incubation Braindcode Startup Studio aide les startups en 12 étapes, de l'idée au lancement,
-        avec des outils pratiques (Lean Canvas, Pitch Deck, Business Plan) et l'aide d'une IA pour accélérer et
-        optimiser chaque étape !
-      </p>
- <a href="#" style="margin-right: 3%;" class="btn-start px-6 py-3 rounded-lg transition-all hover:scale-105 hover:shadow-lg" v-motion :initial="{ opacity: 0 }" :enter="{ opacity: 1, transition: { duration: 600, delay: 600 } }">
-          Commencer votre aventure
-          <i class="bi bi-rocket-takeoff ms-2"></i>
-        </a >    
-      </section>
+      <section class="steps-section">
+        <div class="container">
+            <h3 class="section-title">Un accompagnement structuré en <span class="highlight">12 étapes</span></h3>
+            <img src="/asset/img/startup2.png" alt="Étapes du programme" class="steps-image">
+            <p class="section-description">
+                Le programme d'incubation Braindcode Startup Studio aide les startups en 12 étapes, de l'idée au lancement, 
+                avec des outils pratiques (Lean Canvas, Pitch Deck, Business Plan) et l'aide d'une IA pour accélérer et 
+                optimiser chaque étape !
+            </p>
+            <div class="text-center">
+                <a href="#" class="btn-start">
+                    Commencer votre aventure
+                    <i class="bi bi-rocket-takeoff"></i>
+                </a>
+            </div>
+        </div>
+    </section>
 
     <!-- Bloc 3 + 4 : Coachs -->
   <section class="coaching-section py-5">
@@ -305,6 +305,62 @@ const advantages = ref([
 
 
 <style scoped>
+
+        
+        /* === SECTION 12 ÉTAPES === */
+        .steps-section {
+            padding: 4rem 0;
+            background: white;
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            font-weight: 700;
+            color: var(--text-dark);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .steps-image {
+            max-width: 100%;
+            height: auto;
+            margin: 2rem auto;
+            display: block;
+        }
+
+        .section-description {
+            max-width: 800px;
+            margin: 2rem auto;
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 0 1rem;
+            line-height: 1.7;
+        }
+
+        .btn-start {
+            background: var(--gradient-primary);
+            color: white;
+            font-weight: 600;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 8px 25px rgba(66, 104, 246, 0.3);
+            transition: var(--transition);
+            border: none;
+            font-size: 1.1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(66, 104, 246, 0.4);
+            color: white;
+        }
+
 .coaching-section {
   background-color:aliceblue#bdd6ee;
   position: relative;
@@ -351,6 +407,7 @@ const advantages = ref([
 
 /* Styles des cartes de coach */
 .coach-card {
+   
   position: relative;
   padding: 0;
   border-radius: 16px;
@@ -767,19 +824,9 @@ const advantages = ref([
   }
 }
 
-/* Styles spécifiques pour les cards de coach */
-.coach-card {
-  transition: all 0.3s ease;
-}
 
-.coach-card:hover {
-  transform: translateY(-10px);
-}
 
-.coach-img-container {
-  height: 180px;
-  overflow: hidden;
-}
+
 
 /* Styles spécifiques pour les testimonials */
 .testimonial-card {
@@ -801,6 +848,121 @@ const advantages = ref([
   .section-title {
     font-size: 2rem !important;
   }
+}
+/* === RESPONSIVE DESIGN === */
+
+/* Titre + bouton 3D centré sur mobile */
+@media (max-width: 768px) {
+  .headstartup .position-absolute {
+    width: 90%;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .startup-title {
+    font-size: 2rem !important;
+  }
+
+  .btn-explore {
+    font-size: 1rem;
+    padding: 0.6rem 1.2rem;
+  }
+
+  .btn-start {
+    font-size: 1rem;
+    padding: 0.6rem 1.2rem;
+  }
+}
+
+/* Description centrée sous l’image dans bloc 2 */
+.section-description {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  text-align: center;
+}
+
+/* Coach cards - mini écrans */
+@media (max-width: 480px) {
+  .coach-img-container {
+    height: 150px;
+  }
+
+  .coach-name {
+    font-size: 1.1rem;
+  }
+
+  .coach-details li {
+    font-size: 0.9rem;
+  }
+
+  .btn-contact-coach {
+    font-size: 0.85rem;
+    padding: 6px 16px;
+  }
+}
+
+/* Section IA agent */
+@media (max-width: 768px) {
+  .ai-description {
+    text-align: center !important;
+  }
+
+  .ai-features {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ai-assistant-img {
+    width: 120px;
+  }
+}
+
+/* Section avantages IA */
+@media (max-width: 768px) {
+  .features-section .grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .feature-card {
+    padding: 1.5rem 1rem;
+  }
+}
+
+/* Section titles */
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 2rem !important;
+  }
+
+  .coaching-section h2 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 575px) {
+  .section-description {
+    font-size: 1rem;
+    width: 90%;
+  }
+
+  .coaching-section h2 {
+    font-size: 1.8rem;
+  }
+}
+
+/* Uniformiser marges verticales entre sections */
+section {
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+}
+
+/* Container responsive global */
+.container {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 
