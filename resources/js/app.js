@@ -8,6 +8,8 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { toast } from 'vue3-toastify'; 
 
 
+import notifications from './Components/notificationsList/liste.vue';
+import notificationsNavbar from './Components/Notifications.vue';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 const appElement = document.getElementById('app');
@@ -53,7 +55,12 @@ if (appElement && appElement.hasAttribute('data-page')) {
     app.component('startups',defineAsyncComponent(() => import('./Pages/Admin/startup.vue')));
     app.component('add-reservations',defineAsyncComponent(() => import('./Pages/Startups/ReservationCoach.vue')));
     app.component('reservations-startup',defineAsyncComponent(() => import('./Pages/Startups/ListeReservation.vue')));
-app.component('profile-edit',defineAsyncComponent(() => import('./Pages/Profile/Partials/EditCoachProfile.vue')));
+    app.component('profile-edit',defineAsyncComponent(() => import('./Pages/Profile/Partials/EditCoachProfile.vue')));
+    app.component('details_agent',defineAsyncComponent(() => import('./Pages/Admin/AgentIA/DetailsAgent.vue')));
+    app.component('list_agent',defineAsyncComponent(() => import('./Pages/Admin/AgentIA/ListAgent.vue')));
+    app.component('List_coach',defineAsyncComponent(() => import('./Pages/Coach/ListCoach.vue')));
+    app.component('coach-profile',defineAsyncComponent(() => import('./Pages/Coach/profileCoach.vue')));
+    app.component('liste-notif', notifications); 
 
     app.config.globalProperties.$toast = Object.assign(toast, {   
         success: (msg, opts) => toast(msg, { type: "success", ...opts }),   
@@ -63,12 +70,12 @@ app.component('profile-edit',defineAsyncComponent(() => import('./Pages/Profile/
       });  
 
     app.mount('#app');
+// Navbar à part
+const navbar = createApp({});
+navbar.component('notifications', notificationsNavbar);
 
 
-//     const navbar = createApp({});
-// navbar.component('notifications', notificationsNavbar);
+navbar.mount('#navbar-nav');
 
-
-// navbar.mount('#navbar-nav');
 
 }

@@ -1,6 +1,9 @@
 <?php
 
 namespace App\Http\Controllers\Startups;
+use GuzzleHttp\Exception\RequestException;
+use A4Anthony\WherebyLaravel\Facades\WherebyLaravel;
+use GuzzleHttp\Client;
 
 use App\Http\Controllers\Controller;
 use App\Mail\StatutUpdatedMail;
@@ -14,6 +17,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -127,22 +131,96 @@ class ReservationController extends Controller
     ]);
 
     }
-    public function respond(Request $request, Reservation $reservation)
-    {
-        $status = $request->input('statut');
-        $reservation->statut = $status;
-        $reservation->save();
-        $startupUser = $reservation->startup->user;
 
-        if ($startupUser && $startupUser->email) {
-            Mail::to($startupUser->email)->send(new StatutUpdatedMail($reservation));
+public function respond(Request $request, Reservation $reservation)
+{
+    $status = $request->input('statut');
+    $reservation->statut = $status;
+
+    if ($status === 'acceptée') {
+        try {
+            // Vérifie que la clé Whereby est définie
+            $apiKey = config('services.whereby.key');
+            if (!$apiKey) {
+                throw new \Exception('Clé API Whereby manquante dans .env');
+            }
+
+            // Initialisation de Guzzle
+            $client = new Client([
+                'base_uri' => 'https://api.whereby.dev/v1/',
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $apiKey,
+                    'Content-Type' => 'application/json',
+                ],
+            ]);
+
+            // Construction des dates
+            $startDate = now()->addMinutes(1);
+            $endDate = (clone $startDate)->addMinutes($reservation->duration ?? 30);
+
+            // Payload envoyé à l'API
+            $payload = [
+                'startDate' => $startDate->toIso8601String(),
+                'endDate'   => $endDate->toIso8601String(),
+                'fields'    => ['hostRoomUrl'],
+            ];
+
+            // Appel à l’API Whereby
+            $response = $client->post('meetings', ['json' => $payload]);
+            $data = json_decode($response->getBody(), true);
+
+            // Vérifie que le lien est bien reçu
+            if (!empty($data['roomUrl'])) {
+                $reservation->meeting_url = $data['roomUrl'];
+            } else {
+                Log::warning('[Whereby] Lien manquant dans la réponse : ' . json_encode($data));
+            }
+
+        } catch (RequestException $e) {
+            $response = $e->getResponse();
+            $body = $response ? (string) $response->getBody() : 'Pas de réponse';
+
+            Log::error('[Whereby Guzzle Error]', [
+                'message' => $e->getMessage(),
+                'response' => $body,
+            ]);
+
+            return response()->json([
+                'error' => 'Erreur Whereby (RequestException)',
+                'details' => $body,
+            ], 500);
+
+        } catch (\Exception $e) {
+            Log::error('[Whereby Exception]', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'error' => 'Erreur Whereby générale',
+                'details' => $e->getMessage(),
+            ], 500);
         }
-        
-        // Optionnel : mettre à jour la notification si tu veux
-        return response()->json(['success' => true]);
     }
- 
 
+    // Sauvegarder la réservation (avec ou sans lien)
+    $reservation->save();
+
+    // Envoi d'e-mail à la startup si nécessaire
+    $startupUser = $reservation->startup->user ?? null;
+    if ($startupUser && $startupUser->email) {
+        Mail::to($startupUser->email)->send(new StatutUpdatedMail($reservation));
+    }
+
+    return response()->json(['success' => true]);
+}
+
+
+  public function notifications()
+      {
+          return view('coach.notification.index');
+      }
     /**
      * Display the specified resource.
      */

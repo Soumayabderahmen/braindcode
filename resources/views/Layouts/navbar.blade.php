@@ -10,7 +10,9 @@
         <!-- Search -->
         <div class="navbar-nav align-items-center">
             <div class="nav-item navbar-search-wrapper titleSide mb-0">
-                <button class="btn btn-top shadow-none bg-transp"><i class="bi bi-chevron-left"></i></button>
+<button type="button" class="btn btn-top shadow-none bg-transp" onclick="window.history.back();">
+  <i class="bi bi-chevron-left"></i>
+</button>
                 <h1 class="">@yield('title')</h1>
             </div>
         </div>
@@ -30,10 +32,8 @@
 </li>
 
             <!-- / robot-->
+<notifications :user="@js(auth()->user())"></notifications>
 
-            <!-- Notification -->
-            {{-- <notifications></notifications> --}}
-            <!--/ Notification -->
 
           
 <li class="nav-item navbar-dropdown dropdown-user dropdown mt-0" style="margin-top: 0px !important;">

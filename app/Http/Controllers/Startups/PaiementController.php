@@ -6,119 +6,93 @@ use App\Http\Controllers\Controller;
 use App\Models\Paiement;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Inertia\Inertia;
 use Stripe\Stripe;
-use Stripe\PaymentIntent;
+use Stripe\Checkout\Session;
+use Illuminate\Support\Facades\Auth;
+
 class PaiementController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function show(Reservation $reservation)
     {
-        //
+        return view('paiement.show', compact('reservation'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function createStripeIntent(Request $request)
+    public function checkout(Request $request, Reservation $reservation)
     {
-        try {
-            Log::info('Création du Stripe PaymentIntent', $request->all());
-    
-            $user = Auth::user(); // Utilisateur connecté
-            if (!$user) {
-                return response()->json(['error' => 'Utilisateur non connecté'], 401);
-            }
-    
-            $reservation = Reservation::find($request->reservation_id);
-            if (!$reservation) {
-                return response()->json(['error' => 'Réservation introuvable'], 404);
-            }
-    
-            Stripe::setApiKey(config('services.stripe.secret'));
-    
-            $amount = $reservation->total * 100; // En centimes pour Stripe
-    
-            $paymentIntent = PaymentIntent::create([
-                'amount' => (int) $amount,
-                'currency' => $reservation->currency ?? 'eur',
-                'metadata' => [
-                    'user_id' => $user->id,
-                    'reservation_id' => $reservation->id,
-                ],
-            ]);
-    
-            // Enregistre un paiement en attente (optionnel)
-            Paiement::create([
-                'user_id' => $user->id,
-                'reservation_id' => $reservation->id,
-                'Pays' => $request->pays ?? 'France',
-                'ville' => $request->ville ?? '',
-                'adresse' => $request->adresse ?? '',
-                'code_postal' => $request->code_postal ?? '',
-                'total' => $reservation->total,
-                'currency' => $reservation->currency ?? 'eur',
-                'stripe_session_id' => $paymentIntent->id,
-                'stripe_payment_intent_id' => $paymentIntent->id,
-                'status' => 'en_attente',
-            ]);
-    
-            return response()->json([
-                'clientSecret' => $paymentIntent->client_secret,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Erreur création Stripe Intent: ' . $e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-    }
+        Stripe::setApiKey(config('services.stripe.secret'));
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show($reservationId)
-    {
-        $reservation = Reservation::with('startup')->findOrFail($reservationId);
-    
-        return Inertia::render('Paiements/Paiement', [
-            'reservation' => $reservation,
-            // 'user' => Auth::user(),
+        // ✅ Validation des données du formulaire
+        $validated = $request->validate([
+            'pays' => 'required|string|max:100',
+            'ville' => 'required|string|max:100',
+            'adresse' => 'required|string|max:255',
+            'code_postal' => 'required|string|max:20',
         ]);
-    }
-    
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        // ✅ Création de la session Stripe Checkout
+        $session = Session::create([
+            'payment_method_types' => ['card'],
+            'line_items' => [[
+                'price_data' => [
+                    'currency' => 'eur',
+                    'product_data' => [
+                        'name' => 'Réservation coach',
+                    ],
+                    'unit_amount' => $reservation->total * 100,
+                ],
+                'quantity' => 1,
+            ]],
+            'mode' => 'payment',
+
+            // ✅ Ne surtout pas passer une route avec {reservation}
+            'success_url' => route('startup.paiement.success') . '?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => route('startup.paiement.cancel'),
+        ]);
+
+        // ✅ Enregistrement du paiement dans la BDD
+        Paiement::create([
+            'user_id' => Auth::id(),
+            'reservation_id' => $reservation->id,
+            'pays' => $validated['pays'],
+            'ville' => $validated['ville'],
+            'adresse' => $validated['adresse'],
+            'code_postal' => $validated['code_postal'],
+            'total' => $reservation->total,
+            'currency' => 'eur',
+            'stripe_session_id' => $session->id,
+            'status' => 'en_attente',
+        ]);
+
+        return redirect($session->url);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function success(Request $request)
     {
-        //
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        $session_id = $request->get('session_id');
+
+        if (!$session_id) {
+            abort(400, 'Session ID manquant');
+        }
+
+        // ✅ Récupère le paiement lié à cette session Stripe
+        $paiement = Paiement::where('stripe_session_id', $session_id)->firstOrFail();
+
+        // ✅ Marque la réservation comme "payée"
+        $reservation = $paiement->reservation;
+        $reservation->paid = true;
+        $reservation->save();
+
+        // ✅ Met à jour le statut du paiement
+        $paiement->status = 'payé';
+        $paiement->save();
+
+        return view('paiement.success', compact('reservation'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function cancel()
     {
-        //
+        return view('paiement.cancel');
     }
 }

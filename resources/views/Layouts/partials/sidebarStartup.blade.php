@@ -46,6 +46,15 @@
                 <div data-i18n="Agent Ai">Agent Ai</div>
             </a>
         </li>
+         <li class="menu-item">
+            <a href="{{ route('list.coach') }}"
+                class="menu-link">
+                <i class="menu-icon">
+                    <span class="iconify" data-icon="covid:symptoms-virus-headache-2" data-inline="false"></span>
+                </i>
+                <div data-i18n="Liste des Coachs">Liste des Coachs </div>
+            </a>
+        </li>
         <li class="menu-item">
             <a href="{{ route('startup.calendar') }}"
                 class="menu-link">

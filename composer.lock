@@ -4,8 +4,62 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "75760e3be53c591dc51c7415e77dc26f",
+    "content-hash": "d28251ebaa697eeb9f179ce4c2be61ab",
     "packages": [
+        {
+            "name": "a4anthony/whereby-laravel",
+            "version": "1.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/a4anthony/whereby-laravel.git",
+                "reference": "0a5227b12ab7913292fbc6dc9fafdb9a07b9248b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/a4anthony/whereby-laravel/zipball/0a5227b12ab7913292fbc6dc9fafdb9a07b9248b",
+                "reference": "0a5227b12ab7913292fbc6dc9fafdb9a07b9248b",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^6.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "WherebyLaravel": "A4Anthony\\WherebyLaravel\\Facades\\WherebyLaravel"
+                    },
+                    "providers": [
+                        "A4Anthony\\WherebyLaravel\\Providers\\WherebyLaravelServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "A4Anthony\\WherebyLaravel\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "a4anthony",
+                    "email": "anthony@a4anthonydev.com"
+                }
+            ],
+            "description": "A package for WhereBy",
+            "support": {
+                "issues": "https://github.com/a4anthony/whereby-laravel/issues",
+                "source": "https://github.com/a4anthony/whereby-laravel/tree/1.0.4"
+            },
+            "time": "2023-01-04T13:56:41+00:00"
+        },
         {
             "name": "brick/math",
             "version": "0.12.3",
