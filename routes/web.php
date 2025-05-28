@@ -1,7 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\CoachController;
-use App\Http\Controllers\AgentIA\AgentController;
+use App\Http\Controllers\Admin\AgentController;
+use App\Http\Controllers\AgentIA\AgentIAController;
 use App\Http\Controllers\Coach\CoachProfileController;
 use App\Http\Controllers\Investisseurs\ListInvestisseurController;
 use App\Http\Controllers\ProfileController;
@@ -10,7 +11,6 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Coach\AvailabilityController;
 use App\Http\Controllers\Startups\PaiementController;
 use App\Http\Controllers\Startups\ReservationController;
@@ -59,8 +59,18 @@ Route::get('/dashboard', [CoachController::class, 'dashboard'])->name('dashboard
 Route::get('/startups', [CoachController::class, 'startup'])->name('startups');
 Route::get('/investisseurs', [CoachController::class, 'investisseur'])->name('investisseurs');
 Route::get('/reservations', [ReservationController::class, 'indexAdmin'])->name('reservations');
+route::get('/detailsAgent/{id}', [AgentController::class, 'show'])->name('detailsAgent');
+route::get('/listAgents', [AgentController::class, 'index'])->name('listAgent');
+route::post('/addAgent', [AgentController::class, 'store'])->name('addAgent');
+Route::post('/updateAgent/{id}', [AgentController::class, 'update'])->name('updateAgent');
+Route::delete('/deleteAgent/{id}', [AgentController::class, 'destroy']);
+
 
 });
+Route::get('/admin/api/agent/{id}', function ($id) {
+    return \App\Models\Agent::with('sections.tasks')->findOrFail($id);
+});
+
 Route::prefix('startup')->middleware(['auth', 'verified'])->name('startup.')->group(function () {  
     Route::get('/dashboard', [ListStartupController::class, 'ListMembres'])->name('list');
     Route::get('/calendar', [ListStartupController::class, 'FullCalandryStartup'])->name('calendar');
@@ -69,6 +79,11 @@ Route::prefix('startup')->middleware(['auth', 'verified'])->name('startup.')->gr
     Route::get('/reservation-message', function () {return Inertia::render('Startups/ReservationMessage');})->name('reservation.message');
     Route::get('/reservations', [ReservationController::class, 'indexStartup'])->name('reservations');
     Route::get('/reservation/{coach}/{availability}/{date}', [ReservationController::class, 'showBookingForm'])->name('reservation.form');
+    Route::get('/paiement/success', [PaiementController::class, 'success'])->name('paiement.success');
+    Route::get('/paiement/cancel', [PaiementController::class, 'cancel'])->name('paiement.cancel');
+    Route::get('/paiement/{reservation}', [PaiementController::class, 'show'])->name('paiement.show');
+    Route::post('/paiement/{reservation}', [PaiementController::class, 'checkout'])->name('paiement.checkout');
+    
 
 });
 Route::prefix('coach')->middleware(['auth', 'verified'])->name('coach.')->group(function () {  
@@ -82,9 +97,9 @@ Route::prefix('coach')->middleware(['auth', 'verified'])->name('coach.')->group(
 });
 
 Route::prefix('agentia')->group(function () {
-    Route::get('/', [AgentController::class, 'agentia'])->name('coach.agentia');
-    Route::get('/details', [AgentController::class, 'detailsAgentia'])->name('coach.agentia.details');
-    Route::get('/add', [AgentController::class, 'addAgentia'])->name('coach.agentia.add');
+    Route::get('/', [AgentIAController::class, 'agentia'])->name('coach.agentia');
+    Route::get('/details', [AgentIAController::class, 'detailsAgentia'])->name('coach.agentia.details');
+    Route::get('/add', [AgentIAController::class, 'addAgentia'])->name('coach.agentia.add');
 });
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

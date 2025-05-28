@@ -24,6 +24,12 @@ class StatutUpdatedMail extends Mailable
     public function build()
     {
         return $this->subject('Mise à jour de votre réservation')
-            ->view('emails.reservation-status');
+            ->view('emails.reservation-status')
+            ->with([
+            'reservation' => $this->reservation,
+            'meetingUrl' => $this->reservation->meeting_url,
+            'startTime' => $this->reservation->meeting_time,
+            'duration' => $this->reservation->duration,
+        ]);
     }
 }

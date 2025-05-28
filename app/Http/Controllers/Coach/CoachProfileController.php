@@ -24,7 +24,7 @@ class CoachProfileController extends Controller
         // Récupère les disponibilités pour CE coach
         $availabilities = $coach->coach->availabilities ?? collect();
         // Renvoie les données à la vue Inertia
-        return Inertia::render('Coach/profileCoach', [
+        return view('Startup.ProfileCoach', [
             'coach' => $coach,
 
             'availabilities' => $availabilities,
@@ -36,7 +36,7 @@ public function List(){
     $coachs = User::where('role', 'coach')
    
     ->with('coach')->get();
-    return Inertia::render('Coach/ListCoach', [
+    return view('Startup.ListCoach', [
             'coachs' => $coachs
         ]);
  

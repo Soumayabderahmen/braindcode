@@ -5,7 +5,7 @@ namespace App\Http\Controllers\AgentIA;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
-class AgentController extends Controller
+class AgentIAController extends Controller
 {
 
 

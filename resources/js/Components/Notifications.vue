@@ -124,56 +124,97 @@ const showToast = (notification) => {
 </script>
 
 <template>
-  <div class="relative">
+  <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
     <button @click="showNotifications = !showNotifications"
-            class="relative p-2 text-gray-600 hover:text-[#4A90E2] notification-button">
-            <span class="text-2xl">🔔</span>      <span v-if="unreadCount > 0"
-            class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
+            class="nav-link dropdown-toggle hide-arrow btn-top notification-button"
+             data-bs-auto-close="outside"
+            aria-expanded="false" type="button">
+      <!-- Icône cloche -->
+      <i class="ti ti-bell ti-md text-dark"></i>
+      <!-- Badge -->
+      <span v-if="unreadCount > 0"
+            class="badge bg-danger rounded-pill badge-notifications">
         {{ unreadCount }}
       </span>
     </button>
 
-    <div v-if="showNotifications"
-         class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 notification-dropdown">
-      <div v-if="notifications.length === 0" class="p-4 text-center text-gray-500">Aucune notification</div>
-
-      <div v-else class="notifications-container" :class="{ 'has-more': notifications.length > 5 }">
-        <div v-for="notification in displayedNotifications"
-             :key="notification.id"
-             @click="markAsRead(notification)"
-             class="notification-item p-4 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-             :class="{ 'bg-blue-50': !notification.read_at }">
-          <p class="font-medium text-gray-600">{{ notification.data.startup_name }}</p>
-          <p class="text-sm text-gray-600">{{ notification.data.message }}</p>
-          <p class="text-xs mt-1 text-gray-600" :class="{
-    'text-yellow-500': notification.data.statut === 'en attente',
-    'text-green-600': notification.data.statut === 'acceptée',
-    'text-red-500': notification.data.statut === 'refusée'
-  }">
-    Statut : {{ notification.data.statut }}
-  </p>
-  <div v-if="notification.data.statut === 'en attente'" class="flex gap-2 mt-2">
-    <button @click="respondToRequest(notification, 'acceptée')"
-            class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm">
-      Accepter
-    </button>
-    <button @click="respondToRequest(notification, 'refusée')"
-            class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm">
-      Refuser
-    </button>
-  </div>
+    <!-- Menu déroulant -->
+    <ul v-if="showNotifications"
+        class="dropdown-menu dropdown-menu-end notificationBox py-0 notification-dropdown"
+        style="min-width: 320px;">
+      <li class="dropdown-menu-header border-bottom">
+        <div class="dropdown-header d-flex align-items-center py-3">
+          <h5 class="text-body mb-0 me-auto text-primary title-notif">Notifications</h5>
         </div>
+      </li>
 
-        <div v-if="notifications.length > NOTIFICATIONS_PER_PAGE && !showAll"
-             class="show-more p-2 text-center border-t">
-          <button @click="showAll = true" class="text-[#4A90E2] hover:text-[#357ABD] font-medium">
-            Voir plus ({{ notifications.length - NOTIFICATIONS_PER_PAGE }})
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+      <li v-if="notifications.length === 0" class="p-4 text-center text-gray-500">
+        Aucune notification
+      </li>
+
+      <li v-else class="dropdown-notifications-list scrollable-container">
+  <ul class="list-group list-group-flush notifications-scroll">
+    <li v-for="notification in displayedNotifications"
+        :key="notification.id"
+        class="list-group-item list-group-item-action dropdown-notifications-item"
+        @click="markAsRead(notification)">
+            <div class="d-flex">
+              <div class="flex-shrink-0 me-3">
+                <div class="avatar">
+                  <div class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                         viewBox="0 0 24 24" fill="none" stroke="#7E57C2"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="mb-1 text-sm font-semibold text-dark">
+                  {{ notification.data.startup_name }}
+                </h6>
+                <p class="mb-0 text-sm text-muted">{{ notification.data.message }}</p>
+                <p class="mb-0 text-xs mt-1"
+                   :class="{
+                     'text-yellow-500': notification.data.statut === 'en attente',
+                     'text-green-600': notification.data.statut === 'acceptée',
+                     'text-red-500': notification.data.statut === 'refusée'
+                   }">
+                  Statut : {{ notification.data.statut }}
+                </p>
+
+                <!-- Actions si en attente -->
+                <div v-if="notification.data.statut === 'en attente'"
+                     class="d-flex gap-2 mt-2">
+                  <button @click.stop="respondToRequest(notification, 'acceptée')"
+                          class="btn btn-sm btn-success">
+                    Accepter
+                  </button>
+                  <button @click.stop="respondToRequest(notification, 'refusée')"
+                          class="btn btn-sm btn-danger">
+                    Refuser
+                  </button>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </li>
+
+      <!-- Voir plus -->
+      <li v-if="notifications.length > NOTIFICATIONS_PER_PAGE && !showAll"
+          class="dropdown-menu-footer border-top d-flex justify-content-center pt-3 pb-3">
+        <button @click="showAll = true"
+                class="dropdown-item btn-show text-primary">
+          Voir plus ({{ notifications.length - NOTIFICATIONS_PER_PAGE }})
+        </button>
+      </li>
+    </ul>
+  </li>
 </template>
+
 
 <style scoped>
 /* Styles des toasts et notifications conservés tels quels... */
@@ -213,6 +254,20 @@ const showToast = (notification) => {
     opacity: 0;
   }
 }
+.notifications-scroll {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 4px; /* pour espace scrollbar */
+}
+
+.notifications-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notifications-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
 
 .notification-dropdown {
   max-height: 480px;
@@ -241,4 +296,17 @@ const showToast = (notification) => {
   padding: 8px;
   text-align: center;
 }
+.notification-dropdown {
+  z-index: 1050 !important; 
+  position: absolute !important;
+  top: 100% !important;
+  right: 0;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  width: 350px;
+
+}
+
 </style>

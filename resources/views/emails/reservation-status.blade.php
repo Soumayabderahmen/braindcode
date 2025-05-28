@@ -13,13 +13,15 @@
         <p><strong>Date et heure du meeting :</strong> {{ \Carbon\Carbon::parse($reservation->meeting_time)->translatedFormat('d F Y à H:i') }}</p>
         <p><strong>Durée :</strong> {{ $reservation->duration }} minutes</p>
         <p><strong>Coût total :</strong> {{ $reservation->total }} €</p>
-
-        <p>🧾 <strong>Veuillez procéder au paiement</strong> pour recevoir le lien du meeting.</p>
-        <form action="{{ route('paiement.show', $reservation->id) }}" method="GET">
-            @csrf
-            <button type="submit" style="padding: 12px 24px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                Procéder au paiement 💳
-            </button>
+      @if(!$reservation->paid)
+    <p><strong>Lien Whereby :</strong> ⚠️ Le lien sera activé après le paiement.</p>
+    <form action="{{ route('paiement.show', $reservation->id) }}" method="GET">
+        @csrf
+        <button type="submit">Procéder au paiement 💳</button>
+    </form>
+@else
+    <p><strong>Lien Whereby :</strong> <a href="{{ $reservation->meeting_url }}">{{ $reservation->meeting_url }}</a></p>
+@endif
         </form>
 
         <p>Merci de votre confiance 🙏</p>

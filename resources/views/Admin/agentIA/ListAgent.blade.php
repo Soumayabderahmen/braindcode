@@ -1,6 +1,6 @@
 @extends('Layouts.general')
 @section('title')
-Réservations
+Agents IA
 @endsection
 @section('page_description')
 
@@ -14,12 +14,13 @@ Réservations
 @section('content')
 
 <div class="container-xxl flex-grow-1 container-p-y mt-0">
-  <notifications ></notifications>
-</div>
+    <list_agent :agents='@json($agents)'></list_agent>
+
+
 
 @endsection
-
 @section('script')
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @routes
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 @endsection
+

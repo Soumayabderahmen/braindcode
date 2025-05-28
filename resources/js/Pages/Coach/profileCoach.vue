@@ -53,7 +53,6 @@ const activeTab = ref("ABOUT");
 </script>
 
 <template>
-  <Main :showSidebar="true">
     <div class="container">
       <div class="row">
         <div class="col-md-12">
@@ -154,7 +153,6 @@ const activeTab = ref("ABOUT");
         </div>
       </div>
     </div>
-  </Main>
 </template>
 
 

@@ -1,6 +1,7 @@
 @php
-    $role = auth()->user()->role; 
+    $role = auth()->check() ? auth()->user()->role : null;
 @endphp
+
 @if ($role === 'admin')
     @include('Layouts.partials.sidebarAdmin')
 

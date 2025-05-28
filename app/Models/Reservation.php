@@ -19,6 +19,7 @@ class Reservation extends Model
         'message',
         'statut',
         'disponibilite_id',
+        'meeting_url',
     ];
 
     // Relations
